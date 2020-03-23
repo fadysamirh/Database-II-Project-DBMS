@@ -282,7 +282,7 @@ public class DBApp {
 				} else {
 					Vector<String> usedPages = toBeInstertedIn.usedPagesNames;
 
-					// System.out.println(pageToBeInstertedInIndex + " this is the index");
+					 System.out.println(" this is the index");
 					boolean flag2 = false;
 					int i = 0;
 					for (i = 0; i < toBeInstertedIn.usedPagesNames.size(); i++) {
