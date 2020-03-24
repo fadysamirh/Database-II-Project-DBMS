@@ -1507,7 +1507,84 @@ public class DBApp {
 
 		} else if (!isClustering && !indexed) {
 			// linear search
+			String tableName = t.name;
+			int colNumber = getColNumber(tableName, colName);
+			for (int i = 0; i < t.usedPagesNames.size(); i++) {
+				String pageName = t.usedPagesNames.get(i);
+				Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+				for (int j = 0 ; j < p.vtrTuples.size() ; j++) {
+					Tuple tup = p.vtrTuples.get(j);
+					Object value = tup.vtrTupleObj.get(colNumber);
+					String tupObj = "";
+					if (Tuple.compareToHelper(value, key) == 0) {
+						for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
+							tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+							// System.out.println(tupObj);
+						}
+						result.add(tupObj);
+					}
+				}
+			}
 
+		}
+		return result;
+	}
+
+	public ArrayList<String> greaterThanOperator(Table t, Object key, boolean indexed, boolean isClustering,
+			String colName) throws DBAppException {
+		ArrayList<String> result = new ArrayList<String>();
+		boolean nextPage = true;
+		return result;
+	}
+
+	public ArrayList<String> lessThanOperator(Table t, Object key, boolean indexed, boolean isClustering,
+			String colName) throws DBAppException {
+		ArrayList<String> result = new ArrayList<String>();
+		boolean nextPage = true;
+		return result;
+	}
+
+	public ArrayList<String> notEqualOperator(Table t, Object key, boolean indexed, boolean isClustering,
+			String colName) throws DBAppException {
+		ArrayList<String> result = new ArrayList<String>();
+		boolean nextPage = true;
+		return result;
+	}
+
+	public static int getColNumber(String tableName, String colName) throws DBAppException {
+		int result = -1;
+		String csvFile = "data/metadata.csv";
+		BufferedReader br = null;
+		String line = "";
+		String cvsSplitBy = ",";
+		ArrayList<String> arrColumn = new ArrayList<String>();
+		try {
+
+			br = new BufferedReader(new FileReader(csvFile));
+			int i = 0;
+			boolean found = false;
+			while ((line = br.readLine()) != null) {
+
+				// use comma as separator
+				String[] d = line.split(cvsSplitBy);
+				if (d[0].equals(tableName)) {
+					if (d[1].equals(colName)) {
+						found = true;
+						break;
+					} else {
+						i++;
+					}
+				}
+			}
+			if (found) {
+				result = i;
+			} else {
+				throw new DBAppException("column name not found");
+			}
+			br.close();
+
+		} catch (Exception e) {
+			throw new DBAppException("error in finding column number");
 		}
 		return result;
 	}
@@ -1534,6 +1611,42 @@ public class DBApp {
 			case ("="):
 				midRes = equalOperator(t, obj, indexed, isClustering, colName);
 				break;
+			case ("!="):
+				midRes = notEqualOperator(t, obj, indexed, isClustering, colName);
+				break;
+			case (">"):
+				midRes = greaterThanOperator(t, obj, indexed, isClustering, colName);
+				break;
+			case ("<"):
+				lessThanOperator(t, obj, indexed, isClustering, colName);
+				break;
+			case (">="):
+				ArrayList<String> greater = new ArrayList<String>();
+				greater = greaterThanOperator(t, obj, indexed, isClustering, colName);
+				ArrayList<String> equal = new ArrayList<String>();
+				equal = equalOperator(t, obj, indexed, isClustering, colName);
+				for (int j = 0; j < equal.size(); j++) {
+					midRes.add(equal.get(j));
+				}
+				for (int j = 0; j < greater.size(); j++) {
+					midRes.add(greater.get(j));
+				}
+				break;
+			case ("<="):
+				ArrayList<String> less = new ArrayList<String>();
+				less = lessThanOperator(t, obj, indexed, isClustering, colName);
+				ArrayList<String> equal2 = new ArrayList<String>();
+				equal2 = equalOperator(t, obj, indexed, isClustering, colName);
+				for (int j = 0; j < less.size(); j++) {
+					midRes.add(less.get(j));
+				}
+				for (int j = 0; j < equal2.size(); j++) {
+					midRes.add(equal2.get(j));
+				}
+				break;
+			default:
+				throw new DBAppException("invalid operator");
+
 			}
 
 			if (i == arrSQLTerms.length - 1) {
@@ -1551,7 +1664,7 @@ public class DBApp {
 
 		Iterator result = resList.iterator();
 		return result;
-		
+
 	}
 
 	public void createBTreeIndex(String strTableName, String strColName)
@@ -1710,8 +1823,8 @@ public class DBApp {
 //		}
 
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(194));
-//		htblColNameValue.put("name", new String("safa"));
+//		htblColNameValue.put("id", new Integer(200));
+//		htblColNameValue.put("name", new String("ab"));
 ////		htblColNameValue.put("date", new Date(2000, 12, 23));
 //		Polygon p = new Polygon();
 //		p.addPoint(1,3);
@@ -1748,16 +1861,16 @@ public class DBApp {
 ////////
 
 //** testing SELECT**
-		SQLTerm[] arrSQLTerms;
-		arrSQLTerms = new SQLTerm[1];
-		for (int i = 0; i < arrSQLTerms.length; i++) {
-			arrSQLTerms[i] = new SQLTerm();
-		}
-		arrSQLTerms[0]._strTableName = "Student";
-		arrSQLTerms[0]._strColumnName = "id";
-		arrSQLTerms[0]._strOperator = "=";
-		arrSQLTerms[0]._objValue = new Integer(194);
-		// System.out.println(arrSQLTerms[0]._strTableName);
+//		SQLTerm[] arrSQLTerms;
+//		arrSQLTerms = new SQLTerm[1];
+//		for (int i = 0; i < arrSQLTerms.length; i++) {
+//			arrSQLTerms[i] = new SQLTerm();
+//		}
+//		arrSQLTerms[0]._strTableName = "Student";
+//		arrSQLTerms[0]._strColumnName = "name";
+//		arrSQLTerms[0]._strOperator = "=";
+//		arrSQLTerms[0]._objValue = "safa";
+//		 System.out.println(arrSQLTerms[0]._strTableName);
 //		
 //		
 //		String[] strarrOperators = new String[1];
@@ -1772,17 +1885,17 @@ public class DBApp {
 
 //***testing B+ tree
 //		dbApp.createBTreeIndex(strTableName, "age");
-//			displayTableContent(strTableName);
+		displayTableContent(strTableName);
+
 //		displayTableContent("Student");
 
 //	Object [] a=dbApp.getArrayToDelete(htblColNameType, strTableName);
 //		for (int i = 0; i < a.length; i++)
 //			System.out.println(a[i]);
 
-			// System.out.println(isIndexed("Student", "id"));
+		// System.out.println(isIndexed("Student", "id"));
 
-		}
 	}
-
+}
 
 //throw DBAexception 
