@@ -19,6 +19,11 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
+import ds.bplus.bptree.BPlusConfiguration;
+import ds.bplus.bptree.BPlusTree;
+import ds.bplus.bptree.BPlusTreePerformanceCounter;
+import ds.bplus.util.InvalidBTreeStateException;
+
 public class DBApp {
 
 	public static int maxPageSize = initializePageSize();
@@ -1536,8 +1541,113 @@ public class DBApp {
 		Iterator result = resList.iterator();
 		return result;
 	}
+	
+	public void createBTreeIndex(String strTableName,String strColName) throws DBAppException, FileNotFoundException, IOException, InvalidBTreeStateException {
+		//check table exists
+		boolean found = checkIfTableFound(strTableName);
 
-	public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException {
+		if (!found) {
+			throw new DBAppException("Table does not exist");
+		} else {
+			//check column exists
+			ArrayList<String> columns = getColNames(strTableName);
+			if(!columns.contains(strColName)) {
+				throw new DBAppException("Column does not exist");
+			}else {
+			
+				//check column does not already have an index
+				try {
+					BufferedReader br = new BufferedReader(new FileReader("data//metadata.csv"));
+					String line;
+					Boolean indexed = false;
+					while ((line = br.readLine()) != null) {
+						String[] values = line.split(",");
+						if (values[0].equals(strTableName)) {
+							if (values[1].equals(strColName)) {
+								if(values[4].equals("true")) {
+									throw new DBAppException("Column already have an index");
+								}
+							}
+						}
+					}
+					br.close();
+				} catch (IOException e) {
+					throw new DBAppException("Error in checking if column already has an index");
+				}
+				
+				//TODO change indexed false to true in metadata
+				File inputFile = new File("data//metadata.csv");
+
+				
+				//get column index in tuple
+				int colIndex = columns.indexOf(strColName);			
+				
+				// create a new BPlusTree
+				//TODO restrict max keys in node
+				BPlusConfiguration conf = new BPlusConfiguration();
+				BPlusTreePerformanceCounter bPerf = new BPlusTreePerformanceCounter(true);
+				String mode="rw+";
+				String treeFilePath = "data//" + strTableName+"_"+ strColName + ".class";
+				BPlusTree bt = new BPlusTree(conf, mode,treeFilePath, bPerf);
+				
+				//TODO add BPlusTree to Table attribute list of Bindex names
+				//should the BPlusTree have a name attribute? ex. strTableName+"_"+ strColName 
+				
+				
+				/*	Insert already existing records keys into tree
+					loop on all tuples in table and 
+					insert each key (modify col content) and value(pointer: page number,tuple index)
+				*/
+				Table table = (Table) getDeserlaized("data//" + strTableName + ".class");
+				Vector<String> usedPages = table.usedPagesNames;
+		
+				for (int i = 0; i < usedPages.size() ; i++) {
+		
+					Page curPage = (Page) (getDeserlaized(
+							"data//" + table.usedPagesNames.get(i) + ".class"));
+					Vector<Tuple> Tuples = curPage.vtrTuples;
+		
+					for (int j = 0; j < Tuples.size(); j++) {
+						Tuple curTuple = Tuples.get(j);
+						Object unmodifiedKey = curTuple.vtrTupleObj.get(colIndex);
+						long modifiedKey = modifyKey(unmodifiedKey);
+						String ptr = i+","+j; //page number , vector number within page
+						bt.insertKey(modifiedKey, ptr, false);
+						}
+					}
+				bt.printTree();
+					
+				
+				//
+			}
+		}
+	}
+
+	public long modifyKey(Object key) {
+		Integer modifiedKey = null;
+		if (key instanceof String) {
+			modifiedKey = decodeString(key.toString());
+		} else if (key instanceof Integer) {
+			modifiedKey = ((Integer) key).intValue();
+//		} else if (key instanceof Character) {
+//			modifiedKey = Character.getNumericValue((Character) key);
+		} else if (key instanceof Boolean) {
+			modifiedKey = ((Boolean) key) == Boolean.TRUE ? 1 : 0;
+		}
+		//double,polygon,date**************
+		return ((long)modifiedKey);
+	}
+	
+	public Integer decodeString(String str) {
+		int hash = 7;
+		int mod = 100000007;
+		for (int i = 0; i < str.length(); i++) {
+			hash = (((hash * 31) % mod) + str.charAt(i)) % mod;
+		}
+		return hash;
+	}
+
+	public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException, InvalidBTreeStateException {
 
 		DBApp dbApp = new DBApp();
 //		dbApp.init();
@@ -1549,10 +1659,11 @@ public class DBApp {
 //		htblColNameType.put("id", "java.lang.Integer");
 //////		// htblColNameType.put("adsfs", "java.lang.Long");
 //		htblColNameType.put("name", "java.lang.String");
+//		htblColNameType.put("age", "java.lang.Integer");
 ////		htblColNameType.put("date", "java.util.Date");
 ////////////		htblColNameType.put("gpa", "java.lang.Double");
-//    		htblColNameType.put("shape", "java.awt.Polygon");
-////////////		htblColNameType.put("grad", "java.lang.Boolean");
+// //   		htblColNameType.put("shape", "java.awt.Polygon");
+//////////		htblColNameType.put("grad", "java.lang.Boolean");
 //		dbApp.createTable(strTableName, "id", htblColNameType);
 
 //		Table a=(Table)getDeserlaized("data//Student.class");
@@ -1564,24 +1675,25 @@ public class DBApp {
 //** insert tuples**
 //		for (int i = 0; i < 210; i++) {
 //		Hashtable htblColNameValue = new Hashtable();
-////////////
-//		htblColNameValue.put("id", new Integer(392));
+//////////////
+//		htblColNameValue.put("id", new Integer(i));
 //		htblColNameValue.put("name", new String("Ab"));
-//		htblColNameValue.put("date", new Date(2000, 11, 23));
-//////		System.out.println((new Date(2020, 11, 11).getClass()));
-//////		System.out.println((new Date(2020, 11, 11)).toString());
-////////
-////////			htblColNameValue.put("gpa", new Double(2.0));
-////////		
-//////////			if (i%2==0) {
-////////					htblColNameValue.put("grad", true);			
-//////////			}
-//////////			else			htblColNameValue.put("grad", false);
-//		Polygon p = new Polygon();
-//		p.addPoint(1,1);
-//		p.addPoint(2,2);
-//////////		System.out.println("n:"+p.npoints);
-//		htblColNameValue.put("shape",  p);
+//		htblColNameValue.put("age", new Integer(i%50));
+////		htblColNameValue.put("date", new Date(2000, 11, 23));
+////////		System.out.println((new Date(2020, 11, 11).getClass()));
+////////		System.out.println((new Date(2020, 11, 11)).toString());
+//////////
+//////////			htblColNameValue.put("gpa", new Double(2.0));
+//////////		
+////////////			if (i%2==0) {
+//////////					htblColNameValue.put("grad", true);			
+////////////			}
+////////////			else			htblColNameValue.put("grad", false);
+////		Polygon p = new Polygon();
+////		p.addPoint(1,1);
+////		p.addPoint(2,2);
+////////////		System.out.println("n:"+p.npoints);
+////		htblColNameValue.put("shape",  p);
 //////////
 //		dbApp.insertIntoTable(strTableName, htblColNameValue);
 //		}
@@ -1623,27 +1735,32 @@ public class DBApp {
 
 //		dbApp.updateTable(strTableName, "30", hash);
 ////////
+
+//** testing SELECT**
+//		SQLTerm[] arrSQLTerms; 
+//		arrSQLTerms = new SQLTerm[1];
+//		for (int i = 0 ; i < arrSQLTerms.length ; i++) {
+//			arrSQLTerms[i] = new SQLTerm();
+//		}
+//		arrSQLTerms[0]._strTableName = "Student"; 
+//		arrSQLTerms[0]._strColumnName= "id"; 
+//		arrSQLTerms[0]._strOperator = "="; 
+//		arrSQLTerms[0]._objValue = new Integer(30);
+//		//System.out.println(arrSQLTerms[0]._strTableName);
+//		
+//		
+//		String[]strarrOperators = new String[1]; 
+//		strarrOperators[0] = "OR"; 
+////		// select * from Student where name = “John Noor” or gpa = 1.5; 
+//		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms , strarrOperators);
+//	      while (resultSet.hasNext()) 
+//	            System.out.print(resultSet.next() + " "); 
+////	  
+//	        System.out.println(); 
 		
-		SQLTerm[] arrSQLTerms; 
-		arrSQLTerms = new SQLTerm[1];
-		for (int i = 0 ; i < arrSQLTerms.length ; i++) {
-			arrSQLTerms[i] = new SQLTerm();
-		}
-		arrSQLTerms[0]._strTableName = "Student"; 
-		arrSQLTerms[0]._strColumnName= "id"; 
-		arrSQLTerms[0]._strOperator = "="; 
-		arrSQLTerms[0]._objValue = new Integer(30);
-		//System.out.println(arrSQLTerms[0]._strTableName);
 		
-		
-		String[]strarrOperators = new String[1]; 
-		strarrOperators[0] = "OR"; 
-//		// select * from Student where name = “John Noor” or gpa = 1.5; 
-		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms , strarrOperators);
-	      while (resultSet.hasNext()) 
-	            System.out.print(resultSet.next() + " "); 
-//	  
-	        System.out.println(); 
+//***testing B+ tree
+    	dbApp.createBTreeIndex(strTableName, "age");
 		displayTableContent(strTableName);
 //		displayTableContent("Student");
 
