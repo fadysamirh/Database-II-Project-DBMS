@@ -1551,6 +1551,7 @@ public class DBApp {
 
 		Iterator result = resList.iterator();
 		return result;
+		
 	}
 
 	public void createBTreeIndex(String strTableName, String strColName)
