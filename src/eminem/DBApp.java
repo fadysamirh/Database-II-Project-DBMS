@@ -39,7 +39,7 @@ public class DBApp {
 			return 0;
 		}
 	}
-	
+
 	public static int getNodeSize() throws DBAppException {
 		int num;
 
@@ -1460,30 +1460,36 @@ public class DBApp {
 		return flag;
 	}
 
-	public ArrayList<String> equalOperator(Table t, Object key, boolean indexed, boolean isClustering, String colName)
+	public ArrayList<Tuple> equalOperator(Table t, Object key, boolean indexed, boolean isClustering, String colName)
 			throws DBAppException {
-		ArrayList<String> result = new ArrayList<String>();
+		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		boolean nextPage = true;
 		if (isClustering && !indexed) {
 			// use binary search
 			int startPageIndex = getPageToBeInsertedIndexUsingClusteringKey(t, key + "");
 			String pageName = t.usedPagesNames.get(startPageIndex);
+			// System.out.println(startPageIndex);
 			Page p = (Page) getDeserlaized("data//" + pageName + ".class");
 			int startTupleIndex = getStartIndexStartUpdate(key, startPageIndex, t);
-
+			// System.out.println(startTupleIndex);
 			try {
 				for (int j = startTupleIndex; j < p.vtrTuples.size(); j++) {
-					Tuple tup = p.vtrTuples.get(j);
 
+					Tuple tup = p.vtrTuples.get(j);
 					Object tupKey = tup.vtrTupleObj.get(tup.index);
+					// System.out.println(tupKey);
 					if (tupKey.equals(key)) {
 
-						String tupObj = "";
-						for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
-							tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
-							// System.out.println(tupObj);
-						}
-						result.add(tupObj);
+						result.add(tup);
+						// System.out.println(tup);
+						// System.out.println(tupKey);
+						// System.out.println("check");
+						// String tupObj = "";
+						// for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
+						// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+						// System.out.println(tupObj);
+						// }
+						// result.add(tupObj);
 
 					} else {
 						nextPage = false;
@@ -1492,6 +1498,7 @@ public class DBApp {
 				}
 				while (nextPage) {
 					startPageIndex++;
+					// System.out.println(startPageIndex);
 					if (startPageIndex < t.usedPagesNames.size()) {
 						// System.out.println("check6");
 						String secondPage = t.usedPagesNames.get(startPageIndex);
@@ -1502,12 +1509,13 @@ public class DBApp {
 							Object tupKey = tup.vtrTupleObj.get(tup.index);
 							if (tupKey.equals(key)) {
 
-								String tupObj = "";
+								// String tupObj = "";
 								for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
-									tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+									result.add(tup);
+									// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
 									// System.out.println(tupObj);
 								}
-								result.add(tupObj);
+								// result.add(tupObj);
 
 							} else {
 								nextPage = false;
@@ -1516,6 +1524,8 @@ public class DBApp {
 							}
 
 						}
+					} else {
+						nextPage = false;
 					}
 
 				}
@@ -1533,38 +1543,41 @@ public class DBApp {
 				for (int j = 0; j < p.vtrTuples.size(); j++) {
 					Tuple tup = p.vtrTuples.get(j);
 					Object value = tup.vtrTupleObj.get(colNumber);
-					String tupObj = "";
+					// String tupObj = "";
 					if (Tuple.compareToHelper(value, key) == 0) {
 						for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
-							tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+							result.add(tup);
+							// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
 							// System.out.println(tupObj);
 						}
-						result.add(tupObj);
+						// result.add(tupObj);
 					}
 				}
+				serialize(p);
 			}
 
 		}
+		// System.out.println(result);
 		return result;
 	}
 
-	public ArrayList<String> greaterThanOperator(Table t, Object key, boolean indexed, boolean isClustering,
+	public ArrayList<Tuple> greaterThanOperator(Table t, Object key, boolean indexed, boolean isClustering,
 			String colName) throws DBAppException {
-		ArrayList<String> result = new ArrayList<String>();
+		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		boolean nextPage = true;
 		return result;
 	}
 
-	public ArrayList<String> lessThanOperator(Table t, Object key, boolean indexed, boolean isClustering,
-			String colName) throws DBAppException {
-		ArrayList<String> result = new ArrayList<String>();
+	public ArrayList<Tuple> lessThanOperator(Table t, Object key, boolean indexed, boolean isClustering, String colName)
+			throws DBAppException {
+		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		boolean nextPage = true;
 		return result;
 	}
 
-	public ArrayList<String> notEqualOperator(Table t, Object key, boolean indexed, boolean isClustering,
-			String colName) throws DBAppException {
-		ArrayList<String> result = new ArrayList<String>();
+	public ArrayList<Tuple> notEqualOperator(Table t, Object key, boolean indexed, boolean isClustering, String colName)
+			throws DBAppException {
+		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		boolean nextPage = true;
 		return result;
 	}
@@ -1607,27 +1620,117 @@ public class DBApp {
 		return result;
 	}
 
+	public static ArrayList<Tuple> andOperator(ArrayList<Tuple> first, ArrayList<Tuple> second, int firstCol,
+			int secondCol) throws DBAppException {
+		ArrayList<Tuple> result = new ArrayList<Tuple>();
+		for (int i = 0; i < first.size(); i++) {
+			Object fKey = first.get(i).vtrTupleObj.get(firstCol);
+			//System.out.println(fKey);
+			Object sKey = first.get(i).vtrTupleObj.get(secondCol);
+			//System.out.println(sKey);
+			for (int j = 0; j < second.size(); j++) {
+				Object secondfKey = second.get(j).vtrTupleObj.get(firstCol);
+				//System.out.println(secondfKey);
+				Object secondsKey = second.get(j).vtrTupleObj.get(secondCol);
+				if (Tuple.compareToHelper(fKey, secondfKey) == 0) {
+					//System.out.println("check");
+					if (Tuple.compareToHelper(sKey, secondsKey) == 0) {
+						//System.out.println("check");
+						result.add(first.get(i));
+					}
+				}
+			}
+		}
+		//System.out.println(result);
+		return result;
+	}
+
+	public static ArrayList<Tuple> orOperator() {
+		ArrayList<Tuple> result = new ArrayList<Tuple>();
+		return result;
+	}
+
+	public static ArrayList<Tuple> xorOperator() {
+		ArrayList<Tuple> result = new ArrayList<Tuple>();
+		return result;
+	}
+
+	public static ArrayList<Tuple> handleOperators(ArrayList<ArrayList<Tuple>> all, ArrayList<Integer> colNumbers,
+			String[] strarrOperators) throws DBAppException {
+		ArrayList<Tuple> result = new ArrayList<Tuple>();
+		int colRefer = -1;
+		for (int i = 0; i < strarrOperators.length; i++) {
+			String operator = strarrOperators[i];
+			ArrayList<Tuple> first = new ArrayList<Tuple>();
+			ArrayList<Tuple> second = new ArrayList<Tuple>();
+			if (result.isEmpty()) {
+				if (!all.isEmpty()) {
+					first = all.remove(0);
+					colRefer++;
+					if (!all.isEmpty()) {
+						second = all.remove(0);
+						colRefer++;
+					} else {
+						throw new DBAppException("incorrect number of terms");
+					}
+				} else {
+					throw new DBAppException("incorrect number of terms");
+				}
+			} else {
+				first = result;
+				if (!all.isEmpty()) {
+					second = all.remove(0);
+					colRefer++;
+				}
+			}
+			switch (operator) {
+			case ("AND"):
+				result = andOperator(first, second, colNumbers.get(colRefer - 1), colNumbers.get(colRefer));
+				break;
+			case ("OR"):
+				result = orOperator();
+				break;
+			case ("XOR"):
+				result = xorOperator();
+				break;
+			default:
+				throw new DBAppException("invalid operator");
+			}
+		}
+		return result;
+	}
+
 	public Iterator selectFromTable(SQLTerm[] arrSQLTerms, String[] strarrOperators) throws DBAppException {
 
-		ArrayList<String> resList = new ArrayList<String>();
+		ArrayList<ArrayList<Tuple>> resList = new ArrayList<ArrayList<Tuple>>();
+		ArrayList<Integer> colNumStore = new ArrayList<Integer>();
+		// int currentOperator = -1;
+		// int currentTerm = 0;
 
 		for (int i = 0; i < arrSQLTerms.length; i++) {
+
 			String tableName = arrSQLTerms[i]._strTableName;
-			// System.out.println(arrSQLTerms[i]._strTableName);
-			Table t = (Table) getDeserlaized("data//" + tableName + ".class");
+			// System.out.println(tableName);
+			Table t = (Table) getDeserlaized("data/" + tableName + ".class");
 			String colName = arrSQLTerms[i]._strColumnName;
+			// System.out.println(colName);
 			String operator = arrSQLTerms[i]._strOperator;
+			// System.out.println(operator);
 			Object obj = arrSQLTerms[i]._objValue;
-			// String value = arrSQLTerms[i]._objValue + "";
 			// System.out.println(obj);
 			boolean indexed = isIndexed(tableName, colName);
 			// System.out.println(indexed);
 			boolean isClustering = isClusteringKey(tableName, colName);
 			// System.out.println(isClustering);
-			ArrayList<String> midRes = new ArrayList<String>();
+			ArrayList<Tuple> midRes = new ArrayList<Tuple>();
+			int colNum = getColNumber(tableName, colName);
+			// System.out.println(colNum);
+			colNumStore.add(colNum);
+
 			switch (operator) {
 			case ("="):
 				midRes = equalOperator(t, obj, indexed, isClustering, colName);
+				// System.out.println(midRes);
 				break;
 			case ("!="):
 				midRes = notEqualOperator(t, obj, indexed, isClustering, colName);
@@ -1639,9 +1742,9 @@ public class DBApp {
 				lessThanOperator(t, obj, indexed, isClustering, colName);
 				break;
 			case (">="):
-				ArrayList<String> greater = new ArrayList<String>();
+				ArrayList<Tuple> greater = new ArrayList<Tuple>();
 				greater = greaterThanOperator(t, obj, indexed, isClustering, colName);
-				ArrayList<String> equal = new ArrayList<String>();
+				ArrayList<Tuple> equal = new ArrayList<Tuple>();
 				equal = equalOperator(t, obj, indexed, isClustering, colName);
 				for (int j = 0; j < equal.size(); j++) {
 					midRes.add(equal.get(j));
@@ -1651,9 +1754,9 @@ public class DBApp {
 				}
 				break;
 			case ("<="):
-				ArrayList<String> less = new ArrayList<String>();
+				ArrayList<Tuple> less = new ArrayList<Tuple>();
 				less = lessThanOperator(t, obj, indexed, isClustering, colName);
-				ArrayList<String> equal2 = new ArrayList<String>();
+				ArrayList<Tuple> equal2 = new ArrayList<Tuple>();
 				equal2 = equalOperator(t, obj, indexed, isClustering, colName);
 				for (int j = 0; j < less.size(); j++) {
 					midRes.add(less.get(j));
@@ -1666,8 +1769,7 @@ public class DBApp {
 				throw new DBAppException("invalid operator");
 
 			}
-
-			if (i == arrSQLTerms.length - 1) {
+			if (strarrOperators.length == 0 || i == arrSQLTerms.length - 1) {
 				try {
 					ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//" + t.name + ".class"));
 					bin.writeObject(t);
@@ -1677,10 +1779,24 @@ public class DBApp {
 					throw new DBAppException("error in serialization");
 				}
 			}
-			resList = midRes;
+			resList.add(midRes);
 		}
 
-		Iterator result = resList.iterator();
+		// to be returned after applying operators2
+		ArrayList<Tuple> almostLast = new ArrayList<Tuple>();
+		if (strarrOperators.length == 0) {
+			for (int i = 0; i < resList.size(); i++) {
+				for (int j = 0; j < resList.get(i).size(); j++) {
+					// System.out.println(resList.get(i).get(j));
+					almostLast.add(resList.get(i).get(j));
+					// System.out.println(resList.get(i).get(j));
+				}
+			}
+		} else {
+			almostLast = handleOperators(resList, colNumStore, strarrOperators);
+
+		}
+		Iterator result = almostLast.iterator();
 		return result;
 
 	}
@@ -1848,7 +1964,7 @@ public class DBApp {
 			throws FileNotFoundException, DBAppException, IOException, InvalidBTreeStateException {
 
 		DBApp dbApp = new DBApp();
-//   	dbApp.init();
+		dbApp.init();
 //	    System.out.println(dbApp.maxPageSize);
 		String strTableName = "Student";
 //**create table**
@@ -1898,14 +2014,14 @@ public class DBApp {
 //		}
 
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(200));
-//		htblColNameValue.put("name", new String("ab"));
-////		htblColNameValue.put("date", new Date(2000, 12, 23));
-//		Polygon p = new Polygon();
-//		p.addPoint(1,3);
-//		p.addPoint(2,4);
-////////////		System.out.println("n:"+p.npoints);
-//		htblColNameValue.put("shape",  p);
+//		htblColNameValue.put("id", new Integer(50));
+//		htblColNameValue.put("name", new String("a"));
+//////		htblColNameValue.put("date", new Date(2000, 12, 23));
+////		Polygon p = new Polygon();
+////		p.addPoint(1,3);
+////		p.addPoint(2,4);
+//////////////		System.out.println("n:"+p.npoints);
+////		htblColNameValue.put("shape",  p);
 //		dbApp.insertIntoTable(strTableName, htblColNameValue);
 
 //**delete tuples**
@@ -1937,30 +2053,35 @@ public class DBApp {
 
 //** testing SELECT**
 //		SQLTerm[] arrSQLTerms;
-//		arrSQLTerms = new SQLTerm[1];
+//		arrSQLTerms = new SQLTerm[2];
 //		for (int i = 0; i < arrSQLTerms.length; i++) {
 //			arrSQLTerms[i] = new SQLTerm();
 //		}
 //		arrSQLTerms[0]._strTableName = "Student";
-//		arrSQLTerms[0]._strColumnName = "name";
+//		arrSQLTerms[0]._strColumnName = "id";
 //		arrSQLTerms[0]._strOperator = "=";
-//		arrSQLTerms[0]._objValue = "safa";
-//		 System.out.println(arrSQLTerms[0]._strTableName);
-//		
-//		
+//		arrSQLTerms[0]._objValue = new Integer(20);
+//
+//		arrSQLTerms[1]._strTableName = "Student";
+//		arrSQLTerms[1]._strColumnName = "id";
+//		arrSQLTerms[1]._strOperator = "=";
+//		arrSQLTerms[1]._objValue = new Integer(50);
+////		 System.out.println(arrSQLTerms[0]._strTableName);
+////		
+////		
 //		String[] strarrOperators = new String[1];
-//		strarrOperators[0] = "OR";
-////		// select * from Student where name = “John Noor” or gpa = 1.5; 
+//		strarrOperators[0] = "AND";
+////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
 //		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
 //		while (resultSet.hasNext()) {
 //			System.out.print(resultSet.next() + " ");
 //			System.out.println();
 //		}
-////	  
+//////	  
 
 //***testing B+ tree
 //		dbApp.createBTreeIndex(strTableName, "age");
-		displayTableContent(strTableName);
+//		displayTableContent(strTableName);
 
 //		displayTableContent("Student");
 
@@ -1969,7 +2090,6 @@ public class DBApp {
 //			System.out.println(a[i]);
 
 		// System.out.println(isIndexed("Student", "id"));
-		
 
 	}
 }
