@@ -1625,23 +1625,23 @@ public class DBApp {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		for (int i = 0; i < first.size(); i++) {
 			Object fKey = first.get(i).vtrTupleObj.get(firstCol);
-			//System.out.println(fKey);
+			// System.out.println(fKey);
 			Object sKey = first.get(i).vtrTupleObj.get(secondCol);
-			//System.out.println(sKey);
+			// System.out.println(sKey);
 			for (int j = 0; j < second.size(); j++) {
 				Object secondfKey = second.get(j).vtrTupleObj.get(firstCol);
-				//System.out.println(secondfKey);
+				// System.out.println(secondfKey);
 				Object secondsKey = second.get(j).vtrTupleObj.get(secondCol);
 				if (Tuple.compareToHelper(fKey, secondfKey) == 0) {
-					//System.out.println("check");
+					// System.out.println("check");
 					if (Tuple.compareToHelper(sKey, secondsKey) == 0) {
-						//System.out.println("check");
+						// System.out.println("check");
 						result.add(first.get(i));
 					}
 				}
 			}
 		}
-		//System.out.println(result);
+		// System.out.println(result);
 		return result;
 	}
 
