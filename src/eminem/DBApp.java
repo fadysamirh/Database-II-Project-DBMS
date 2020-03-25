@@ -1650,21 +1650,21 @@ public class DBApp {
 	public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException, InvalidBTreeStateException {
 
 		DBApp dbApp = new DBApp();
-//		dbApp.init();
+		dbApp.init();
 //	    System.out.println(dbApp.maxPageSize);
-		String strTableName = "Student";
+		String strTableName = "boo";
 //**create table**
-//		Hashtable<String, String> htblColNameType = new Hashtable();
-//////
-//		htblColNameType.put("id", "java.lang.Integer");
-//////		// htblColNameType.put("adsfs", "java.lang.Long");
-//		htblColNameType.put("name", "java.lang.String");
-//		htblColNameType.put("age", "java.lang.Integer");
-////		htblColNameType.put("date", "java.util.Date");
-////////////		htblColNameType.put("gpa", "java.lang.Double");
-// //   		htblColNameType.put("shape", "java.awt.Polygon");
-//////////		htblColNameType.put("grad", "java.lang.Boolean");
-//		dbApp.createTable(strTableName, "id", htblColNameType);
+		Hashtable<String, String> htblColNameType = new Hashtable();
+////
+		htblColNameType.put("id", "java.lang.Integer");
+////		// htblColNameType.put("adsfs", "java.lang.Long");
+		htblColNameType.put("name", "java.lang.String");
+		htblColNameType.put("age", "java.lang.Integer");
+//		htblColNameType.put("date", "java.util.Date");
+//////////		htblColNameType.put("gpa", "java.lang.Double");
+ //   		htblColNameType.put("shape", "java.awt.Polygon");
+////////		htblColNameType.put("grad", "java.lang.Boolean");
+		dbApp.createTable(strTableName, "id", htblColNameType);
 
 //		Table a=(Table)getDeserlaized("data//Student.class");
 //		System.out.println(a.colNames[0]);
@@ -1760,7 +1760,7 @@ public class DBApp {
 		
 		
 //***testing B+ tree
-    	dbApp.createBTreeIndex(strTableName, "age");
+//    	dbApp.createBTreeIndex(strTableName, "age");
 		displayTableContent(strTableName);
 //		displayTableContent("Student");
 
