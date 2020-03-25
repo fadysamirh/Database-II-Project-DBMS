@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -131,7 +132,8 @@ public class DBApp {
 	public static Object getDeserlaized(String path) throws DBAppException {
 		try {
 			// Creating stream to read the object
-			// System.out.println(path);
+			//System.out.println(path);
+
 			ObjectInputStream in = new ObjectInputStream(new FileInputStream(path));
 			Object a = in.readObject();
 			in.close();
@@ -1666,6 +1668,32 @@ public class DBApp {
 		return result;
 
 	}
+	public static void serializeTree(Object name) throws DBAppException {
+
+		try {
+			BPlusTree t = (BPlusTree) name;
+			String n = t.treeName;
+			ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//" + n + ".class"));
+
+			bin.writeObject(name);
+			bin.flush();
+			bin.close();
+		} catch (Exception e) {
+			throw new DBAppException("error in serialization");
+		}
+	}
+	public static Object deserializeTree(String path) throws DBAppException {
+		try {
+			ObjectInputStream in = new ObjectInputStream(new FileInputStream(path));
+			Object a = in.readObject();
+			in.close();
+			RandomAccessFile treeFile = new RandomAccessFile("data//" +((BPlusTree)a).treeName+"_details" + ".class", "rw");
+			((BPlusTree)a).setTreeFile(treeFile);
+			return a;
+		} catch (Exception e) {
+			throw new DBAppException("error in deserialization");
+		}
+	}
 
 	public void createBTreeIndex(String strTableName, String strColName)
 			throws DBAppException, FileNotFoundException, IOException, InvalidBTreeStateException {
@@ -1681,71 +1709,64 @@ public class DBApp {
 				throw new DBAppException("Column does not exist");
 			} else {
 
-				// check column does not already have an index
-				try {
-					BufferedReader br = new BufferedReader(new FileReader("data//metadata.csv"));
-					String line;
-					Boolean indexed = false;
-					while ((line = br.readLine()) != null) {
-						String[] values = line.split(",");
-						if (values[0].equals(strTableName)) {
-							if (values[1].equals(strColName)) {
-								if (values[4].equals("true")) {
-									throw new DBAppException("Column already have an index");
-								}
-							}
+				// check column does not already have an index isindex
+				if(isIndexed(strTableName, strColName)) {
+					throw new DBAppException("Column already have an index");
+				} else {
+	
+					// TODO change indexed false to true in metadata (Safa)
+					File inputFile = new File("data//metadata.csv");
+	
+					// get column index in tuple
+					int colIndex = columns.indexOf(strColName);
+	
+					// create a new BPlusTree
+					// TODO restrict max keys in node (page size and key size)
+					BPlusTree bt = new BPlusTree(strTableName,strColName);
+
+					
+					/*
+					 * Insert already existing records keys into tree loop on all tuples in table
+					 * and insert each key (modify col content) and value(pointer: page name,tuple
+					 * index)
+					 */
+					Table table = (Table) getDeserlaized("data//" + strTableName + ".class");
+					Vector<String> usedPages = table.usedPagesNames;
+	
+					for (int i = 0; i < usedPages.size(); i++) {
+	
+						Page curPage = (Page) (getDeserlaized("data//" + table.usedPagesNames.get(i) + ".class"));
+						Vector<Tuple> Tuples = curPage.vtrTuples;
+	
+						for (int j = 0; j < Tuples.size(); j++) {
+							Tuple curTuple = Tuples.get(j);
+							Object unmodifiedKey = curTuple.vtrTupleObj.get(colIndex);
+							long modifiedKey = modifyKey(unmodifiedKey);
+							String ptr = curPage.pageName + "," + j; // page name , tuple number within page
+							bt.insertKey(modifiedKey, ptr, false);
 						}
 					}
-					br.close();
-				} catch (IOException e) {
-					throw new DBAppException("Error in checking if column already has an index");
+					//add index name to table list of usedIndicesNames then serialize table
+					table.usedIndicesNames.add(bt.treeName); //or should we just add column name??
+					FileOutputStream f1 = new FileOutputStream("data//" + strTableName + ".class");
+					ObjectOutputStream bin1 = new ObjectOutputStream(f1);
+					bin1.writeObject(table);
+					bin1.flush();
+					bin1.close();
+					
+					//serialize tree
+					serializeTree(bt);
+					
+					bt.printTree();
+					bt.getTreeConfiguration().printConfiguration();
+	
 				}
-
-				// TODO change indexed false to true in metadata
-				File inputFile = new File("data//metadata.csv");
-
-				// get column index in tuple
-				int colIndex = columns.indexOf(strColName);
-
-				// create a new BPlusTree
-				// TODO restrict max keys in node
-				BPlusConfiguration conf = new BPlusConfiguration();
-				BPlusTreePerformanceCounter bPerf = new BPlusTreePerformanceCounter(true);
-				String mode = "rw+";
-				String treeFilePath = "data//" + strTableName + "_" + strColName + ".class";
-				BPlusTree bt = new BPlusTree(conf, mode, treeFilePath, bPerf);
-
-				// TODO add BPlusTree to Table attribute list of Bindex names
-				// should the BPlusTree have a name attribute? ex. strTableName+"_"+ strColName
-
-				/*
-				 * Insert already existing records keys into tree loop on all tuples in table
-				 * and insert each key (modify col content) and value(pointer: page number,tuple
-				 * index)
-				 */
-				Table table = (Table) getDeserlaized("data//" + strTableName + ".class");
-				Vector<String> usedPages = table.usedPagesNames;
-
-				for (int i = 0; i < usedPages.size(); i++) {
-
-					Page curPage = (Page) (getDeserlaized("data//" + table.usedPagesNames.get(i) + ".class"));
-					Vector<Tuple> Tuples = curPage.vtrTuples;
-
-					for (int j = 0; j < Tuples.size(); j++) {
-						Tuple curTuple = Tuples.get(j);
-						Object unmodifiedKey = curTuple.vtrTupleObj.get(colIndex);
-						long modifiedKey = modifyKey(unmodifiedKey);
-						String ptr = i + "," + j; // page number , vector number within page
-						bt.insertKey(modifiedKey, ptr, false);
-					}
-				}
-				bt.printTree();
-
-				//
 			}
 		}
 	}
-
+	
+	
+	// TODO double,polygon,date (karim)
 	public long modifyKey(Object key) {
 		Integer modifiedKey = null;
 		if (key instanceof String) {
@@ -1757,7 +1778,7 @@ public class DBApp {
 		} else if (key instanceof Boolean) {
 			modifiedKey = ((Boolean) key) == Boolean.TRUE ? 1 : 0;
 		}
-		// double,polygon,date**************
+
 		return ((long) modifiedKey);
 	}
 
@@ -1769,6 +1790,17 @@ public class DBApp {
 		}
 		return hash;
 	}
+	
+	public void checkTree(String strTableName, String strColName ) throws DBAppException, IOException {
+		String name = strTableName + "_" + strColName;
+		Table t = (Table) getDeserlaized("data//" + strTableName + ".class");
+		System.out.println(t.usedIndicesNames.get(0));
+		BPlusTree tree = (BPlusTree) deserializeTree("data//" + t.usedIndicesNames.get(0) + ".class");
+		//tree.getTreeConfiguration().printConfiguration();
+		System.out.println("tree name:"+tree.treeName);
+		System.out.println("RAF length:"+tree.getTreeFile().length());
+	} 
+
 
 	public static void main(String[] args)
 			throws FileNotFoundException, DBAppException, IOException, InvalidBTreeStateException {
@@ -1776,19 +1808,19 @@ public class DBApp {
 		DBApp dbApp = new DBApp();
 		dbApp.init();
 //	    System.out.println(dbApp.maxPageSize);
-		String strTableName = "boo";
+		String strTableName = "Student";
 //**create table**
-		Hashtable<String, String> htblColNameType = new Hashtable();
-////
-		htblColNameType.put("id", "java.lang.Integer");
-////		// htblColNameType.put("adsfs", "java.lang.Long");
-		htblColNameType.put("name", "java.lang.String");
-		htblColNameType.put("age", "java.lang.Integer");
-//		htblColNameType.put("date", "java.util.Date");
-//////////		htblColNameType.put("gpa", "java.lang.Double");
- //   		htblColNameType.put("shape", "java.awt.Polygon");
-////////		htblColNameType.put("grad", "java.lang.Boolean");
-		dbApp.createTable(strTableName, "id", htblColNameType);
+//		Hashtable<String, String> htblColNameType = new Hashtable();
+//////
+//		htblColNameType.put("id", "java.lang.Integer");
+//////		// htblColNameType.put("adsfs", "java.lang.Long");
+//		htblColNameType.put("name", "java.lang.String");
+//		htblColNameType.put("age", "java.lang.Integer");
+////		htblColNameType.put("date", "java.util.Date");
+////////////		htblColNameType.put("gpa", "java.lang.Double");
+// //   		htblColNameType.put("shape", "java.awt.Polygon");
+//////////		htblColNameType.put("grad", "java.lang.Boolean");
+//		dbApp.createTable(strTableName, "id", htblColNameType);
 
 //		Table a=(Table)getDeserlaized("data//Student.class");
 //		System.out.println(a.colNames[0]);
@@ -1884,12 +1916,12 @@ public class DBApp {
 ////	  
 
 //***testing B+ tree
-<<<<<<< HEAD
-//    	dbApp.createBTreeIndex(strTableName, "age");
-=======
 
->>>>>>> 5b92054f787c106eef338677e4406ceca2ea31d0
-		displayTableContent(strTableName);
+//		dbApp.createBTreeIndex(strTableName, "age");
+//		dbApp.checkTree(strTableName, "age");
+
+
+//		displayTableContent(strTableName);
 
 //		displayTableContent("Student");
 

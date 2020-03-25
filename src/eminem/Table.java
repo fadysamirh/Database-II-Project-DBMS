@@ -19,6 +19,7 @@ public class Table implements Serializable {
 	public Vector<String> usedPagesNames;
 	public int index; // check if needed
 	public String[] colNames;// added for delete
+	public Vector<String> usedIndicesNames;
 
 	public Table(String name, String strClusteringKeyColumn, Hashtable<String, String> htblColNameType)
 			throws DBAppException {
@@ -29,6 +30,7 @@ public class Table implements Serializable {
 		htblColNameType.put("TouchDate", "java.util.Date");
 		this.strClusteringKeyColumn = strClusteringKeyColumn;
 		this.usedPagesNames = new Vector<String>();
+		this.usedIndicesNames = new Vector<String>();
 		colNames = new String[htblColNameType.size()];
 		
 		// added for delete
