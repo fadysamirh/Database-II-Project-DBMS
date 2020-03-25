@@ -30,16 +30,18 @@ public class Table implements Serializable {
 		this.strClusteringKeyColumn = strClusteringKeyColumn;
 		this.usedPagesNames = new Vector<String>();
 		colNames = new String[htblColNameType.size()];
-		
+
 		// added for delete
 
 		try {
 
 			boolean flag = true;
 			Enumeration e = htblColNameType.keys();
-			Enumeration n = htblColNameType.elements();			
-			FileWriter writer = new FileWriter("data//metadata.csv", true);
-			
+			Enumeration n = htblColNameType.elements();
+
+			File f = new File("data/metadata.csv");
+			// when creating a second new table an error arises here
+			FileWriter writer = new FileWriter(f, true);
 
 			File mymetadata = new File("data//metadata.csv");
 			if (mymetadata.length() == 0) {

@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.Vector;
 
 import ds.bplus.bptree.BPlusConfiguration;
@@ -37,6 +38,23 @@ public class DBApp {
 			;
 			return 0;
 		}
+	}
+	
+	public static int getNodeSize() throws DBAppException {
+		int num;
+
+		try {
+			FileReader reader = new FileReader("config\\DBApp.properties");
+
+			Properties p = new Properties();
+			p.load(reader);
+
+			return num = Integer.parseInt(p.getProperty("NodeSize"));
+			// System.out.println(p.getProperty("password")); }
+		} catch (IOException e) {
+			throw new DBAppException("error in finding config file");
+		}
+
 	}
 
 	// this method produces an array of column names with corresponding data types
@@ -1512,7 +1530,7 @@ public class DBApp {
 			for (int i = 0; i < t.usedPagesNames.size(); i++) {
 				String pageName = t.usedPagesNames.get(i);
 				Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-				for (int j = 0 ; j < p.vtrTuples.size() ; j++) {
+				for (int j = 0; j < p.vtrTuples.size(); j++) {
 					Tuple tup = p.vtrTuples.get(j);
 					Object value = tup.vtrTupleObj.get(colNumber);
 					String tupObj = "";
@@ -1667,6 +1685,62 @@ public class DBApp {
 
 	}
 
+	public static void makeIndexed(String tableName, String colName) throws DBAppException {
+
+		try {
+			// boolean flag = false;
+			boolean colFound = false;
+			String csvFile = "data/metadata.csv";
+			BufferedReader br = null;
+			String line = "";
+			String cvsSplitBy = ",";
+			ArrayList<String> arrColumn = new ArrayList<String>();
+			String returnBack = "";
+
+			try {
+
+				br = new BufferedReader(new FileReader(csvFile));
+
+				while ((line = br.readLine()) != null) {
+					System.out.println(line);
+
+					// use comma as separator
+					String[] d = line.split(cvsSplitBy);
+					System.out.println(d[0]);
+					if (d[0].equals(tableName)) {
+
+						if (d[1].equals(colName)) {
+							colFound = true;
+							d[4] = "true";
+						}
+					}
+
+					for (int i = 0; i < d.length; i++) {
+						returnBack = returnBack + d[i] + ",";
+					}
+					returnBack += "\n";
+
+				}
+				br.close();
+				File file = new File("data/metadata.csv");
+				FileWriter writer = new FileWriter(file, false);
+				writer.append(returnBack);
+				writer.append("\n");
+				writer.flush();
+				writer.close();
+				if (!colFound) {
+					throw new DBAppException("column not found");
+				}
+
+			} catch (Exception e) {
+				throw new DBAppException("error in making a column indexed");
+			}
+
+		} catch (Exception e) {
+			throw new DBAppException("error in changing index state");
+		}
+	}
+
 	public void createBTreeIndex(String strTableName, String strColName)
 			throws DBAppException, FileNotFoundException, IOException, InvalidBTreeStateException {
 		// check table exists
@@ -1701,7 +1775,7 @@ public class DBApp {
 					throw new DBAppException("Error in checking if column already has an index");
 				}
 
-				// TODO change indexed false to true in metadata
+				makeIndexed(strTableName, strColName);
 				File inputFile = new File("data//metadata.csv");
 
 				// get column index in tuple
@@ -1774,7 +1848,7 @@ public class DBApp {
 			throws FileNotFoundException, DBAppException, IOException, InvalidBTreeStateException {
 
 		DBApp dbApp = new DBApp();
-//		dbApp.init();
+//   	dbApp.init();
 //	    System.out.println(dbApp.maxPageSize);
 		String strTableName = "Student";
 //**create table**
@@ -1789,6 +1863,7 @@ public class DBApp {
 // //   		htblColNameType.put("shape", "java.awt.Polygon");
 //////////		htblColNameType.put("grad", "java.lang.Boolean");
 //		dbApp.createTable(strTableName, "id", htblColNameType);
+//		dbApp.makeIndexed(strTableName, "name");
 
 //		Table a=(Table)getDeserlaized("data//Student.class");
 //		System.out.println(a.colNames[0]);
@@ -1894,6 +1969,7 @@ public class DBApp {
 //			System.out.println(a[i]);
 
 		// System.out.println(isIndexed("Student", "id"));
+		
 
 	}
 }
