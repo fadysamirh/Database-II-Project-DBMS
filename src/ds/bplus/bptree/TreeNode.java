@@ -4,6 +4,7 @@ import ds.bplus.util.InvalidBTreeStateException;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.util.InvalidPropertiesFormatException;
 import java.util.LinkedList;
 
@@ -14,7 +15,7 @@ import java.util.LinkedList;
  *
  */
 @SuppressWarnings("unused")
-abstract class TreeNode {
+abstract class TreeNode implements Serializable {
     final LinkedList<Long> keyArray;  // key array
     private TreeNodeType nodeType;    // actual node type
     private long pageIndex;           // node page index

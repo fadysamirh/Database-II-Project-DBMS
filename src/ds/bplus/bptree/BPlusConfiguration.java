@@ -1,5 +1,7 @@
 package ds.bplus.bptree;
 
+import java.io.Serializable;
+
 /**
  *
  * Class that stores all of the configuration parameters for our B+ Tree.
@@ -8,7 +10,7 @@ package ds.bplus.bptree;
  *
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class BPlusConfiguration {
+public class BPlusConfiguration implements Serializable {
 
     private int pageSize;           // page size (in bytes)
     private int keySize;            // key size (in bytes)

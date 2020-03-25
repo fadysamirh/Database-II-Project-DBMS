@@ -2052,31 +2052,31 @@ public class DBApp {
 ////////
 
 //** testing SELECT**
-//		SQLTerm[] arrSQLTerms;
-//		arrSQLTerms = new SQLTerm[2];
-//		for (int i = 0; i < arrSQLTerms.length; i++) {
-//			arrSQLTerms[i] = new SQLTerm();
-//		}
-//		arrSQLTerms[0]._strTableName = "Student";
-//		arrSQLTerms[0]._strColumnName = "id";
-//		arrSQLTerms[0]._strOperator = "=";
-//		arrSQLTerms[0]._objValue = new Integer(20);
-//
-//		arrSQLTerms[1]._strTableName = "Student";
-//		arrSQLTerms[1]._strColumnName = "id";
-//		arrSQLTerms[1]._strOperator = "=";
-//		arrSQLTerms[1]._objValue = new Integer(50);
-////		 System.out.println(arrSQLTerms[0]._strTableName);
-////		
-////		
-//		String[] strarrOperators = new String[1];
-//		strarrOperators[0] = "AND";
-////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
-//		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
-//		while (resultSet.hasNext()) {
-//			System.out.print(resultSet.next() + " ");
-//			System.out.println();
-//		}
+		SQLTerm[] arrSQLTerms;
+		arrSQLTerms = new SQLTerm[2];
+		for (int i = 0; i < arrSQLTerms.length; i++) {
+			arrSQLTerms[i] = new SQLTerm();
+		}
+		arrSQLTerms[0]._strTableName = "Student";
+		arrSQLTerms[0]._strColumnName = "id";
+		arrSQLTerms[0]._strOperator = "=";
+		arrSQLTerms[0]._objValue = new Integer(20);
+
+		arrSQLTerms[1]._strTableName = "Student";
+		arrSQLTerms[1]._strColumnName = "id";
+		arrSQLTerms[1]._strOperator = "=";
+		arrSQLTerms[1]._objValue = new Integer(50);
+//		 System.out.println(arrSQLTerms[0]._strTableName);
+//		
+//		
+		String[] strarrOperators = new String[1];
+		strarrOperators[0] = "AND";
+//////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
+		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
+		while (resultSet.hasNext()) {
+			System.out.print(resultSet.next() + " ");
+			System.out.println();
+		}
 //////	  
 
 //***testing B+ tree

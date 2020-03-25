@@ -19,6 +19,7 @@ public class Table implements Serializable {
 	public Vector<String> usedPagesNames;
 	public int index; // check if needed
 	public String[] colNames;// added for delete
+	public Vector<String> usedIndicesNames;
 
 	public Table(String name, String strClusteringKeyColumn, Hashtable<String, String> htblColNameType)
 			throws DBAppException {
@@ -29,19 +30,18 @@ public class Table implements Serializable {
 		htblColNameType.put("TouchDate", "java.util.Date");
 		this.strClusteringKeyColumn = strClusteringKeyColumn;
 		this.usedPagesNames = new Vector<String>();
+		this.usedIndicesNames = new Vector<String>();
 		colNames = new String[htblColNameType.size()];
-
+		
 		// added for delete
 
 		try {
 
 			boolean flag = true;
 			Enumeration e = htblColNameType.keys();
-			Enumeration n = htblColNameType.elements();
-
-			File f = new File("data/metadata.csv");
-			// when creating a second new table an error arises here
-			FileWriter writer = new FileWriter(f, true);
+			Enumeration n = htblColNameType.elements();			
+			FileWriter writer = new FileWriter("data//metadata.csv", true);
+			
 
 			File mymetadata = new File("data//metadata.csv");
 			if (mymetadata.length() == 0) {
@@ -124,3 +124,4 @@ public class Table implements Serializable {
 //		System.out.println();
 //	}
 }
+

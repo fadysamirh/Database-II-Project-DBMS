@@ -3,19 +3,22 @@ package ds.bplus.bptree;
 import ds.bplus.util.InvalidBTreeStateException;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.InvalidPropertiesFormatException;
 import java.util.LinkedList;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("WeakerAccess")
-public class BPlusTree {
+public class BPlusTree implements Serializable {
 
     private TreeNode root;
     private TreeNode aChild;
-    private RandomAccessFile treeFile;
+    transient private RandomAccessFile treeFile;
     private BPlusConfiguration conf;
     private LinkedList<Long> freeSlotPool;
     private LinkedList<Long> lookupPagesPool;
@@ -24,6 +27,7 @@ public class BPlusTree {
     private long maxPageNumber;
     private int deleteIterations;
     private BPlusTreePerformanceCounter bPerf = null;
+    public String treeName;
 
     /**
      * Super basic constructor, create everything using their
@@ -100,6 +104,22 @@ public class BPlusTree {
         initializeCommon();
         openFile(treeFilePath, mode, conf);
     }
+    
+ //Our New Constructor
+    @SuppressWarnings("unused")
+    public BPlusTree(String strTableName, String strColName)
+            throws IOException, InvalidBTreeStateException {
+    	this.treeName =strTableName + "_" + strColName; 
+        this.conf = new BPlusConfiguration();
+        this.bPerf = new BPlusTreePerformanceCounter(false);
+        String treeFilePath = "data//" + treeName+"_details" + ".class";
+        initializeCommon();
+        openFile(treeFilePath, "rw+", conf);
+		ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//" + treeName + ".class"));
+		bin.writeObject(this);
+		bin.flush();
+		bin.close();
+    }    
 
     /**
      * Insert the key into the tree while also providing the flexibility
@@ -2453,8 +2473,20 @@ public class BPlusTree {
         }
         return(s);
     }
+    
 
 
-    private enum Rank {Pred, Succ, PlusOne, Exact}
+    public RandomAccessFile getTreeFile() {
+		return treeFile;
+	}
+
+	public void setTreeFile(RandomAccessFile treeFile) {
+		this.treeFile = treeFile;
+	}
+
+
+
+
+	private enum Rank {Pred, Succ, PlusOne, Exact}
 
 }

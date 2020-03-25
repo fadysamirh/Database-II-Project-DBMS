@@ -3,9 +3,10 @@ package ds.bplus.bptree;
 import ds.bplus.util.InvalidBTreeStateException;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class BPlusTreePerformanceCounter {
+public class BPlusTreePerformanceCounter implements Serializable {
     private int totalNodeReads;
     private int totalInternalNodeReads;
     private int totalLeafNodeReads;
