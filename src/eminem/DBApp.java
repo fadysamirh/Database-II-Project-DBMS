@@ -1563,21 +1563,165 @@ public class DBApp {
 	public ArrayList<Tuple> greaterThanOperator(Table t, Object key, boolean indexed, boolean isClustering,
 			String colName) throws DBAppException {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
-		boolean nextPage = true;
+		boolean foundStart = false;
+		boolean start = false;
+		if (isClustering && !indexed) {
+			// non-linear search
+			int i = -1;
+			int startTuple = -1;
+			for (i = 0; i < t.usedPagesNames.size(); i++) {
+				String pName = t.usedPagesNames.get(i);
+				Page p = (Page) getDeserlaized("data//" + pName + ".class");
+				if (!(p.vtrTuples.isEmpty())) {
+					Tuple tup = p.vtrTuples.get(p.vtrTuples.size() - 1);
+					Object tupKey = tup.vtrTupleObj.get(tup.index);
+					if (Tuple.compareToHelper(tupKey, key) > 0) {
+						// I am in the right page
+						// search for tuple to begin with
+						for (startTuple = 0; startTuple < p.vtrTuples.size(); startTuple++) {
+							Tuple test = p.vtrTuples.get(startTuple);
+							Object testKey = test.vtrTupleObj.get(test.index);
+							if (Tuple.compareToHelper(testKey, key) > 0) {
+								foundStart = true;
+								break;
+							}
+						}
+
+					}
+				}
+				serialize(p);
+				if (foundStart) {
+					start = true;
+					break;
+				}
+			}
+			if (start) {
+				for (int z = i; z < t.usedPagesNames.size(); z++) {
+					String pName = t.usedPagesNames.get(i);
+					Page p = (Page) getDeserlaized("data//" + pName + ".class");
+					for (int y = startTuple; y < p.vtrTuples.size(); y++) {
+						result.add(p.vtrTuples.get(y));
+					}
+					serialize(p);
+				}
+			}
+		} else if (!isClustering && !indexed) {
+			// linear search
+			String tableName = t.name;
+			int colNumber = getColNumber(tableName, colName);
+			for (int i = 0; i < t.usedPagesNames.size(); i++) {
+				String pageName = t.usedPagesNames.get(i);
+				Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+				for (int j = 0; j < p.vtrTuples.size(); j++) {
+					Tuple tup = p.vtrTuples.get(j);
+					Object value = tup.vtrTupleObj.get(colNumber);
+
+					// String tupObj = "";
+					if (Tuple.compareToHelper(value, key) > 0) {
+						result.add(tup);
+						// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+						// System.out.println(tupObj);
+						// result.add(tupObj);
+					}
+				}
+				serialize(p);
+			}
+		}
 		return result;
 	}
 
 	public ArrayList<Tuple> lessThanOperator(Table t, Object key, boolean indexed, boolean isClustering, String colName)
 			throws DBAppException {
+		// in this operator linear search is more efficient
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
-		boolean nextPage = true;
+		boolean stop = false;
+		if (isClustering && !indexed) {
+			for (int i = 0; i < t.usedPagesNames.size(); i++) {
+				String pName = t.usedPagesNames.get(i);
+				Page p = (Page) getDeserlaized("data//" + pName + ".class");
+				for (int j = 0; j < p.vtrTuples.size(); j++) {
+					Tuple tup = p.vtrTuples.get(j);
+					Object tupObj = tup.vtrTupleObj.get(tup.index);
+					if (Tuple.compareToHelper(tupObj, key) < 0) {
+
+						result.add(tup);
+					} else {
+						stop = true;
+
+						break;
+					}
+				}
+				serialize(p);
+				if (stop) {
+
+					break;
+				}
+			}
+		} else if (!isClustering && !indexed) {
+			// linear search
+			String tableName = t.name;
+			int colNumber = getColNumber(tableName, colName);
+			for (int i = 0; i < t.usedPagesNames.size(); i++) {
+				String pageName = t.usedPagesNames.get(i);
+				Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+				for (int j = 0; j < p.vtrTuples.size(); j++) {
+					Tuple tup = p.vtrTuples.get(j);
+					Object value = tup.vtrTupleObj.get(colNumber);
+
+					// String tupObj = "";
+					if (Tuple.compareToHelper(value, key) < 0) {
+						result.add(tup);
+						// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+						// System.out.println(tupObj);
+						// result.add(tupObj);
+					}
+				}
+				serialize(p);
+			}
+		}
 		return result;
 	}
 
 	public ArrayList<Tuple> notEqualOperator(Table t, Object key, boolean indexed, boolean isClustering, String colName)
 			throws DBAppException {
+		// for this operator linear search is more efficient
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
-		boolean nextPage = true;
+		if (isClustering && !indexed) {
+			for (int i = 0; i < t.usedPagesNames.size(); i++) {
+				String pName = t.usedPagesNames.get(i);
+				Page p = (Page) getDeserlaized("data//" + pName + ".class");
+				for (int j = 0; j < p.vtrTuples.size(); j++) {
+					Tuple tup = p.vtrTuples.get(j);
+					Object tupObj = tup.vtrTupleObj.get(tup.index);
+					if (Tuple.compareToHelper(tupObj, key) != 0) {
+
+						result.add(tup);
+					}
+				}
+				serialize(p);
+			}
+		} else if (!isClustering && !indexed) {
+			// linear search
+			String tableName = t.name;
+			int colNumber = getColNumber(tableName, colName);
+			for (int i = 0; i < t.usedPagesNames.size(); i++) {
+				String pageName = t.usedPagesNames.get(i);
+				Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+				for (int j = 0; j < p.vtrTuples.size(); j++) {
+					Tuple tup = p.vtrTuples.get(j);
+					Object value = tup.vtrTupleObj.get(colNumber);
+
+					// String tupObj = "";
+					if (Tuple.compareToHelper(value, key) != 0) {
+						result.add(tup);
+						// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+						// System.out.println(tupObj);
+						// result.add(tupObj);
+					}
+				}
+				serialize(p);
+			}
+		}
 		return result;
 	}
 
@@ -1623,13 +1767,13 @@ public class DBApp {
 			int secondCol) throws DBAppException {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		for (int i = 0; i < first.size(); i++) {
-			//String f = first.get(i).toString();
+			// String f = first.get(i).toString();
 			Object fKey = first.get(i).vtrTupleObj.get(firstCol);
 			// System.out.println(fKey);
 			Object sKey = first.get(i).vtrTupleObj.get(secondCol);
 			// System.out.println(sKey);
 			for (int j = 0; j < second.size(); j++) {
-				//String s = second.get(j).toString();
+				// String s = second.get(j).toString();
 				Object secondfKey = second.get(j).vtrTupleObj.get(firstCol);
 				// System.out.println(secondfKey);
 				Object secondsKey = second.get(j).vtrTupleObj.get(secondCol);
@@ -1812,7 +1956,7 @@ public class DBApp {
 				midRes = greaterThanOperator(t, obj, indexed, isClustering, colName);
 				break;
 			case ("<"):
-				lessThanOperator(t, obj, indexed, isClustering, colName);
+				midRes = lessThanOperator(t, obj, indexed, isClustering, colName);
 				break;
 			case (">="):
 				ArrayList<Tuple> greater = new ArrayList<Tuple>();
@@ -2230,13 +2374,13 @@ public class DBApp {
 
 //** testing SELECT**
 //		SQLTerm[] arrSQLTerms;
-//		arrSQLTerms = new SQLTerm[3];
+//		arrSQLTerms = new SQLTerm[1];
 //		for (int i = 0; i < arrSQLTerms.length; i++) {
 //			arrSQLTerms[i] = new SQLTerm();
 //		}
 //		arrSQLTerms[0]._strTableName = "Student";
 //		arrSQLTerms[0]._strColumnName = "name";
-//		arrSQLTerms[0]._strOperator = "=";
+//		arrSQLTerms[0]._strOperator = "!=";
 //		arrSQLTerms[0]._objValue = "a";
 //////
 //		arrSQLTerms[1]._strTableName = "Student";
@@ -2252,10 +2396,10 @@ public class DBApp {
 //////		 System.out.println(arrSQLTerms[0]._strTableName);
 //////		
 //////		
-//		String[] strarrOperators = new String[2];
-//		strarrOperators[0] = "XOR";
-//		strarrOperators[1] = "AND";
-//////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
+//		String[] strarrOperators = new String[0];
+////		strarrOperators[0] = "XOR";
+////		strarrOperators[1] = "AND";
+////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
 //		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
 //		while (resultSet.hasNext()) {
 //			System.out.print(resultSet.next() + " ");
