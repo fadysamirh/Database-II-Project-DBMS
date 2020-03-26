@@ -2,6 +2,9 @@ package ds.bplus.bptree;
 
 import java.io.Serializable;
 
+import eminem.DBApp;
+import eminem.DBAppException;
+
 /**
  *
  * Class that stores all of the configuration parameters for our B+ Tree.
@@ -33,8 +36,18 @@ public class BPlusConfiguration implements Serializable {
      *
      */
     public BPlusConfiguration() {
-        basicParams(1024, 8, 20);
+
+    	DBApp d = new DBApp();
+    	try {
+			this.keySize = d.getNodeSize();
+			this.pageSize = d.maxPageSize;
+		} catch (DBAppException e) {
+			System.out.print(e.getMessage());
+		}
+    	this.entrySize = 20;
         initializeCommon(pageSize, keySize, entrySize, 1000);
+
+    	
     }
 
     /**
