@@ -1936,22 +1936,31 @@ public class DBApp {
 		}
 	}
 
-	public long modifyKey(Object key) {
+	public static long modifyKey(Object key) {
 		Integer modifiedKey = null;
 		if (key instanceof String) {
 			modifiedKey = decodeString(key.toString());
 		} else if (key instanceof Integer) {
 			modifiedKey = ((Integer) key).intValue();
-//		} else if (key instanceof Character) {
-//			modifiedKey = Character.getNumericValue((Character) key);
+
 		} else if (key instanceof Boolean) {
 			modifiedKey = ((Boolean) key) == Boolean.TRUE ? 1 : 0;
+		} 
+		else if (key instanceof Double) {
+			modifiedKey = decodeString(((Double)key).toString());
 		}
-		// double,polygon,date**************
+		else if (key instanceof Date) {
+			modifiedKey = decodeString(((Date)key).toString());
+		} 
+		else if (key instanceof Polygon) {
+			myPolygon p = new myPolygon((Polygon)key);
+			modifiedKey = decodeString((p.toString()));
+		}
+		
 		return ((long) modifiedKey);
 	}
 
-	public Integer decodeString(String str) {
+	public static Integer decodeString(String str) {
 		int hash = 7;
 		int mod = 100000007;
 		for (int i = 0; i < str.length(); i++) {
