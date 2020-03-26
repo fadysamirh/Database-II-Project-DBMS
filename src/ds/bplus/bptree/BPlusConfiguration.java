@@ -1,6 +1,9 @@
 package ds.bplus.bptree;
 
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.Properties;
 
 import eminem.DBApp;
 import eminem.DBAppException;
@@ -16,6 +19,7 @@ import eminem.DBAppException;
 public class BPlusConfiguration implements Serializable {
 
     private int pageSize;           // page size (in bytes)
+   // private int maxKeysinNode; // maximum number of keys in one node 
     private int keySize;            // key size (in bytes)
     private int entrySize;          // entry size (in bytes)
     private int treeDegree;               // tree degree (internal node degree)
@@ -33,18 +37,20 @@ public class BPlusConfiguration implements Serializable {
      *
      *  Default constructor which initializes all
      *  settings to the predefined defaults.
+     * @throws Exception 
      *
      */
-    public BPlusConfiguration() {
+    public BPlusConfiguration(){
 
-    	DBApp d = new DBApp();
-    	try {
-			this.keySize = d.getNodeSize();
-			this.pageSize = d.maxPageSize;
-		} catch (DBAppException e) {
-			System.out.print(e.getMessage());
-		}
-    	this.entrySize = 20;
+//    	DBApp d = new DBApp();
+//    	try {
+//			this.keySize = d.getNodeSize();
+//			this.pageSize = d.maxPageSize;
+//		} catch (DBAppException e) {
+//			System.out.print(e.getMessage());
+//		}
+//    	this.entrySize = 20;
+        basicParams(1024, 8, 20);
         initializeCommon(pageSize, keySize, entrySize, 1000);
 
     	
@@ -95,7 +101,8 @@ public class BPlusConfiguration implements Serializable {
      * @param keySize   key size (default is long [8 bytes])
      * @param entrySize satellite data (default is 20 bytes)
      */
-    private void basicParams(int pageSize, int keySize, int entrySize) {
+    private void basicParams(int pageSize, int keySize, int entrySize ){
+    	//this.maxKeysinNode = TreeNode.getNodeMaxKeys();
         this.pageSize = pageSize;   // page size (in bytes)
         this.entrySize = entrySize; // entry size (in bytes)
         this.keySize = keySize;     // key size (in bytes)
@@ -107,12 +114,12 @@ public class BPlusConfiguration implements Serializable {
      * @param pageSize page size (default is 1024 bytes)
      * @param keySize key size (default is long [8 bytes])
      * @param entrySize satellite data (default is 20 bytes)
-     * @param conditionThreshold the number of iterations before file conditioning
+     * @param conditionThreshold the number of iterations before file conditioning 
      */
     private void initializeCommon(int pageSize, int keySize,
                                   int entrySize, int conditionThreshold) {
-        this.headerSize =                                   // header size in bytes
-                (Integer.SIZE * 4 + 4 * Long.SIZE) / 8;
+        this.headerSize =(Integer.SIZE * 4 + 4 * Long.SIZE) / 8; // header size in bytes
+                
         this.internalNodeHeaderSize = (Short.SIZE + Integer.SIZE) / 8; // 6 bytes
         this.leafHeaderSize = (Short.SIZE + 2 * Long.SIZE + Integer.SIZE) / 8; // 22 bytes
         this.lookupOverflowHeaderSize = 14;
@@ -167,10 +174,42 @@ public class BPlusConfiguration implements Serializable {
         {return(overflowPageDegree);}
 
     public int getMaxInternalNodeCapacity()
-        {return((2*treeDegree) - 1);}
+        {       
+
+    		try {
+    			FileReader reader = new FileReader("config\\DBApp.properties");
+
+    			Properties p = new Properties();
+    			p.load(reader);
+
+    			return Integer.parseInt(p.getProperty("NodeSize"));
+    			// System.out.println(p.getProperty("password")); }
+    		} catch (IOException e) {
+    			System.out.println("CANT FIND FILE");;
+    		}
+    		return -1;
+    	//return((2*treeDegree) - 1);
+        }
 
     public int getMaxLeafNodeCapacity()
-        {return((2*leafNodeDegree) - 1);}
+        {
+
+		try {
+			FileReader reader = new FileReader("config\\DBApp.properties");
+
+			Properties p = new Properties();
+			p.load(reader);
+
+			return Integer.parseInt(p.getProperty("NodeSize"));
+			// System.out.println(p.getProperty("password")); }
+		} catch (IOException e) {
+			System.out.println("CANT FIND FILE");;
+		}
+		return -1;
+
+    	//return((2*leafNodeDegree) - 1);
+    	
+        }
 
     public int getMaxOverflowNodeCapacity() {
         return ((2 * overflowPageDegree) - 1);
