@@ -22,9 +22,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Vector;
 
-import ds.bplus.bptree.BPlusConfiguration;
 import ds.bplus.bptree.BPlusTree;
-import ds.bplus.bptree.BPlusTreePerformanceCounter;
 import ds.bplus.util.InvalidBTreeStateException;
 
 public class DBApp {
@@ -1545,13 +1543,12 @@ public class DBApp {
 				for (int j = 0; j < p.vtrTuples.size(); j++) {
 					Tuple tup = p.vtrTuples.get(j);
 					Object value = tup.vtrTupleObj.get(colNumber);
+
 					// String tupObj = "";
 					if (Tuple.compareToHelper(value, key) == 0) {
-						for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
-							result.add(tup);
-							// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
-							// System.out.println(tupObj);
-						}
+						result.add(tup);
+						// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+						// System.out.println(tupObj);
 						// result.add(tupObj);
 					}
 				}
@@ -1626,34 +1623,108 @@ public class DBApp {
 			int secondCol) throws DBAppException {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		for (int i = 0; i < first.size(); i++) {
+			//String f = first.get(i).toString();
 			Object fKey = first.get(i).vtrTupleObj.get(firstCol);
-			//System.out.println(fKey);
+			// System.out.println(fKey);
 			Object sKey = first.get(i).vtrTupleObj.get(secondCol);
-			//System.out.println(sKey);
+			// System.out.println(sKey);
 			for (int j = 0; j < second.size(); j++) {
+				//String s = second.get(j).toString();
 				Object secondfKey = second.get(j).vtrTupleObj.get(firstCol);
-				//System.out.println(secondfKey);
+				// System.out.println(secondfKey);
 				Object secondsKey = second.get(j).vtrTupleObj.get(secondCol);
 				if (Tuple.compareToHelper(fKey, secondfKey) == 0) {
-					//System.out.println("check");
+					// System.out.println("check");
 					if (Tuple.compareToHelper(sKey, secondsKey) == 0) {
-						//System.out.println("check");
+						// System.out.println("check");
+						// to avoid duplicates
+						second.remove(j);
 						result.add(first.get(i));
+						break;
 					}
 				}
 			}
 		}
-		//System.out.println(result);
+		// System.out.println(result);
 		return result;
 	}
 
-	public static ArrayList<Tuple> orOperator() {
+	public static ArrayList<Tuple> orOperator(ArrayList<Tuple> first, ArrayList<Tuple> second) throws DBAppException {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
+		// System.out.println(first.size());
+		for (int i = 0; i < first.size(); i++) {
+			Tuple f = first.get(i);
+			String fs = f.toString();
+			result.add(f);
+			// System.out.println(fs);
+			for (int j = 0; j < second.size(); j++) {
+				Tuple s = second.get(j);
+				String ss = s.toString();
+				if (fs.equals(ss)) {
+					second.remove(j);
+				}
+
+			}
+
+		}
+		// System.out.println(second.size());
+		for (int i = 0; i < second.size(); i++) {
+			// System.out.println(second.get(i));
+			// System.out.println("check");
+			result.add(second.get(i));
+		}
+
+//		for (int i = 0; i < first.size(); i++) {
+//			result.add(first.get(i));
+//		}
+
 		return result;
 	}
 
-	public static ArrayList<Tuple> xorOperator() {
+	public static ArrayList<Tuple> xorOperator(ArrayList<Tuple> first, ArrayList<Tuple> second, int firstCol,
+			int secondCol) throws DBAppException {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
+		boolean fCondition = false;
+		boolean sCondition = false;
+		for (int i = 0; i < first.size(); i++) {
+			Object fKey = first.get(i).vtrTupleObj.get(firstCol);
+			// System.out.println(fKey);
+			Object sKey = first.get(i).vtrTupleObj.get(secondCol);
+			// System.out.println(sKey);
+			for (int j = 0; j < second.size(); j++) {
+				Object secondfKey = second.get(j).vtrTupleObj.get(firstCol);
+				// System.out.println(secondfKey);
+				Object secondsKey = second.get(j).vtrTupleObj.get(secondCol);
+				if (Tuple.compareToHelper(fKey, secondfKey) == 0) {
+					// System.out.println(fKey);
+					// System.out.println(secondfKey);
+					// System.out.println("check");
+					fCondition = true;
+
+				}
+				if (Tuple.compareToHelper(sKey, secondsKey) == 0) {
+					// System.out.println("check");
+					sCondition = true;
+				}
+				if ((fCondition && !sCondition)) {
+					second.remove(j);
+					// System.out.println(fCondition);
+					// System.out.println(sCondition);
+					// System.out.println(first.get(i));
+					result.add(first.get(i));
+				} else if ((!fCondition && sCondition)) {
+					second.remove(j);
+					// System.out.println(fCondition);
+					// System.out.println(sCondition);
+					// System.out.println(first.get(i));
+					result.add(first.get(i));
+				}
+
+			}
+		}
+		for (int i = 0; i < second.size(); i++) {
+			result.add(second.get(i));
+		}
 		return result;
 	}
 
@@ -1690,10 +1761,10 @@ public class DBApp {
 				result = andOperator(first, second, colNumbers.get(colRefer - 1), colNumbers.get(colRefer));
 				break;
 			case ("OR"):
-				result = orOperator();
+				result = orOperator(first, second);
 				break;
 			case ("XOR"):
-				result = xorOperator();
+				result = xorOperator(first, second, colNumbers.get(colRefer - 1), colNumbers.get(colRefer));
 				break;
 			default:
 				throw new DBAppException("invalid operator");
@@ -1858,7 +1929,7 @@ public class DBApp {
 			throw new DBAppException("error in changing index state");
 		}
 	}
-	
+
 	public static void serializeTree(Object name) throws DBAppException {
 
 		try {
@@ -1873,13 +1944,15 @@ public class DBApp {
 			throw new DBAppException("error in serialization");
 		}
 	}
+
 	public static Object deserializeTree(String path) throws DBAppException {
 		try {
 			ObjectInputStream in = new ObjectInputStream(new FileInputStream(path));
 			Object a = in.readObject();
 			in.close();
-			RandomAccessFile treeFile = new RandomAccessFile("data//" +((BPlusTree)a).treeName+"_details" + ".class", "rw");
-			((BPlusTree)a).setTreeFile(treeFile);
+			RandomAccessFile treeFile = new RandomAccessFile(
+					"data//" + ((BPlusTree) a).treeName + "_details" + ".class", "rw");
+			((BPlusTree) a).setTreeFile(treeFile);
 			return a;
 		} catch (Exception e) {
 			throw new DBAppException("error in deserialization");
@@ -1901,21 +1974,20 @@ public class DBApp {
 			} else {
 
 				// check column does not already have an index isindex
-				if(isIndexed(strTableName, strColName)) {
+				if (isIndexed(strTableName, strColName)) {
 					throw new DBAppException("Column already have an index");
 				} else {
-	
+
 					// change indexed false to true in metadata
 					makeIndexed(strTableName, strColName);
-	
+
 					// get column index in tuple
 					int colIndex = columns.indexOf(strColName);
-	
+
 					// create a new BPlusTree
 					// TODO restrict max keys in node (page size and key size)
-					BPlusTree bt = new BPlusTree(strTableName,strColName);
+					BPlusTree bt = new BPlusTree(strTableName, strColName);
 
-					
 					/*
 					 * Insert already existing records keys into tree loop on all tuples in table
 					 * and insert each key (modify col content) and value(pointer: page name,tuple
@@ -1923,12 +1995,12 @@ public class DBApp {
 					 */
 					Table table = (Table) getDeserlaized("data//" + strTableName + ".class");
 					Vector<String> usedPages = table.usedPagesNames;
-	
+
 					for (int i = 0; i < usedPages.size(); i++) {
-	
+
 						Page curPage = (Page) (getDeserlaized("data//" + table.usedPagesNames.get(i) + ".class"));
 						Vector<Tuple> Tuples = curPage.vtrTuples;
-	
+
 						for (int j = 0; j < Tuples.size(); j++) {
 							Tuple curTuple = Tuples.get(j);
 							Object unmodifiedKey = curTuple.vtrTupleObj.get(colIndex);
@@ -1937,20 +2009,20 @@ public class DBApp {
 							bt.insertKey(modifiedKey, ptr, false);
 						}
 					}
-					//add index name to table list of usedIndicesNames then serialize table
-					table.usedIndicesNames.add(bt.treeName); //or should we just add column name??
+					// add index name to table list of usedIndicesNames then serialize table
+					table.usedIndicesNames.add(bt.treeName); // or should we just add column name??
 					FileOutputStream f1 = new FileOutputStream("data//" + strTableName + ".class");
 					ObjectOutputStream bin1 = new ObjectOutputStream(f1);
 					bin1.writeObject(table);
 					bin1.flush();
 					bin1.close();
-					
-					//serialize tree
+
+					// serialize tree
 					serializeTree(bt);
-					
+
 					bt.printTree();
 					bt.getTreeConfiguration().printConfiguration();
-	
+
 				}
 			}
 		}
@@ -2044,18 +2116,15 @@ public class DBApp {
 
 		} else if (key instanceof Boolean) {
 			modifiedKey = ((Boolean) key) == Boolean.TRUE ? 1 : 0;
-		} 
-		else if (key instanceof Double) {
-			modifiedKey = decodeString(((Double)key).toString());
-		}
-		else if (key instanceof Date) {
-			modifiedKey = decodeString(((Date)key).toString());
-		} 
-		else if (key instanceof Polygon) {
-			myPolygon p = new myPolygon((Polygon)key);
+		} else if (key instanceof Double) {
+			modifiedKey = decodeString(((Double) key).toString());
+		} else if (key instanceof Date) {
+			modifiedKey = decodeString(((Date) key).toString());
+		} else if (key instanceof Polygon) {
+			myPolygon p = new myPolygon((Polygon) key);
 			modifiedKey = decodeString((p.toString()));
 		}
-		
+
 		return ((long) modifiedKey);
 	}
 
@@ -2072,7 +2141,7 @@ public class DBApp {
 			throws FileNotFoundException, DBAppException, IOException, InvalidBTreeStateException {
 
 		DBApp dbApp = new DBApp();
-		dbApp.init();
+//		dbApp.init();
 //	    System.out.println(dbApp.maxPageSize);
 		String strTableName = "Student";
 //**create table**
@@ -2122,14 +2191,14 @@ public class DBApp {
 //		}
 
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(50));
-//		htblColNameValue.put("name", new String("a"));
-//////		htblColNameValue.put("date", new Date(2000, 12, 23));
-////		Polygon p = new Polygon();
-////		p.addPoint(1,3);
-////		p.addPoint(2,4);
-//////////////		System.out.println("n:"+p.npoints);
-////		htblColNameValue.put("shape",  p);
+//		htblColNameValue.put("id", new Integer(30));
+//		htblColNameValue.put("name", new String("b"));
+////////////		htblColNameValue.put("date", new Date(2000, 12, 23));
+//////////		Polygon p = new Polygon();
+//////////		p.addPoint(1,3);
+//////////		p.addPoint(2,4);
+////////////////////		System.out.println("n:"+p.npoints);
+//////////		htblColNameValue.put("shape",  p);
 //		dbApp.insertIntoTable(strTableName, htblColNameValue);
 
 //**delete tuples**
@@ -2161,25 +2230,32 @@ public class DBApp {
 
 //** testing SELECT**
 //		SQLTerm[] arrSQLTerms;
-//		arrSQLTerms = new SQLTerm[2];
+//		arrSQLTerms = new SQLTerm[3];
 //		for (int i = 0; i < arrSQLTerms.length; i++) {
 //			arrSQLTerms[i] = new SQLTerm();
 //		}
 //		arrSQLTerms[0]._strTableName = "Student";
-//		arrSQLTerms[0]._strColumnName = "id";
+//		arrSQLTerms[0]._strColumnName = "name";
 //		arrSQLTerms[0]._strOperator = "=";
-//		arrSQLTerms[0]._objValue = new Integer(20);
-//
+//		arrSQLTerms[0]._objValue = "a";
+//////
 //		arrSQLTerms[1]._strTableName = "Student";
 //		arrSQLTerms[1]._strColumnName = "id";
 //		arrSQLTerms[1]._strOperator = "=";
-//		arrSQLTerms[1]._objValue = new Integer(50);
-////		 System.out.println(arrSQLTerms[0]._strTableName);
-////		
-////		
-//		String[] strarrOperators = new String[1];
-//		strarrOperators[0] = "AND";
-////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
+//		arrSQLTerms[1]._objValue = new Integer(30);
+//
+//		arrSQLTerms[2]._strTableName = "Student";
+//		arrSQLTerms[2]._strColumnName = "id";
+//		arrSQLTerms[2]._strOperator = "=";
+//		arrSQLTerms[2]._objValue = new Integer(30);
+//
+//////		 System.out.println(arrSQLTerms[0]._strTableName);
+//////		
+//////		
+//		String[] strarrOperators = new String[2];
+//		strarrOperators[0] = "XOR";
+//		strarrOperators[1] = "AND";
+//////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
 //		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
 //		while (resultSet.hasNext()) {
 //			System.out.print(resultSet.next() + " ");
@@ -2189,7 +2265,7 @@ public class DBApp {
 
 //***testing B+ tree
 //		dbApp.createBTreeIndex(strTableName, "age");		
-//		displayTableContent(strTableName);
+		displayTableContent(strTableName);
 
 //		displayTableContent("Student");
 
