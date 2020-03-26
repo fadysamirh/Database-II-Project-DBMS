@@ -160,115 +160,278 @@ public class DBApp {
 
 	}
 
-	public void insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException {
+	public void insertIntoTable(String strTableName,
+			Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
-		boolean found = checkIfTableFound(strTableName);
+		boolean TableFound = checkIfTableFound(strTableName);
 
-		if (!found) {
+		if (!TableFound) {
 			throw new DBAppException("Table does not exist");
 		} else {
 			try {
-
 				checkTypeSize(htblColNameValue, strTableName);
+
 				Tuple nTuple = createTuple(htblColNameValue, strTableName);
-				Table toBeInstertedIn = (Table) getDeserlaized("data//" + strTableName + ".class");
+
+				Table toBeInstertedIn = (Table) getDeserlaized("data//"
+						+ strTableName + ".class");
 
 				if (toBeInstertedIn.usedPagesNames.isEmpty()) {
 					toBeInstertedIn.createPage();
-					Page pageToBeInstertedIn = (Page) getDeserlaized(
-							"data//" + toBeInstertedIn.usedPagesNames.get(0) + ".class");
+
+					Page pageToBeInstertedIn = (Page) getDeserlaized("data//"
+							+ toBeInstertedIn.usedPagesNames.get(0) + ".class");
+
 					pageToBeInstertedIn.vtrTuples.add(nTuple);
 
-					FileOutputStream f = new FileOutputStream(
-							"data//" + toBeInstertedIn.usedPagesNames.get(0) + ".class");
+					FileOutputStream f = new FileOutputStream("data//"
+							+ toBeInstertedIn.usedPagesNames.get(0) + ".class");
 
 					ObjectOutputStream bin = new ObjectOutputStream(f);
+
 					bin.writeObject(pageToBeInstertedIn);
 					bin.flush();
+
 					bin.close();
+
 					f.close();
-				} else {
+				}
+
+				else {
 					Vector<String> usedPages = toBeInstertedIn.usedPagesNames;
 
-					int flag = 0;
+					int page = 0;
 
-					for (int i = 0; i <= usedPages.size() - 1 && flag == 0; i++) {
+					for (int i = 0; i <= usedPages.size() - 2; i++) {
+						Page pageToBeInstertedIn = (Page) (getDeserlaized("data//"
+								+ toBeInstertedIn.usedPagesNames.get(i)
+								+ ".class"));
 
-						Page pageToBeInstertedIn = (Page) (getDeserlaized(
-								"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 						Vector<Tuple> Tuples = pageToBeInstertedIn.vtrTuples;
 
-						for (int j = 0; j < Tuples.size(); j++) {
-							Tuple TuplesinPage = Tuples.get(j);
+						int compare1 = (pageToBeInstertedIn.vtrTuples
+								.lastElement()).compareTo(nTuple);
+
+						int compare2 = (pageToBeInstertedIn.vtrTuples.get(0))
+								.compareTo(nTuple);
+
+						if (compare1 <= 0 && compare2 >= 0) {
+							page = i;
+						}
+						break;
+					}
+
+					Page pageToBeInstertedIn0 = (Page) (getDeserlaized("data//"
+							+ toBeInstertedIn.usedPagesNames.get(page)
+							+ ".class"));
+
+					Vector<Tuple> Tuples0 = pageToBeInstertedIn0.vtrTuples;
+
+					int tupleindex = TuplebinarySearch(pageToBeInstertedIn0, 0,
+							(pageToBeInstertedIn0.vtrTuples.size()) - 1, nTuple);
+
+					if (tupleindex == -1) {
+						int j = 0;
+
+						for (int i = 0; i <= Tuples0.size() - 1; i++) {
+							Tuple TuplesinPage = Tuples0.get(i);
+
 							int compare = TuplesinPage.compareTo(nTuple);
-							if (compare > 0) {
 
-								Tuple temp = Tuples.get(j);
-								pageToBeInstertedIn.vtrTuples.remove(j);
-								pageToBeInstertedIn.vtrTuples.insertElementAt(nTuple, j);
-								nTuple = temp;
+							if (compare < 0) {
+								j++;
 							}
 						}
-						if (pageToBeInstertedIn.vtrTuples.size() < maxPageSize
-								&& i != toBeInstertedIn.usedPagesNames.size() - 1) {
-							Page nextPage = (Page) (getDeserlaized(
-									"data//" + toBeInstertedIn.usedPagesNames.get(i + 1) + ".class"));
-							int compare = (nextPage.vtrTuples.get(0)).compareTo(nTuple);
-							if (compare >= 0) {
-								pageToBeInstertedIn.vtrTuples.add(nTuple);
-								nTuple = null;
-								flag = 1;
+						tupleindex = j;
+					}
+
+					if (tupleindex > 0) {
+						tupleindex = tupleindex - 1;
+					}
+
+					for (int j = tupleindex; j <= Tuples0.size() - 1; j++) {
+						Tuple TuplesinPage = Tuples0.get(j);
+
+						int compare = TuplesinPage.compareTo(nTuple);
+
+						if (compare > 0) {
+							Tuple temp = Tuples0.get(j);
+
+							pageToBeInstertedIn0.vtrTuples.remove(j);
+
+							pageToBeInstertedIn0.vtrTuples.insertElementAt(
+									nTuple, j);
+
+							nTuple = temp;
+						}
+					}
+					boolean flag2 = true;
+
+					if (pageToBeInstertedIn0.vtrTuples.size() < maxPageSize) {
+						pageToBeInstertedIn0.vtrTuples.add(nTuple);
+
+						flag2 = false;
+					}
+					FileOutputStream f1 = new FileOutputStream("data//"
+							+ pageToBeInstertedIn0.pageName + ".class");
+
+					ObjectOutputStream bin1 = new ObjectOutputStream(f1);
+
+					bin1.writeObject(pageToBeInstertedIn0);
+
+					FileOutputStream f3 = new FileOutputStream("data//"
+							+ strTableName + ".class");
+
+					ObjectOutputStream bin3 = new ObjectOutputStream(f3);
+
+					bin3.writeObject(toBeInstertedIn);
+
+					if (flag2) {
+						int flag = 0;
+
+						for (int i = page + 1; i <= usedPages.size() - 1
+								&& flag == 0; i++) {
+
+							Page pageToBeInstertedIn = (Page) (getDeserlaized("data//"
+									+ toBeInstertedIn.usedPagesNames.get(i)
+									+ ".class"));
+
+							Vector<Tuple> Tuples = pageToBeInstertedIn.vtrTuples;
+
+							for (int j = 0; j < Tuples.size(); j++) {
+								Tuple TuplesinPage = Tuples.get(j);
+
+								int compare = TuplesinPage.compareTo(nTuple);
+
+								if (compare > 0) {
+									Tuple temp = Tuples.get(j);
+
+									pageToBeInstertedIn.vtrTuples.remove(j);
+
+									pageToBeInstertedIn.vtrTuples
+											.insertElementAt(nTuple, j);
+
+									nTuple = temp;
+								}
+							}
+							
+							if (pageToBeInstertedIn.vtrTuples.size() < maxPageSize
+									&& i != toBeInstertedIn.usedPagesNames
+											.size() - 1) {
+								Page nextPage = (Page) (getDeserlaized("data//"
+										+ toBeInstertedIn.usedPagesNames
+												.get(i + 1) + ".class"));
+
+								int compare = (nextPage.vtrTuples.get(0))
+										.compareTo(nTuple);
+
+								if (compare >= 0) {
+									pageToBeInstertedIn.vtrTuples.add(nTuple);
+
+									nTuple = null;
+
+									flag = 1;
+								}
 
 							}
+							ObjectOutputStream bin = new ObjectOutputStream(
+									new FileOutputStream("data//"
+											+ toBeInstertedIn.usedPagesNames
+													.get(i) + ".class"));
 
-						}
-						ObjectOutputStream bin = new ObjectOutputStream(
-								new FileOutputStream("data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
-						bin.writeObject(pageToBeInstertedIn);
-						bin.flush();
-						bin.close();
-					}
+							bin.writeObject(pageToBeInstertedIn);
 
-					if (nTuple != null) {
-						Page lastPage = (Page) (getDeserlaized(
-								"data//" + toBeInstertedIn.usedPagesNames.get(toBeInstertedIn.usedPagesNames.size() - 1)
-										+ ".class"));
-						if (lastPage.vtrTuples.size() < maxPageSize) {
-							lastPage.vtrTuples.add(nTuple);
-							lastPage.vtrTuples.sort(null);
-							ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//"
-									+ toBeInstertedIn.usedPagesNames.get(toBeInstertedIn.usedPagesNames.size() - 1)
-									+ ".class"));
-							bin.writeObject(lastPage);
 							bin.flush();
-							bin.close();
-						} else if (lastPage.vtrTuples.size() == maxPageSize) {
-							toBeInstertedIn.createPage();
-							Page p = (Page) (getDeserlaized("data//"
-									+ toBeInstertedIn.usedPagesNames.get(toBeInstertedIn.usedPagesNames.size() - 1)
-									+ ".class"));
 
-							p.vtrTuples.add(nTuple);
-
-							ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//"
-									+ toBeInstertedIn.usedPagesNames.get(toBeInstertedIn.usedPagesNames.size() - 1)
-									+ ".class"));
-							bin.writeObject(p);
-							bin.flush();
 							bin.close();
 						}
-					}
 
+						if (nTuple != null) {
+							Page lastPage = (Page) (getDeserlaized("data//"
+									+ toBeInstertedIn.usedPagesNames
+											.get(toBeInstertedIn.usedPagesNames
+													.size() - 1) + ".class"));
+
+							if (lastPage.vtrTuples.size() < maxPageSize) {
+								lastPage.vtrTuples.add(nTuple);
+
+								lastPage.vtrTuples.sort(null);
+
+								ObjectOutputStream bin = new ObjectOutputStream(
+										new FileOutputStream(
+												"data//"
+														+ toBeInstertedIn.usedPagesNames
+																.get(toBeInstertedIn.usedPagesNames
+																		.size() - 1)
+														+ ".class"));
+
+								bin.writeObject(lastPage);
+
+								bin.flush();
+
+								bin.close();
+
+							} else if (lastPage.vtrTuples.size() == maxPageSize) {
+								toBeInstertedIn.createPage();
+
+								Page p = (Page) (getDeserlaized("data//"
+										+ toBeInstertedIn.usedPagesNames
+												.get(toBeInstertedIn.usedPagesNames
+														.size() - 1) + ".class"));
+
+								p.vtrTuples.add(nTuple);
+
+								ObjectOutputStream bin = new ObjectOutputStream(
+										new FileOutputStream(
+												"data//"
+														+ toBeInstertedIn.usedPagesNames
+																.get(toBeInstertedIn.usedPagesNames
+																		.size() - 1)
+														+ ".class"));
+
+								bin.writeObject(p);
+
+								bin.flush();
+
+								bin.close();
+							}
+						}
+					}
 				}
-				FileOutputStream f1 = new FileOutputStream("data//" + strTableName + ".class");
-				ObjectOutputStream bin1 = new ObjectOutputStream(f1);
-				bin1.writeObject(toBeInstertedIn);
+				FileOutputStream f2 = new FileOutputStream("data//"
+						+ strTableName + ".class");
+
+				ObjectOutputStream bin2 = new ObjectOutputStream(f2);
+
+				bin2.writeObject(toBeInstertedIn);
 
 			} catch (IOException e) {
 				throw new DBAppException("error in insertion");
 			}
+		}
+	}
+
+	public static int TuplebinarySearch(Page p, int first, int last, Tuple key) {
+		int mid = (first + last) / 2;
+		int pos = -1;
+		while (first <= last) {
+			int compare = (p.vtrTuples.get(mid)).compareTo(key);
+			if (compare < 0) {
+				first = mid + 1;
+			} else if (compare == 0) {
+				//System.out.println("Element is found at index: " + mid);
+				pos = mid;
+				break;
+			} else {
+				last = mid - 1;
+			}
+			mid = (first + last) / 2;
+		}
+		if (first > last) {
+			//System.out.println("Element is not found!");
 
 		}
+		return pos;
 	}
 
 	// following method inserts one row at a time
@@ -2285,21 +2448,21 @@ public class DBApp {
 			throws FileNotFoundException, DBAppException, IOException, InvalidBTreeStateException {
 
 		DBApp dbApp = new DBApp();
-//		dbApp.init();
+		dbApp.init();
 //	    System.out.println(dbApp.maxPageSize);
 		String strTableName = "Student";
 //**create table**
-//		Hashtable<String, String> htblColNameType = new Hashtable();
-//////
-//		htblColNameType.put("id", "java.lang.Integer");
-//////		// htblColNameType.put("adsfs", "java.lang.Long");
-//		htblColNameType.put("name", "java.lang.String");
-//		htblColNameType.put("age", "java.lang.Integer");
-////		htblColNameType.put("date", "java.util.Date");
-////////////		htblColNameType.put("gpa", "java.lang.Double");
-// //   		htblColNameType.put("shape", "java.awt.Polygon");
-//////////		htblColNameType.put("grad", "java.lang.Boolean");
-//		dbApp.createTable(strTableName, "id", htblColNameType);
+		Hashtable<String, String> htblColNameType = new Hashtable();
+
+		htblColNameType.put("id", "java.lang.Integer");
+    //    htblColNameType.put("adsfs", "java.lang.Long");
+		htblColNameType.put("name", "java.lang.String");
+		htblColNameType.put("age", "java.lang.Integer");
+		htblColNameType.put("date", "java.util.Date");
+     	htblColNameType.put("gpa", "java.lang.Double");
+   		htblColNameType.put("shape", "java.awt.Polygon");
+		htblColNameType.put("grad", "java.lang.Boolean");
+	//	dbApp.createTable(strTableName, "id", htblColNameType);
 //		dbApp.makeIndexed(strTableName, "name");
 
 //		Table a=(Table)getDeserlaized("data//Student.class");
@@ -2311,27 +2474,26 @@ public class DBApp {
 //** insert tuples**
 //		for (int i = 0; i < 10; i++) {
 //		Hashtable htblColNameValue = new Hashtable();
-//////////////
-//		htblColNameValue.put("id", new Integer(i));
+//		htblColNameValue.put("id", new Integer());
 //		htblColNameValue.put("name", new String("Ab"));
-//		htblColNameValue.put("age", new Integer(i%50));
-////		htblColNameValue.put("date", new Date(2000, 11, 23));
-////////		System.out.println((new Date(2020, 11, 11).getClass()));
-////////		System.out.println((new Date(2020, 11, 11)).toString());
-//////////
-//////////			htblColNameValue.put("gpa", new Double(2.0));
-//////////		
-////////////			if (i%2==0) {
-//////////					htblColNameValue.put("grad", true);			
-////////////			}
-////////////			else			htblColNameValue.put("grad", false);
-////		Polygon p = new Polygon();
-////		p.addPoint(1,1);
-////		p.addPoint(2,2);
-////////////		System.out.println("n:"+p.npoints);
-////		htblColNameValue.put("shape",  p);
-//////////
-//		dbApp.insertIntoTable(strTableName, htblColNameValue);
+//		htblColNameValue.put("age", new Integer(100%50));
+//		htblColNameValue.put("date", new Date(2000, 11, 23));
+//////		System.out.println((new Date(2020, 11, 11).getClass()));
+//////		System.out.println((new Date(2020, 11, 11)).toString());
+//
+//			htblColNameValue.put("gpa", new Double(2.0));
+//		
+//			if (4%2==0) {
+//					htblColNameValue.put("grad", true);			
+//			}
+//			else			htblColNameValue.put("grad", false);
+	//	Polygon p = new Polygon();
+	//	p.addPoint(1,1);
+	//	p.addPoint(2,2);
+    //	System.out.println("n:"+p.npoints);
+	//	htblColNameValue.put("shape",  p);
+////////
+	//	dbApp.insertIntoTable(strTableName, htblColNameValue);
 //		}
 
 //		Hashtable htblColNameValue = new Hashtable();
@@ -2346,28 +2508,32 @@ public class DBApp {
 //		dbApp.insertIntoTable(strTableName, htblColNameValue);
 
 //**delete tuples**
-//		Hashtable<String, Object> htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", 392);
-//////	htblColNameValue.put("name", "asdfghj");
-////		// htblColNameValue.put("gpa", 2.0);
-//		htblColNameValue.put("date", new Date(2000,11,23));
-//////		Polygon p = new Polygon();
-//////		p.addPoint(1, 1);
-//////		p.addPoint(2, 2);
-//////		htblColNameValue.put("shape", p);
-////
-//////		dbApp.insertIntoTable(strTableName, htblColNameValue);
-//		dbApp.deleteFromTable(strTableName, htblColNameValue);
+		Hashtable<String, Object> htblColNameValue = new Hashtable();
+		htblColNameValue.put("id", 1);
+	    htblColNameValue.put("name", "asdfghj");
+	    htblColNameValue.put("gpa", 2.0);
+		htblColNameValue.put("date", new Date(2000,11,23));
+		Polygon p = new Polygon();
+		p.addPoint(1, 1);
+		p.addPoint(2, 2);
+		htblColNameValue.put("shape", p);
+
+//		dbApp.insertIntoTable(strTableName, htblColNameValue);
+		dbApp.deleteFromTable(strTableName, htblColNameValue);
 
 //		Page pageToBeDeleteFrom = (Page) (getDeserlaized(
 //				"data//Student0.class"));
 //		System.out.println(pageToBeDeleteFrom.vtrTuples.toString());
+//		Page pageToBeDeleteFrom1 = (Page) (getDeserlaized(
+//				"data//Student1.class"));
+//		System.out.println(pageToBeDeleteFrom1.vtrTuples.toString());
 
 ////**update table**
 //		Hashtable hash = new Hashtable();
 //		hash.put("name", new String("a"));
 //////		hash.put("gpa", new Double(0.6));
 //////		hash.put("date", new Date(2000-05-23));
+		
 
 //		dbApp.updateTable(strTableName, "100", hash);
 ////////
