@@ -1918,48 +1918,45 @@ public class DBApp {
 
 	public ArrayList<Tuple> notEqualOperator(Table t, Object key, boolean indexed, boolean isClustering, String colName)
 			throws DBAppException {
-		// for this operator linear search is more efficient
+		// for this operator linear search is more efficient in all cases
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
-		if (!indexed) {
-			if (isClustering) {
-				for (int i = 0; i < t.usedPagesNames.size(); i++) {
-					String pName = t.usedPagesNames.get(i);
-					Page p = (Page) getDeserlaized("data//" + pName + ".class");
-					for (int j = 0; j < p.vtrTuples.size(); j++) {
-						Tuple tup = p.vtrTuples.get(j);
-						Object tupObj = tup.vtrTupleObj.get(tup.index);
-						if (Tuple.compareToHelper(tupObj, key) != 0) {
+		if (isClustering) {
+			for (int i = 0; i < t.usedPagesNames.size(); i++) {
+				String pName = t.usedPagesNames.get(i);
+				Page p = (Page) getDeserlaized("data//" + pName + ".class");
+				for (int j = 0; j < p.vtrTuples.size(); j++) {
+					Tuple tup = p.vtrTuples.get(j);
+					Object tupObj = tup.vtrTupleObj.get(tup.index);
+					if (Tuple.compareToHelper(tupObj, key) != 0) {
 
-							result.add(tup);
-						}
+						result.add(tup);
 					}
-					serialize(p);
 				}
-			} else if (!isClustering) {
-				// linear search
-				String tableName = t.name;
-				int colNumber = getColNumber(tableName, colName);
-				for (int i = 0; i < t.usedPagesNames.size(); i++) {
-					String pageName = t.usedPagesNames.get(i);
-					Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-					for (int j = 0; j < p.vtrTuples.size(); j++) {
-						Tuple tup = p.vtrTuples.get(j);
-						Object value = tup.vtrTupleObj.get(colNumber);
-
-						// String tupObj = "";
-						if (Tuple.compareToHelper(value, key) != 0) {
-							result.add(tup);
-							// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
-							// System.out.println(tupObj);
-							// result.add(tupObj);
-						}
-					}
-					serialize(p);
-				}
+				serialize(p);
 			}
-		} else if (indexed) {
+		} else if (!isClustering) {
+			// linear search
+			String tableName = t.name;
+			int colNumber = getColNumber(tableName, colName);
+			for (int i = 0; i < t.usedPagesNames.size(); i++) {
+				String pageName = t.usedPagesNames.get(i);
+				Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+				for (int j = 0; j < p.vtrTuples.size(); j++) {
+					Tuple tup = p.vtrTuples.get(j);
+					Object value = tup.vtrTupleObj.get(colNumber);
 
+					// String tupObj = "";
+					if (Tuple.compareToHelper(value, key) != 0) {
+						result.add(tup);
+						// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+						// System.out.println(tupObj);
+						// result.add(tupObj);
+					}
+				}
+				serialize(p);
+			}
 		}
+
 		return result;
 	}
 
@@ -2576,8 +2573,8 @@ public class DBApp {
 
 //		Hashtable htblColNameValue = new Hashtable();
 //		htblColNameValue.put("id", new Integer(50));
-//		htblColNameValue.put("name", new String("caroline"));
-//		htblColNameValue.put("age", new Integer("35"));
+//		htblColNameValue.put("name", new String("a"));
+//		htblColNameValue.put("age", new Integer("50"));
 ////////////		htblColNameValue.put("date", new Date(2000, 12, 23));
 //////////		Polygon p = new Polygon();
 //////////		p.addPoint(1,3);
@@ -2644,21 +2641,22 @@ public class DBApp {
 ////		strarrOperators[0] = "XOR";
 ////		strarrOperators[1] = "AND";
 ////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
-		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
-		while (resultSet.hasNext()) {
-			System.out.print(resultSet.next() + " ");
-			System.out.println();
-		}
+//		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
+//		while (resultSet.hasNext()) {
+//			System.out.print(resultSet.next() + " ");
+//			System.out.println();
+//		}
 //////	  
 
 //***testing B+ tree
 //		dbApp.createBTreeIndex(strTableName, "age");		
 		displayTableContent(strTableName);
 
-//		long modified = dbApp.modifyKey(new Integer(30));
+//		long modified = dbApp.modifyKey(new Integer(32));
 //		BPlusTree b = (BPlusTree) deserializeTree("data//" + "Student_age" + ".class");
-//		SearchResult s = b.searchKey(modified, false);
-//		System.out.println(s.getValues().getFirst());
+//		SearchResult s = b.searchStartKey(modified, false);
+//		System.out.println(s.getValues().get(0));
+//		serializeTree(b);
 //		dbApp.makeIndexed(strTableName, "age");
 //		displayTableContent("Student");
 
