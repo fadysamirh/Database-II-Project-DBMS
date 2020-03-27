@@ -3,6 +3,7 @@ package eminem;
 
 import java.awt.Polygon;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -12,6 +13,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ import java.util.Properties;
 import java.util.Vector;
 
 import ds.bplus.bptree.BPlusTree;
+import ds.bplus.bptree.SearchResult;
 import ds.bplus.util.InvalidBTreeStateException;
 
 public class DBApp {
@@ -160,8 +163,7 @@ public class DBApp {
 
 	}
 
-	public void insertIntoTable(String strTableName,
-			Hashtable<String, Object> htblColNameValue) throws DBAppException {
+	public void insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
 		boolean TableFound = checkIfTableFound(strTableName);
 
@@ -173,19 +175,18 @@ public class DBApp {
 
 				Tuple nTuple = createTuple(htblColNameValue, strTableName);
 
-				Table toBeInstertedIn = (Table) getDeserlaized("data//"
-						+ strTableName + ".class");
+				Table toBeInstertedIn = (Table) getDeserlaized("data//" + strTableName + ".class");
 
 				if (toBeInstertedIn.usedPagesNames.isEmpty()) {
 					toBeInstertedIn.createPage();
 
-					Page pageToBeInstertedIn = (Page) getDeserlaized("data//"
-							+ toBeInstertedIn.usedPagesNames.get(0) + ".class");
+					Page pageToBeInstertedIn = (Page) getDeserlaized(
+							"data//" + toBeInstertedIn.usedPagesNames.get(0) + ".class");
 
 					pageToBeInstertedIn.vtrTuples.add(nTuple);
 
-					FileOutputStream f = new FileOutputStream("data//"
-							+ toBeInstertedIn.usedPagesNames.get(0) + ".class");
+					FileOutputStream f = new FileOutputStream(
+							"data//" + toBeInstertedIn.usedPagesNames.get(0) + ".class");
 
 					ObjectOutputStream bin = new ObjectOutputStream(f);
 
@@ -203,17 +204,14 @@ public class DBApp {
 					int page = 0;
 
 					for (int i = 0; i <= usedPages.size() - 2; i++) {
-						Page pageToBeInstertedIn = (Page) (getDeserlaized("data//"
-								+ toBeInstertedIn.usedPagesNames.get(i)
-								+ ".class"));
+						Page pageToBeInstertedIn = (Page) (getDeserlaized(
+								"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
 						Vector<Tuple> Tuples = pageToBeInstertedIn.vtrTuples;
 
-						int compare1 = (pageToBeInstertedIn.vtrTuples
-								.lastElement()).compareTo(nTuple);
+						int compare1 = (pageToBeInstertedIn.vtrTuples.lastElement()).compareTo(nTuple);
 
-						int compare2 = (pageToBeInstertedIn.vtrTuples.get(0))
-								.compareTo(nTuple);
+						int compare2 = (pageToBeInstertedIn.vtrTuples.get(0)).compareTo(nTuple);
 
 						if (compare1 <= 0 && compare2 >= 0) {
 							page = i;
@@ -221,9 +219,8 @@ public class DBApp {
 						break;
 					}
 
-					Page pageToBeInstertedIn0 = (Page) (getDeserlaized("data//"
-							+ toBeInstertedIn.usedPagesNames.get(page)
-							+ ".class"));
+					Page pageToBeInstertedIn0 = (Page) (getDeserlaized(
+							"data//" + toBeInstertedIn.usedPagesNames.get(page) + ".class"));
 
 					Vector<Tuple> Tuples0 = pageToBeInstertedIn0.vtrTuples;
 
@@ -259,8 +256,7 @@ public class DBApp {
 
 							pageToBeInstertedIn0.vtrTuples.remove(j);
 
-							pageToBeInstertedIn0.vtrTuples.insertElementAt(
-									nTuple, j);
+							pageToBeInstertedIn0.vtrTuples.insertElementAt(nTuple, j);
 
 							nTuple = temp;
 						}
@@ -272,15 +268,13 @@ public class DBApp {
 
 						flag2 = false;
 					}
-					FileOutputStream f1 = new FileOutputStream("data//"
-							+ pageToBeInstertedIn0.pageName + ".class");
+					FileOutputStream f1 = new FileOutputStream("data//" + pageToBeInstertedIn0.pageName + ".class");
 
 					ObjectOutputStream bin1 = new ObjectOutputStream(f1);
 
 					bin1.writeObject(pageToBeInstertedIn0);
 
-					FileOutputStream f3 = new FileOutputStream("data//"
-							+ strTableName + ".class");
+					FileOutputStream f3 = new FileOutputStream("data//" + strTableName + ".class");
 
 					ObjectOutputStream bin3 = new ObjectOutputStream(f3);
 
@@ -289,12 +283,10 @@ public class DBApp {
 					if (flag2) {
 						int flag = 0;
 
-						for (int i = page + 1; i <= usedPages.size() - 1
-								&& flag == 0; i++) {
+						for (int i = page + 1; i <= usedPages.size() - 1 && flag == 0; i++) {
 
-							Page pageToBeInstertedIn = (Page) (getDeserlaized("data//"
-									+ toBeInstertedIn.usedPagesNames.get(i)
-									+ ".class"));
+							Page pageToBeInstertedIn = (Page) (getDeserlaized(
+									"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
 							Vector<Tuple> Tuples = pageToBeInstertedIn.vtrTuples;
 
@@ -308,22 +300,18 @@ public class DBApp {
 
 									pageToBeInstertedIn.vtrTuples.remove(j);
 
-									pageToBeInstertedIn.vtrTuples
-											.insertElementAt(nTuple, j);
+									pageToBeInstertedIn.vtrTuples.insertElementAt(nTuple, j);
 
 									nTuple = temp;
 								}
 							}
-							
-							if (pageToBeInstertedIn.vtrTuples.size() < maxPageSize
-									&& i != toBeInstertedIn.usedPagesNames
-											.size() - 1) {
-								Page nextPage = (Page) (getDeserlaized("data//"
-										+ toBeInstertedIn.usedPagesNames
-												.get(i + 1) + ".class"));
 
-								int compare = (nextPage.vtrTuples.get(0))
-										.compareTo(nTuple);
+							if (pageToBeInstertedIn.vtrTuples.size() < maxPageSize
+									&& i != toBeInstertedIn.usedPagesNames.size() - 1) {
+								Page nextPage = (Page) (getDeserlaized(
+										"data//" + toBeInstertedIn.usedPagesNames.get(i + 1) + ".class"));
+
+								int compare = (nextPage.vtrTuples.get(0)).compareTo(nTuple);
 
 								if (compare >= 0) {
 									pageToBeInstertedIn.vtrTuples.add(nTuple);
@@ -335,9 +323,7 @@ public class DBApp {
 
 							}
 							ObjectOutputStream bin = new ObjectOutputStream(
-									new FileOutputStream("data//"
-											+ toBeInstertedIn.usedPagesNames
-													.get(i) + ".class"));
+									new FileOutputStream("data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
 							bin.writeObject(pageToBeInstertedIn);
 
@@ -348,22 +334,17 @@ public class DBApp {
 
 						if (nTuple != null) {
 							Page lastPage = (Page) (getDeserlaized("data//"
-									+ toBeInstertedIn.usedPagesNames
-											.get(toBeInstertedIn.usedPagesNames
-													.size() - 1) + ".class"));
+									+ toBeInstertedIn.usedPagesNames.get(toBeInstertedIn.usedPagesNames.size() - 1)
+									+ ".class"));
 
 							if (lastPage.vtrTuples.size() < maxPageSize) {
 								lastPage.vtrTuples.add(nTuple);
 
 								lastPage.vtrTuples.sort(null);
 
-								ObjectOutputStream bin = new ObjectOutputStream(
-										new FileOutputStream(
-												"data//"
-														+ toBeInstertedIn.usedPagesNames
-																.get(toBeInstertedIn.usedPagesNames
-																		.size() - 1)
-														+ ".class"));
+								ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//"
+										+ toBeInstertedIn.usedPagesNames.get(toBeInstertedIn.usedPagesNames.size() - 1)
+										+ ".class"));
 
 								bin.writeObject(lastPage);
 
@@ -375,19 +356,14 @@ public class DBApp {
 								toBeInstertedIn.createPage();
 
 								Page p = (Page) (getDeserlaized("data//"
-										+ toBeInstertedIn.usedPagesNames
-												.get(toBeInstertedIn.usedPagesNames
-														.size() - 1) + ".class"));
+										+ toBeInstertedIn.usedPagesNames.get(toBeInstertedIn.usedPagesNames.size() - 1)
+										+ ".class"));
 
 								p.vtrTuples.add(nTuple);
 
-								ObjectOutputStream bin = new ObjectOutputStream(
-										new FileOutputStream(
-												"data//"
-														+ toBeInstertedIn.usedPagesNames
-																.get(toBeInstertedIn.usedPagesNames
-																		.size() - 1)
-														+ ".class"));
+								ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//"
+										+ toBeInstertedIn.usedPagesNames.get(toBeInstertedIn.usedPagesNames.size() - 1)
+										+ ".class"));
 
 								bin.writeObject(p);
 
@@ -398,8 +374,7 @@ public class DBApp {
 						}
 					}
 				}
-				FileOutputStream f2 = new FileOutputStream("data//"
-						+ strTableName + ".class");
+				FileOutputStream f2 = new FileOutputStream("data//" + strTableName + ".class");
 
 				ObjectOutputStream bin2 = new ObjectOutputStream(f2);
 
@@ -419,7 +394,7 @@ public class DBApp {
 			if (compare < 0) {
 				first = mid + 1;
 			} else if (compare == 0) {
-				//System.out.println("Element is found at index: " + mid);
+				// System.out.println("Element is found at index: " + mid);
 				pos = mid;
 				break;
 			} else {
@@ -428,7 +403,7 @@ public class DBApp {
 			mid = (first + last) / 2;
 		}
 		if (first > last) {
-			//System.out.println("Element is not found!");
+			// System.out.println("Element is not found!");
 
 		}
 		return pos;
@@ -1627,99 +1602,187 @@ public class DBApp {
 			throws DBAppException {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		boolean nextPage = true;
-		if (isClustering && !indexed) {
-			// use binary search
-			int startPageIndex = getPageToBeInsertedIndexUsingClusteringKey(t, key + "");
-			String pageName = t.usedPagesNames.get(startPageIndex);
-			// System.out.println(startPageIndex);
-			Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-			int startTupleIndex = getStartIndexStartUpdate(key, startPageIndex, t);
-			// System.out.println(startTupleIndex);
-			try {
-				for (int j = startTupleIndex; j < p.vtrTuples.size(); j++) {
+		try {
+			if (!indexed) {
 
-					Tuple tup = p.vtrTuples.get(j);
-					Object tupKey = tup.vtrTupleObj.get(tup.index);
-					// System.out.println(tupKey);
-					if (tupKey.equals(key)) {
+				if (isClustering) {
+					// use binary search
+					int startPageIndex = getPageToBeInsertedIndexUsingClusteringKey(t, key + "");
+					String pageName = t.usedPagesNames.get(startPageIndex);
+					// System.out.println(startPageIndex);
+					Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+					int startTupleIndex = getStartIndexStartUpdate(key, startPageIndex, t);
+					// System.out.println(startTupleIndex);
 
-						result.add(tup);
-						// System.out.println(tup);
+					for (int j = startTupleIndex; j < p.vtrTuples.size(); j++) {
+
+						Tuple tup = p.vtrTuples.get(j);
+						Object tupKey = tup.vtrTupleObj.get(tup.index);
 						// System.out.println(tupKey);
-						// System.out.println("check");
-						// String tupObj = "";
-						// for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
-						// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
-						// System.out.println(tupObj);
-						// }
-						// result.add(tupObj);
+						if (tupKey.equals(key)) {
 
-					} else {
-						nextPage = false;
+							result.add(tup);
+							// System.out.println(tup);
+							// System.out.println(tupKey);
+							// System.out.println("check");
+							// String tupObj = "";
+							// for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
+							// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+							// System.out.println(tupObj);
+							// }
+							// result.add(tupObj);
+
+						} else {
+							nextPage = false;
+							serialize(p);
+						}
+					}
+					while (nextPage) {
+						startPageIndex++;
+						// System.out.println(startPageIndex);
+						if (startPageIndex < t.usedPagesNames.size()) {
+							// System.out.println("check6");
+							String secondPage = t.usedPagesNames.get(startPageIndex);
+							Page next = (Page) getDeserlaized("data//" + secondPage + ".class");
+							for (int j = 0; j < next.vtrTuples.size(); j++) {
+								Tuple tup = next.vtrTuples.get(j);
+
+								Object tupKey = tup.vtrTupleObj.get(tup.index);
+								if (tupKey.equals(key)) {
+
+									// String tupObj = "";
+									for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
+										result.add(tup);
+										// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+										// System.out.println(tupObj);
+									}
+									// result.add(tupObj);
+
+								} else {
+									nextPage = false;
+									serialize(p);
+									break;
+								}
+
+							}
+						} else {
+							nextPage = false;
+						}
+
+					}
+
+				} else if (!isClustering) {
+					// linear search
+					String tableName = t.name;
+					int colNumber = getColNumber(tableName, colName);
+					for (int i = 0; i < t.usedPagesNames.size(); i++) {
+						String pageName = t.usedPagesNames.get(i);
+						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+						for (int j = 0; j < p.vtrTuples.size(); j++) {
+							Tuple tup = p.vtrTuples.get(j);
+							Object value = tup.vtrTupleObj.get(colNumber);
+
+							// String tupObj = "";
+							if (Tuple.compareToHelper(value, key) == 0) {
+								result.add(tup);
+								// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+								// System.out.println(tupObj);
+								// result.add(tupObj);
+							}
+						}
 						serialize(p);
 					}
+
 				}
-				while (nextPage) {
-					startPageIndex++;
-					// System.out.println(startPageIndex);
-					if (startPageIndex < t.usedPagesNames.size()) {
-						// System.out.println("check6");
-						String secondPage = t.usedPagesNames.get(startPageIndex);
-						Page next = (Page) getDeserlaized("data//" + secondPage + ".class");
-						for (int j = 0; j < next.vtrTuples.size(); j++) {
-							Tuple tup = next.vtrTuples.get(j);
+			} else if (indexed) {
+				// use tree
 
-							Object tupKey = tup.vtrTupleObj.get(tup.index);
-							if (tupKey.equals(key)) {
+				if (isClustering) {
+					// use the tree to get only the first occurrence because the rest will be sorted
+					// so no need to use the tree once more
+					long modified = modifyKey(key);
+					BPlusTree b = (BPlusTree) deserializeTree("data//" + t.name + "_" + colName + ".class");
+					SearchResult s = b.searchKey(modified, false);
+					String fullIndex = s.getValues().getFirst();
+					String[] separated = fullIndex.split(",");
+					String pageName = separated[0];
+					int firstOcc = Integer.parseInt(separated[1]);
+					Page p = (Page) getDeserlaized("data//" + pageName + ".class");
 
-								// String tupObj = "";
-								for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
-									result.add(tup);
-									// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
-									// System.out.println(tupObj);
-								}
-								// result.add(tupObj);
+					int pageNumber = p.number;
+					for (int j = firstOcc; j < p.vtrTuples.size(); j++) {
 
-							} else {
-								nextPage = false;
-								serialize(p);
-								break;
-							}
+						Tuple tup = p.vtrTuples.get(j);
+						Object tupKey = tup.vtrTupleObj.get(tup.index);
+						// System.out.println(tupKey);
+						if (Tuple.compareToHelper(tupKey, key) == 0) {
 
+							result.add(tup);
+						} else {
+							nextPage = false;
+							serialize(p);
 						}
-					} else {
-						nextPage = false;
+					}
+					while (nextPage) {
+						pageNumber++;
+						// System.out.println(startPageIndex);
+						if (pageNumber < t.usedPagesNames.size()) {
+							// System.out.println("check6");
+							String secondPage = t.usedPagesNames.get(pageNumber);
+							Page next = (Page) getDeserlaized("data//" + secondPage + ".class");
+							for (int j = 0; j < next.vtrTuples.size(); j++) {
+								Tuple tup = next.vtrTuples.get(j);
+
+								Object tupKey = tup.vtrTupleObj.get(tup.index);
+								if (tupKey.equals(key)) {
+
+									// String tupObj = "";
+									for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
+										result.add(tup);
+										// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+										// System.out.println(tupObj);
+									}
+									// result.add(tupObj);
+
+								} else {
+									nextPage = false;
+									serialize(p);
+									break;
+								}
+
+							}
+						} else {
+							nextPage = false;
+						}
+
 					}
 
-				}
-			} catch (Exception e) {
-				throw new DBAppException("error in equal operation");
-			}
+				} else if (!isClustering) {
+					// retrieve from every occurrence found from tree;
+					long modified = modifyKey(key);
+					BPlusTree b = (BPlusTree) deserializeTree("data//" + t.name + "_" + colName + ".class");
+					SearchResult s = b.searchKey(modified, false);
+					for (int w = 0; w < s.getValues().size(); w++) {
+						String fullIndex = s.getValues().get(w);
+						String[] separated = fullIndex.split(",");
+						String pageName = separated[0];
+						String n = separated[1];
+						String[] removeSpaces = n.split(" ");
+						String m = removeSpaces[0];
+						// System.out.println(n.getClass());
+						int tupPosition = Integer.parseInt(m);
+						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+						result.add(p.vtrTuples.get(tupPosition));
 
-		} else if (!isClustering && !indexed) {
-			// linear search
-			String tableName = t.name;
-			int colNumber = getColNumber(tableName, colName);
-			for (int i = 0; i < t.usedPagesNames.size(); i++) {
-				String pageName = t.usedPagesNames.get(i);
-				Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-				for (int j = 0; j < p.vtrTuples.size(); j++) {
-					Tuple tup = p.vtrTuples.get(j);
-					Object value = tup.vtrTupleObj.get(colNumber);
-
-					// String tupObj = "";
-					if (Tuple.compareToHelper(value, key) == 0) {
-						result.add(tup);
-						// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
-						// System.out.println(tupObj);
-						// result.add(tupObj);
 					}
 				}
-				serialize(p);
-			}
 
+			}
+			// System.out.println(result);
+
+		} catch (Exception e1) {
+			throw new DBAppException("error in equal operation");
 		}
-		// System.out.println(result);
 		return result;
 	}
 
@@ -1728,67 +1791,71 @@ public class DBApp {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		boolean foundStart = false;
 		boolean start = false;
-		if (isClustering && !indexed) {
-			// non-linear search
-			int i = -1;
-			int startTuple = -1;
-			for (i = 0; i < t.usedPagesNames.size(); i++) {
-				String pName = t.usedPagesNames.get(i);
-				Page p = (Page) getDeserlaized("data//" + pName + ".class");
-				if (!(p.vtrTuples.isEmpty())) {
-					Tuple tup = p.vtrTuples.get(p.vtrTuples.size() - 1);
-					Object tupKey = tup.vtrTupleObj.get(tup.index);
-					if (Tuple.compareToHelper(tupKey, key) > 0) {
-						// I am in the right page
-						// search for tuple to begin with
-						for (startTuple = 0; startTuple < p.vtrTuples.size(); startTuple++) {
-							Tuple test = p.vtrTuples.get(startTuple);
-							Object testKey = test.vtrTupleObj.get(test.index);
-							if (Tuple.compareToHelper(testKey, key) > 0) {
-								foundStart = true;
-								break;
-							}
-						}
-
-					}
-				}
-				serialize(p);
-				if (foundStart) {
-					start = true;
-					break;
-				}
-			}
-			if (start) {
-				for (int z = i; z < t.usedPagesNames.size(); z++) {
+		if (!indexed) {
+			if (isClustering) {
+				// non-linear search
+				int i = -1;
+				int startTuple = -1;
+				for (i = 0; i < t.usedPagesNames.size(); i++) {
 					String pName = t.usedPagesNames.get(i);
 					Page p = (Page) getDeserlaized("data//" + pName + ".class");
-					for (int y = startTuple; y < p.vtrTuples.size(); y++) {
-						result.add(p.vtrTuples.get(y));
+					if (!(p.vtrTuples.isEmpty())) {
+						Tuple tup = p.vtrTuples.get(p.vtrTuples.size() - 1);
+						Object tupKey = tup.vtrTupleObj.get(tup.index);
+						if (Tuple.compareToHelper(tupKey, key) > 0) {
+							// I am in the right page
+							// search for tuple to begin with
+							for (startTuple = 0; startTuple < p.vtrTuples.size(); startTuple++) {
+								Tuple test = p.vtrTuples.get(startTuple);
+								Object testKey = test.vtrTupleObj.get(test.index);
+								if (Tuple.compareToHelper(testKey, key) > 0) {
+									foundStart = true;
+									break;
+								}
+							}
+
+						}
+					}
+					serialize(p);
+					if (foundStart) {
+						start = true;
+						break;
+					}
+				}
+				if (start) {
+					for (int z = i; z < t.usedPagesNames.size(); z++) {
+						String pName = t.usedPagesNames.get(i);
+						Page p = (Page) getDeserlaized("data//" + pName + ".class");
+						for (int y = startTuple; y < p.vtrTuples.size(); y++) {
+							result.add(p.vtrTuples.get(y));
+						}
+						serialize(p);
+					}
+				}
+			} else if (!isClustering) {
+				// linear search
+				String tableName = t.name;
+				int colNumber = getColNumber(tableName, colName);
+				for (int i = 0; i < t.usedPagesNames.size(); i++) {
+					String pageName = t.usedPagesNames.get(i);
+					Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+					for (int j = 0; j < p.vtrTuples.size(); j++) {
+						Tuple tup = p.vtrTuples.get(j);
+						Object value = tup.vtrTupleObj.get(colNumber);
+
+						// String tupObj = "";
+						if (Tuple.compareToHelper(value, key) > 0) {
+							result.add(tup);
+							// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+							// System.out.println(tupObj);
+							// result.add(tupObj);
+						}
 					}
 					serialize(p);
 				}
 			}
-		} else if (!isClustering && !indexed) {
-			// linear search
-			String tableName = t.name;
-			int colNumber = getColNumber(tableName, colName);
-			for (int i = 0; i < t.usedPagesNames.size(); i++) {
-				String pageName = t.usedPagesNames.get(i);
-				Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-				for (int j = 0; j < p.vtrTuples.size(); j++) {
-					Tuple tup = p.vtrTuples.get(j);
-					Object value = tup.vtrTupleObj.get(colNumber);
+		} else if (indexed) {
 
-					// String tupObj = "";
-					if (Tuple.compareToHelper(value, key) > 0) {
-						result.add(tup);
-						// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
-						// System.out.println(tupObj);
-						// result.add(tupObj);
-					}
-				}
-				serialize(p);
-			}
 		}
 		return result;
 	}
@@ -1798,49 +1865,53 @@ public class DBApp {
 		// in this operator linear search is more efficient
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		boolean stop = false;
-		if (isClustering && !indexed) {
-			for (int i = 0; i < t.usedPagesNames.size(); i++) {
-				String pName = t.usedPagesNames.get(i);
-				Page p = (Page) getDeserlaized("data//" + pName + ".class");
-				for (int j = 0; j < p.vtrTuples.size(); j++) {
-					Tuple tup = p.vtrTuples.get(j);
-					Object tupObj = tup.vtrTupleObj.get(tup.index);
-					if (Tuple.compareToHelper(tupObj, key) < 0) {
+		if (!indexed) {
+			if (isClustering) {
+				for (int i = 0; i < t.usedPagesNames.size(); i++) {
+					String pName = t.usedPagesNames.get(i);
+					Page p = (Page) getDeserlaized("data//" + pName + ".class");
+					for (int j = 0; j < p.vtrTuples.size(); j++) {
+						Tuple tup = p.vtrTuples.get(j);
+						Object tupObj = tup.vtrTupleObj.get(tup.index);
+						if (Tuple.compareToHelper(tupObj, key) < 0) {
 
-						result.add(tup);
-					} else {
-						stop = true;
+							result.add(tup);
+						} else {
+							stop = true;
+
+							break;
+						}
+					}
+					serialize(p);
+					if (stop) {
 
 						break;
 					}
 				}
-				serialize(p);
-				if (stop) {
+			} else if (!isClustering) {
+				// linear search
+				String tableName = t.name;
+				int colNumber = getColNumber(tableName, colName);
+				for (int i = 0; i < t.usedPagesNames.size(); i++) {
+					String pageName = t.usedPagesNames.get(i);
+					Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+					for (int j = 0; j < p.vtrTuples.size(); j++) {
+						Tuple tup = p.vtrTuples.get(j);
+						Object value = tup.vtrTupleObj.get(colNumber);
 
-					break;
-				}
-			}
-		} else if (!isClustering && !indexed) {
-			// linear search
-			String tableName = t.name;
-			int colNumber = getColNumber(tableName, colName);
-			for (int i = 0; i < t.usedPagesNames.size(); i++) {
-				String pageName = t.usedPagesNames.get(i);
-				Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-				for (int j = 0; j < p.vtrTuples.size(); j++) {
-					Tuple tup = p.vtrTuples.get(j);
-					Object value = tup.vtrTupleObj.get(colNumber);
-
-					// String tupObj = "";
-					if (Tuple.compareToHelper(value, key) < 0) {
-						result.add(tup);
-						// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
-						// System.out.println(tupObj);
-						// result.add(tupObj);
+						// String tupObj = "";
+						if (Tuple.compareToHelper(value, key) < 0) {
+							result.add(tup);
+							// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+							// System.out.println(tupObj);
+							// result.add(tupObj);
+						}
 					}
+					serialize(p);
 				}
-				serialize(p);
 			}
+		} else if (indexed) {
+
 		}
 		return result;
 	}
@@ -1849,41 +1920,45 @@ public class DBApp {
 			throws DBAppException {
 		// for this operator linear search is more efficient
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
-		if (isClustering && !indexed) {
-			for (int i = 0; i < t.usedPagesNames.size(); i++) {
-				String pName = t.usedPagesNames.get(i);
-				Page p = (Page) getDeserlaized("data//" + pName + ".class");
-				for (int j = 0; j < p.vtrTuples.size(); j++) {
-					Tuple tup = p.vtrTuples.get(j);
-					Object tupObj = tup.vtrTupleObj.get(tup.index);
-					if (Tuple.compareToHelper(tupObj, key) != 0) {
+		if (!indexed) {
+			if (isClustering) {
+				for (int i = 0; i < t.usedPagesNames.size(); i++) {
+					String pName = t.usedPagesNames.get(i);
+					Page p = (Page) getDeserlaized("data//" + pName + ".class");
+					for (int j = 0; j < p.vtrTuples.size(); j++) {
+						Tuple tup = p.vtrTuples.get(j);
+						Object tupObj = tup.vtrTupleObj.get(tup.index);
+						if (Tuple.compareToHelper(tupObj, key) != 0) {
 
-						result.add(tup);
+							result.add(tup);
+						}
 					}
+					serialize(p);
 				}
-				serialize(p);
-			}
-		} else if (!isClustering && !indexed) {
-			// linear search
-			String tableName = t.name;
-			int colNumber = getColNumber(tableName, colName);
-			for (int i = 0; i < t.usedPagesNames.size(); i++) {
-				String pageName = t.usedPagesNames.get(i);
-				Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-				for (int j = 0; j < p.vtrTuples.size(); j++) {
-					Tuple tup = p.vtrTuples.get(j);
-					Object value = tup.vtrTupleObj.get(colNumber);
+			} else if (!isClustering) {
+				// linear search
+				String tableName = t.name;
+				int colNumber = getColNumber(tableName, colName);
+				for (int i = 0; i < t.usedPagesNames.size(); i++) {
+					String pageName = t.usedPagesNames.get(i);
+					Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+					for (int j = 0; j < p.vtrTuples.size(); j++) {
+						Tuple tup = p.vtrTuples.get(j);
+						Object value = tup.vtrTupleObj.get(colNumber);
 
-					// String tupObj = "";
-					if (Tuple.compareToHelper(value, key) != 0) {
-						result.add(tup);
-						// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
-						// System.out.println(tupObj);
-						// result.add(tupObj);
+						// String tupObj = "";
+						if (Tuple.compareToHelper(value, key) != 0) {
+							result.add(tup);
+							// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+							// System.out.println(tupObj);
+							// result.add(tupObj);
+						}
 					}
+					serialize(p);
 				}
-				serialize(p);
 			}
+		} else if (indexed) {
+
 		}
 		return result;
 	}
@@ -2202,9 +2277,9 @@ public class DBApp {
 
 					// use comma as separator
 					String[] d = line.split(cvsSplitBy);
-//					System.out.println(d[0]);
-					if (d[0].equals(tableName)) {
 
+					if (d[0].equals(tableName)) {
+						// System.out.println(d[1]);
 						if (d[1].equals(colName)) {
 							colFound = true;
 							d[4] = "true";
@@ -2219,7 +2294,10 @@ public class DBApp {
 				}
 				br.close();
 				File file = new File("data/metadata.csv");
-				FileWriter writer = new FileWriter(file, false);
+				BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, true));
+				PrintWriter fileWriter = new PrintWriter(bufferedWriter);
+				FileWriter writer = new FileWriter(file);
+				System.out.println("check");
 				writer.append(returnBack);
 				writer.append("\n");
 				writer.flush();
@@ -2452,17 +2530,17 @@ public class DBApp {
 //	    System.out.println(dbApp.maxPageSize);
 		String strTableName = "Student";
 //**create table**
-		Hashtable<String, String> htblColNameType = new Hashtable();
-
-		htblColNameType.put("id", "java.lang.Integer");
-    //    htblColNameType.put("adsfs", "java.lang.Long");
-		htblColNameType.put("name", "java.lang.String");
-		htblColNameType.put("age", "java.lang.Integer");
-		htblColNameType.put("date", "java.util.Date");
-     	htblColNameType.put("gpa", "java.lang.Double");
-   		htblColNameType.put("shape", "java.awt.Polygon");
-		htblColNameType.put("grad", "java.lang.Boolean");
-	//	dbApp.createTable(strTableName, "id", htblColNameType);
+//		Hashtable<String, String> htblColNameType = new Hashtable();
+//
+//		htblColNameType.put("id", "java.lang.Integer");
+//		// htblColNameType.put("adsfs", "java.lang.Long");
+//		htblColNameType.put("name", "java.lang.String");
+//		htblColNameType.put("age", "java.lang.Integer");
+//		htblColNameType.put("date", "java.util.Date");
+//		htblColNameType.put("gpa", "java.lang.Double");
+//		htblColNameType.put("shape", "java.awt.Polygon");
+//		htblColNameType.put("grad", "java.lang.Boolean");
+//		 dbApp.createTable(strTableName, "id", htblColNameType);
 //		dbApp.makeIndexed(strTableName, "name");
 
 //		Table a=(Table)getDeserlaized("data//Student.class");
@@ -2487,18 +2565,19 @@ public class DBApp {
 //					htblColNameValue.put("grad", true);			
 //			}
 //			else			htblColNameValue.put("grad", false);
-	//	Polygon p = new Polygon();
-	//	p.addPoint(1,1);
-	//	p.addPoint(2,2);
-    //	System.out.println("n:"+p.npoints);
-	//	htblColNameValue.put("shape",  p);
+		// Polygon p = new Polygon();
+		// p.addPoint(1,1);
+		// p.addPoint(2,2);
+		// System.out.println("n:"+p.npoints);
+		// htblColNameValue.put("shape", p);
 ////////
-	//	dbApp.insertIntoTable(strTableName, htblColNameValue);
+		// dbApp.insertIntoTable(strTableName, htblColNameValue);
 //		}
 
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(30));
-//		htblColNameValue.put("name", new String("b"));
+//		htblColNameValue.put("id", new Integer(50));
+//		htblColNameValue.put("name", new String("caroline"));
+//		htblColNameValue.put("age", new Integer("35"));
 ////////////		htblColNameValue.put("date", new Date(2000, 12, 23));
 //////////		Polygon p = new Polygon();
 //////////		p.addPoint(1,3);
@@ -2508,18 +2587,18 @@ public class DBApp {
 //		dbApp.insertIntoTable(strTableName, htblColNameValue);
 
 //**delete tuples**
-		Hashtable<String, Object> htblColNameValue = new Hashtable();
-		htblColNameValue.put("id", 1);
-	    htblColNameValue.put("name", "asdfghj");
-	    htblColNameValue.put("gpa", 2.0);
-		htblColNameValue.put("date", new Date(2000,11,23));
-		Polygon p = new Polygon();
-		p.addPoint(1, 1);
-		p.addPoint(2, 2);
-		htblColNameValue.put("shape", p);
+//		Hashtable<String, Object> htblColNameValue = new Hashtable();
+//		htblColNameValue.put("id", 1);
+//		htblColNameValue.put("name", "asdfghj");
+//		htblColNameValue.put("gpa", 2.0);
+//		htblColNameValue.put("date", new Date(2000, 11, 23));
+//		Polygon p = new Polygon();
+//		p.addPoint(1, 1);
+//		p.addPoint(2, 2);
+//		htblColNameValue.put("shape", p);
 
 //		dbApp.insertIntoTable(strTableName, htblColNameValue);
-		dbApp.deleteFromTable(strTableName, htblColNameValue);
+//		dbApp.deleteFromTable(strTableName, htblColNameValue);
 
 //		Page pageToBeDeleteFrom = (Page) (getDeserlaized(
 //				"data//Student0.class"));
@@ -2533,21 +2612,20 @@ public class DBApp {
 //		hash.put("name", new String("a"));
 //////		hash.put("gpa", new Double(0.6));
 //////		hash.put("date", new Date(2000-05-23));
-		
 
 //		dbApp.updateTable(strTableName, "100", hash);
 ////////
 
 //** testing SELECT**
-//		SQLTerm[] arrSQLTerms;
-//		arrSQLTerms = new SQLTerm[1];
-//		for (int i = 0; i < arrSQLTerms.length; i++) {
-//			arrSQLTerms[i] = new SQLTerm();
-//		}
-//		arrSQLTerms[0]._strTableName = "Student";
-//		arrSQLTerms[0]._strColumnName = "name";
-//		arrSQLTerms[0]._strOperator = "!=";
-//		arrSQLTerms[0]._objValue = "a";
+		SQLTerm[] arrSQLTerms;
+		arrSQLTerms = new SQLTerm[1];
+		for (int i = 0; i < arrSQLTerms.length; i++) {
+			arrSQLTerms[i] = new SQLTerm();
+		}
+		arrSQLTerms[0]._strTableName = "Student";
+		arrSQLTerms[0]._strColumnName = "age";
+		arrSQLTerms[0]._strOperator = "=";
+		arrSQLTerms[0]._objValue = new Integer(30);
 //////
 //		arrSQLTerms[1]._strTableName = "Student";
 //		arrSQLTerms[1]._strColumnName = "id";
@@ -2562,21 +2640,26 @@ public class DBApp {
 //////		 System.out.println(arrSQLTerms[0]._strTableName);
 //////		
 //////		
-//		String[] strarrOperators = new String[0];
+		String[] strarrOperators = new String[0];
 ////		strarrOperators[0] = "XOR";
 ////		strarrOperators[1] = "AND";
 ////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
-//		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
-//		while (resultSet.hasNext()) {
-//			System.out.print(resultSet.next() + " ");
-//			System.out.println();
-//		}
+		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
+		while (resultSet.hasNext()) {
+			System.out.print(resultSet.next() + " ");
+			System.out.println();
+		}
 //////	  
 
 //***testing B+ tree
 //		dbApp.createBTreeIndex(strTableName, "age");		
 		displayTableContent(strTableName);
 
+//		long modified = dbApp.modifyKey(new Integer(30));
+//		BPlusTree b = (BPlusTree) deserializeTree("data//" + "Student_age" + ".class");
+//		SearchResult s = b.searchKey(modified, false);
+//		System.out.println(s.getValues().getFirst());
+//		dbApp.makeIndexed(strTableName, "age");
 //		displayTableContent("Student");
 
 //	Object [] a=dbApp.getArrayToDelete(htblColNameType, strTableName);
