@@ -220,10 +220,17 @@ public class BPlusConfiguration implements Serializable {
     }
 
     public int getMinLeafNodeCapacity()
-        {return(leafNodeDegree-1);}
+        {
+        	return (int) Math.floor( (getMaxLeafNodeCapacity() +1 )/2);
+    	//return(leafNodeDegree-1);
+        }
 
     public int getMinInternalNodeCapacity()
-        {return(treeDegree-1);}
+        {
+    	return (int) Math.ceil((getMaxLeafNodeCapacity() +1 )/2);
+    	
+    	//return(treeDegree-1);
+        }
 
     public int getKeySize()
         {return keySize;}
