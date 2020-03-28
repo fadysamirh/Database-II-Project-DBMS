@@ -1767,21 +1767,24 @@ public class DBApp {
 					long modified = modifyKey(key);
 					BPlusTree b = (BPlusTree) deserializeTree("data//" + t.name + "_" + colName + ".class");
 					SearchResult s = b.searchKey(modified, false);
-					for (int w = 0; w < s.getValues().size(); w++) {
-						String fullIndex = s.getValues().get(w);
-						String[] separated = fullIndex.split(",");
-						String pageName = separated[0];
-						String n = separated[1];
-						String[] removeSpaces = n.split(" ");
-						String m = removeSpaces[0];
-						// System.out.println(n.getClass());
-						int tupPosition = Integer.parseInt(m);
-						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-						result.add(p.vtrTuples.get(tupPosition));
-						serialize(p);
+					if (s.isFound()) {
+						for (int w = 0; w < s.getValues().size(); w++) {
+							System.out.println("check");
+							String fullIndex = s.getValues().get(w);
+							String[] separated = fullIndex.split(",");
+							String pageName = separated[0];
+							String n = separated[1];
+							String[] removeSpaces = n.split(" ");
+							String m = removeSpaces[0];
+							// System.out.println(n.getClass());
+							int tupPosition = Integer.parseInt(m);
+							Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+							result.add(p.vtrTuples.get(tupPosition));
+							serialize(p);
 
+						}
+						serializeTree(b);
 					}
-					serializeTree(b);
 				}
 
 			}
@@ -2763,7 +2766,7 @@ public class DBApp {
 		arrSQLTerms[0]._strTableName = "Student";
 		arrSQLTerms[0]._strColumnName = "age";
 		arrSQLTerms[0]._strOperator = "<=";
-		arrSQLTerms[0]._objValue = new Integer(40);
+		arrSQLTerms[0]._objValue = new Integer(38);
 //////
 //		arrSQLTerms[1]._strTableName = "Student";
 //		arrSQLTerms[1]._strColumnName = "id";
@@ -2778,7 +2781,7 @@ public class DBApp {
 //////		 System.out.println(arrSQLTerms[0]._strTableName);
 //////		
 //////		
-//		String[] strarrOperators = new String[0];
+		String[] strarrOperators = new String[0];
 //////		strarrOperators[0] = "XOR";
 //////		strarrOperators[1] = "AND";
 //////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
