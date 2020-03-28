@@ -569,62 +569,169 @@ public class BPlusTree implements Serializable {
 		}
 	}
 
-//	public SearchResult searchStartKey(long key, boolean unique) throws IOException {
-//		return searchStartKey(this.root, key, false);
-//	}
+	public RangeResult rangeStartSearch(long minKey, boolean unique) throws IOException, InvalidBTreeStateException {
+		SearchResult sMin = searchKey(minKey, unique);
+		SearchResult sMax;
+		RangeResult rangeQueryResult = new RangeResult();
+		if (sMin.isFound()) {
+			// read up until we find a key that's greater than maxKey
+			// or the last entry.
+
+			int i = sMin.getIndex();
+			while (sMin.getLeaf().getKeyAt(i) >= minKey) {
+				rangeQueryResult.getQueryResult()
+						.add(new KeyValueWrapper(sMin.getLeaf().getKeyAt(i), sMin.getLeaf().getValueAt(i)));
+
+				// check if we have an overflow page
+				if (!unique && sMin.getLeaf().getOverflowPointerAt(i) != -1) {
+					parseOverflowPages(sMin.getLeaf(), i, rangeQueryResult);
+				}
+
+				i++;
+
+				// check if we need to read the next block
+				if (i == sMin.getLeaf().getCurrentCapacity()) {
+					// check if we have a next node to load.
+					if (sMin.getLeaf().getNextPagePointer() < 0)
+					// if not just break the loop
+					{
+						break;
+					}
+					sMin.setLeaf((TreeLeaf) readNode(sMin.getLeaf().getNextPagePointer()));
+					i = 0;
+				}
+			}
+
+		}
+		// this is the case where both searches might fail to find something, but
+		// we *might* have something between in the given range. To account for
+		// that even if we have *not* found something we will return those results
+		// instead. For example say we have a range of [2, 5] and we only have keys
+		// from [3, 4], thus both searches for min and max would fail to find a
+		// matching key in both cases. Thing is to account for that *both* results
+		// will be stopped at the first key that is less than min and max values
+		// given even if we did not find anything.
+		else {
+			
+			sMax = searchStartKey(minKey, unique);
+			
+			int i = sMax.getIndex();
+			System.out.println(sMin.getLeaf().getKeyAt(i));
+			while (sMin.getLeaf().getKeyAt(i) >= minKey) {
+				//System.out.println(i);
+				rangeQueryResult.getQueryResult()
+						.add(new KeyValueWrapper(sMin.getLeaf().getKeyAt(i), sMin.getLeaf().getValueAt(i)));
+
+				// check if we have an overflow page
+				if (!unique && sMin.getLeaf().getOverflowPointerAt(i) != -1) {
+					parseOverflowPages(sMin.getLeaf(), i, rangeQueryResult);
+				}
+
+				i++;
+
+				// check if we need to read the next block
+				if (i == sMin.getLeaf().getCurrentCapacity()) {
+					// check if we have a next node to load.
+					if (sMin.getLeaf().getNextPagePointer() < 0)
+					// if not just break the loop
+					{
+						break;
+					}
+					sMin.setLeaf((TreeLeaf) readNode(sMin.getLeaf().getNextPagePointer()));
+					i = 0;
+				}
+				//i++;
+			}
+
+		}
+//			sMax = searchStartKey(minKey, unique);
+//			int i = sMax.getIndex();
+//			while (i >= 0 && sMax.getLeaf().getKeyAt(i) >= minKey) {
+//				rangeQueryResult.getQueryResult()
+//						.add(new KeyValueWrapper(sMax.getLeaf().getKeyAt(i), sMax.getLeaf().getValueAt(i)));
 //
-//	private SearchResult searchStartKey(TreeNode node, long key, boolean unique) throws IOException {
-//		// search for the key
-//		int i = binSearchBlock(node, key, Rank.Pred);
-//
-//		// check if we found it
-//		if (node.isLeaf()) {
-//			// i--;
-//			if (i >= 0 && i < node.getCurrentCapacity() && key >= node.getKeyAt(i)) {
-//
-//				// we found the key, depending on the unique flag handle accordingly
-//				if (unique || ((TreeLeaf) node).getOverflowPointerAt(i) == -1L) {
-//					return (new SearchResult((TreeLeaf) node, i, true));
+//				// check if we have an overflow page
+//				if (!unique && sMax.getLeaf().getOverflowPointerAt(i) != -1) {
+//					parseOverflowPages(sMax.getLeaf(), i, rangeQueryResult);
 //				}
-//				// handle the case of duplicates where actual overflow pages exist
-//				else {
-//					TreeLeaf lbuf = (TreeLeaf) node;
-//					TreeOverflow ovfBuf = (TreeOverflow) readNode(lbuf.getOverflowPointerAt(i));
-//					LinkedList<String> ovfList = new LinkedList<>();
-//					// add the current one
-//					ovfList.add(lbuf.getValueAt(i));
-//					int icap = 0;
-//					// loop through all the overflow pages
-//					while (icap < ovfBuf.getCurrentCapacity()) {
-//						ovfList.add(ovfBuf.getValueAt(icap));
-//						icap++;
-//						// advance if we have another page
-//						if (icap == ovfBuf.getCurrentCapacity() && ovfBuf.getNextPagePointer() != -1L) {
-//							ovfBuf = (TreeOverflow) readNode(ovfBuf.getNextPagePointer());
-//							icap = 0;
-//						}
+//
+//				i--;
+//				// check if we need to read the next block
+//				if (i < 0) {
+//					// check if we do have another node to load
+//					if (sMax.getLeaf().getPrevPagePointer() < 0)
+//					// if not just break the loop
+//					{
+//						break;
 //					}
-//					// now after populating the list return the search result
-//					return (new SearchResult((TreeLeaf) node, i, ovfList));
+//					sMax.setLeaf((TreeLeaf) readNode(sMax.getLeaf().getPrevPagePointer()));
+//					// set it to max length
+//					i = sMax.getLeaf().getCurrentCapacity() - 1;
 //				}
-//			} else
-//			// we found nothing, use the unique constructor anyway.
-//			{
-//				return (new SearchResult((TreeLeaf) node, i, false));
 //			}
 //
 //		}
-//		// probably it's an internal node, descend to a leaf
-//		else {
-//			// padding to account for the last pointer (if needed)
-//			if (i != node.getCurrentCapacity() && key >= node.getKeyAt(i)) {
-//				i++;
-//			}
-//			TreeNode t = readNode(((TreeInternalNode) node).getPointerAt(i));
-//			return (searchKey(t, key, unique));
-//		}
-//
-//	}
+		bPerf.incrementTotalRangeQueries();
+		// finally return the result list (empty or not)
+		return (rangeQueryResult);
+	}
+
+	public SearchResult searchStartKey(long key, boolean unique) throws IOException {
+		return searchStartKey(this.root, key, false);
+	}
+
+	private SearchResult searchStartKey(TreeNode node, long key, boolean unique) throws IOException {
+		// search for the key
+		int i = binSearchBlock(node, key, Rank.PlusOne);
+
+		// check if we found it
+		if (node.isLeaf()) {
+			// i--;
+			if (i >= 0 && i < node.getCurrentCapacity() && key >= node.getKeyAt(i)) {
+
+				// we found the key, depending on the unique flag handle accordingly
+				if (unique || ((TreeLeaf) node).getOverflowPointerAt(i) == -1L) {
+					return (new SearchResult((TreeLeaf) node, i, true));
+				}
+				// handle the case of duplicates where actual overflow pages exist
+				else {
+					TreeLeaf lbuf = (TreeLeaf) node;
+					TreeOverflow ovfBuf = (TreeOverflow) readNode(lbuf.getOverflowPointerAt(i));
+					LinkedList<String> ovfList = new LinkedList<>();
+					// add the current one
+					ovfList.add(lbuf.getValueAt(i));
+					int icap = 0;
+					// loop through all the overflow pages
+					while (icap < ovfBuf.getCurrentCapacity()) {
+						ovfList.add(ovfBuf.getValueAt(icap));
+						icap++;
+						// advance if we have another page
+						if (icap == ovfBuf.getCurrentCapacity() && ovfBuf.getNextPagePointer() != -1L) {
+							ovfBuf = (TreeOverflow) readNode(ovfBuf.getNextPagePointer());
+							icap = 0;
+						}
+					}
+					// now after populating the list return the search result
+					return (new SearchResult((TreeLeaf) node, i, ovfList));
+				}
+			} else
+			// we found nothing, use the unique constructor anyway.
+			{
+				return (new SearchResult((TreeLeaf) node, i, false));
+			}
+
+		}
+		// probably it's an internal node, descend to a leaf
+		else {
+			// padding to account for the last pointer (if needed)
+			if (i != node.getCurrentCapacity() && key >= node.getKeyAt(i)) {
+				i++;
+			}
+			TreeNode t = readNode(((TreeInternalNode) node).getPointerAt(i));
+			return (searchKey(t, key, unique));
+		}
+
+	}
 
 	/**
 	 * Handle range search queries with a bit of twist on how we handle duplicate

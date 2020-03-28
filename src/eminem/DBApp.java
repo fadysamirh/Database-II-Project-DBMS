@@ -25,6 +25,7 @@ import java.util.Properties;
 import java.util.Vector;
 
 import ds.bplus.bptree.BPlusTree;
+import ds.bplus.bptree.RangeResult;
 import ds.bplus.bptree.SearchResult;
 import ds.bplus.util.InvalidBTreeStateException;
 
@@ -1634,8 +1635,8 @@ public class DBApp {
 
 						} else {
 							nextPage = false;
-							serialize(p);
 						}
+						serialize(p);
 					}
 					while (nextPage) {
 						startPageIndex++;
@@ -1649,22 +1650,23 @@ public class DBApp {
 
 								Object tupKey = tup.vtrTupleObj.get(tup.index);
 								if (tupKey.equals(key)) {
-
+									result.add(tup);
 									// String tupObj = "";
-									for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
-										result.add(tup);
-										// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
-										// System.out.println(tupObj);
-									}
+									// for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
+
+									// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+									// System.out.println(tupObj);
+									// }
 									// result.add(tupObj);
 
 								} else {
 									nextPage = false;
-									serialize(p);
+									// serialize(next);
 									break;
 								}
 
 							}
+							serialize(next);
 						} else {
 							nextPage = false;
 						}
@@ -1720,9 +1722,11 @@ public class DBApp {
 							result.add(tup);
 						} else {
 							nextPage = false;
-							serialize(p);
+							break;
+
 						}
 					}
+					serialize(p);
 					while (nextPage) {
 						pageNumber++;
 						// System.out.println(startPageIndex);
@@ -1746,16 +1750,17 @@ public class DBApp {
 
 								} else {
 									nextPage = false;
-									serialize(p);
 									break;
 								}
 
 							}
+							serialize(next);
 						} else {
 							nextPage = false;
 						}
 
 					}
+					serializeTree(b);
 
 				} else if (!isClustering) {
 					// retrieve from every occurrence found from tree;
@@ -1773,8 +1778,10 @@ public class DBApp {
 						int tupPosition = Integer.parseInt(m);
 						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
 						result.add(p.vtrTuples.get(tupPosition));
+						serialize(p);
 
 					}
+					serializeTree(b);
 				}
 
 			}
@@ -1791,71 +1798,152 @@ public class DBApp {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		boolean foundStart = false;
 		boolean start = false;
-		if (!indexed) {
-			if (isClustering) {
-				// non-linear search
-				int i = -1;
-				int startTuple = -1;
-				for (i = 0; i < t.usedPagesNames.size(); i++) {
-					String pName = t.usedPagesNames.get(i);
-					Page p = (Page) getDeserlaized("data//" + pName + ".class");
-					if (!(p.vtrTuples.isEmpty())) {
-						Tuple tup = p.vtrTuples.get(p.vtrTuples.size() - 1);
-						Object tupKey = tup.vtrTupleObj.get(tup.index);
-						if (Tuple.compareToHelper(tupKey, key) > 0) {
-							// I am in the right page
-							// search for tuple to begin with
-							for (startTuple = 0; startTuple < p.vtrTuples.size(); startTuple++) {
-								Tuple test = p.vtrTuples.get(startTuple);
-								Object testKey = test.vtrTupleObj.get(test.index);
-								if (Tuple.compareToHelper(testKey, key) > 0) {
-									foundStart = true;
-									break;
-								}
-							}
-
-						}
-					}
-					serialize(p);
-					if (foundStart) {
-						start = true;
-						break;
-					}
-				}
-				if (start) {
-					for (int z = i; z < t.usedPagesNames.size(); z++) {
+		try {
+			if (!indexed) {
+				if (isClustering) {
+					// non-linear search
+					int i = -1;
+					int startTuple = -1;
+					for (i = 0; i < t.usedPagesNames.size(); i++) {
 						String pName = t.usedPagesNames.get(i);
 						Page p = (Page) getDeserlaized("data//" + pName + ".class");
-						for (int y = startTuple; y < p.vtrTuples.size(); y++) {
-							result.add(p.vtrTuples.get(y));
+						if (!(p.vtrTuples.isEmpty())) {
+							Tuple tup = p.vtrTuples.get(p.vtrTuples.size() - 1);
+							Object tupKey = tup.vtrTupleObj.get(tup.index);
+							if (Tuple.compareToHelper(tupKey, key) > 0) {
+								// I am in the right page
+								// search for tuple to begin with
+								for (startTuple = 0; startTuple < p.vtrTuples.size(); startTuple++) {
+									Tuple test = p.vtrTuples.get(startTuple);
+									Object testKey = test.vtrTupleObj.get(test.index);
+									if (Tuple.compareToHelper(testKey, key) > 0) {
+										foundStart = true;
+										break;
+									}
+								}
+
+							}
+						}
+						serialize(p);
+						if (foundStart) {
+							start = true;
+							break;
+						}
+					}
+					if (start) {
+						for (int z = i; z < t.usedPagesNames.size(); z++) {
+							String pName = t.usedPagesNames.get(i);
+							Page p = (Page) getDeserlaized("data//" + pName + ".class");
+							for (int y = startTuple; y < p.vtrTuples.size(); y++) {
+								result.add(p.vtrTuples.get(y));
+							}
+							serialize(p);
+						}
+					}
+				} else if (!isClustering) {
+					// linear search
+					String tableName = t.name;
+					int colNumber = getColNumber(tableName, colName);
+					for (int i = 0; i < t.usedPagesNames.size(); i++) {
+						String pageName = t.usedPagesNames.get(i);
+						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+						for (int j = 0; j < p.vtrTuples.size(); j++) {
+							Tuple tup = p.vtrTuples.get(j);
+							Object value = tup.vtrTupleObj.get(colNumber);
+
+							// String tupObj = "";
+							if (Tuple.compareToHelper(value, key) > 0) {
+								result.add(tup);
+								// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+								// System.out.println(tupObj);
+								// result.add(tupObj);
+							}
 						}
 						serialize(p);
 					}
 				}
-			} else if (!isClustering) {
-				// linear search
-				String tableName = t.name;
-				int colNumber = getColNumber(tableName, colName);
-				for (int i = 0; i < t.usedPagesNames.size(); i++) {
-					String pageName = t.usedPagesNames.get(i);
+			} else if (indexed) {
+				if (isClustering) {
+					// use the tree to get only the first occurrence because the rest will be sorted
+					// so no need to use the tree once more
+					long modified = modifyKey(key);
+					BPlusTree b = (BPlusTree) deserializeTree("data//" + t.name + "_" + colName + ".class");
+					// SearchResult s = b.searchKey(modified, false);
+					RangeResult r = b.rangeStartSearch(modified, false);
+					RangeResult s = new RangeResult();
+					for (int w = 0; w < r.getQueryResult().size(); w++) {
+						long k = r.getQueryResult().get(w).getKey();
+						if (k != modified) {
+							// to avoid getting values equal to our key as this is handled by equal operator
+							s.getQueryResult().add(r.getQueryResult().get(w));
+						}
+					}
+					String fullIndex = s.getQueryResult().get(0).getValue();
+					String[] separated = fullIndex.split(",");
+					String pageName = separated[0];
+					int firstOcc = Integer.parseInt(separated[1]);
 					Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-					for (int j = 0; j < p.vtrTuples.size(); j++) {
-						Tuple tup = p.vtrTuples.get(j);
-						Object value = tup.vtrTupleObj.get(colNumber);
 
-						// String tupObj = "";
-						if (Tuple.compareToHelper(value, key) > 0) {
+					int pageNumber = p.number;
+					for (int j = firstOcc; j < p.vtrTuples.size(); j++) {
+
+						Tuple tup = p.vtrTuples.get(j);
+						Object tupKey = tup.vtrTupleObj.get(tup.index);
+						// System.out.println(tupKey);
+						if (Tuple.compareToHelper(tupKey, key) > 0) {
+
 							result.add(tup);
-							// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
-							// System.out.println(tupObj);
-							// result.add(tupObj);
 						}
 					}
 					serialize(p);
-				}
-			}
-		} else if (indexed) {
+					for (int i = pageNumber + 1; i < t.usedPagesNames.size(); i++) {
+						String pName = t.usedPagesNames.get(i);
+						Page current = (Page) getDeserlaized("data//" + pName + ".class");
+						for (int y = 0; y < current.vtrTuples.size(); y++) {
+							Tuple tup = p.vtrTuples.get(y);
+							Object value = tup.vtrTupleObj.get(tup.index);
+							if (Tuple.compareToHelper(value, key) > 0) {
+								result.add(tup);
+							}
+						}
+						serialize(current);
+					}
+					serializeTree(b);
 
+				} else if (!isClustering) {
+					// retrieve from every occurrence found from tree;
+					long modified = modifyKey(key);
+					BPlusTree b = (BPlusTree) deserializeTree("data//" + t.name + "_" + colName + ".class");
+					// SearchResult s = b.searchKey(modified, false);
+					RangeResult r = b.rangeStartSearch(modified, false);
+					RangeResult s = new RangeResult();
+					for (int w = 0; w < r.getQueryResult().size(); w++) {
+						long k = r.getQueryResult().get(w).getKey();
+						if (k != modified) {
+							// to avoid getting values equal to our key as this is handled by equal operator
+							s.getQueryResult().add(r.getQueryResult().get(w));
+						}
+					}
+					for (int w = 0; w < s.getQueryResult().size(); w++) {
+						String fullIndex = s.getQueryResult().get(w).getValue();
+						String[] separated = fullIndex.split(",");
+						String pageName = separated[0];
+						String n = separated[1];
+						String[] removeSpaces = n.split(" ");
+						String m = removeSpaces[0];
+						// System.out.println(n.getClass());
+						int tupPosition = Integer.parseInt(m);
+						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+						result.add(p.vtrTuples.get(tupPosition));
+						serialize(p);
+
+					}
+					serializeTree(b);
+				}
+
+			}
+		} catch (Exception e) {
+			throw new DBAppException("error in greater than operator");
 		}
 		return result;
 	}
@@ -2574,7 +2662,7 @@ public class DBApp {
 //		Hashtable htblColNameValue = new Hashtable();
 //		htblColNameValue.put("id", new Integer(50));
 //		htblColNameValue.put("name", new String("a"));
-//		htblColNameValue.put("age", new Integer("50"));
+//		htblColNameValue.put("age", new Integer("40"));
 ////////////		htblColNameValue.put("date", new Date(2000, 12, 23));
 //////////		Polygon p = new Polygon();
 //////////		p.addPoint(1,3);
@@ -2621,8 +2709,8 @@ public class DBApp {
 		}
 		arrSQLTerms[0]._strTableName = "Student";
 		arrSQLTerms[0]._strColumnName = "age";
-		arrSQLTerms[0]._strOperator = "=";
-		arrSQLTerms[0]._objValue = new Integer(30);
+		arrSQLTerms[0]._strOperator = ">=";
+		arrSQLTerms[0]._objValue = new Integer(40);
 //////
 //		arrSQLTerms[1]._strTableName = "Student";
 //		arrSQLTerms[1]._strColumnName = "id";
@@ -2652,9 +2740,14 @@ public class DBApp {
 //		dbApp.createBTreeIndex(strTableName, "age");		
 		displayTableContent(strTableName);
 
-//		long modified = dbApp.modifyKey(new Integer(32));
+//		long modified = dbApp.modifyKey("a");
 //		BPlusTree b = (BPlusTree) deserializeTree("data//" + "Student_age" + ".class");
-//		SearchResult s = b.searchStartKey(modified, false);
+//		RangeResult r = b.rangeStartSearch(modified, false);
+//		System.out.println(r.getQueryResult().size());
+//		System.out.println(r.getQueryResult().get(0).getValue());
+//		System.out.println(r.getQueryResult().get(1).getValue());
+//		System.out.println(r.getQueryResult().get(2).getValue());
+//	    SearchResult s = b.searchStartKey(modified, false);
 //		System.out.println(s.getValues().get(0));
 //		serializeTree(b);
 //		dbApp.makeIndexed(strTableName, "age");
