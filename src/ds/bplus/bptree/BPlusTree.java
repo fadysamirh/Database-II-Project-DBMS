@@ -2724,9 +2724,11 @@ public class BPlusTree implements Serializable {
 		}
 		// **********
 		else if (t.getNodeType() == TreeNodeType.TREE_LEAF) {
-			for (int i = 0; i < ((TreeLeaf) t).getOverflowList().size(); i++) {
-				LinkedList<Long> ovf = ((TreeLeaf) t).getOverflowList();
-				printNodeAt(ovf.get(i));
+			if(((TreeLeaf) t).getOverflowList().get(0)!=-1) {
+				for (int i = 0; i < ((TreeLeaf) t).getOverflowList().size(); i++) {
+					LinkedList<Long> ovf = ((TreeLeaf) t).getOverflowList();
+					printNodeAt(ovf.get(i));
+				}
 			}
 		}
 	}

@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.Properties;
 
+import eminem.DBAppException;
+
 /**
  *
  * Class that stores all of the configuration parameters for our B+ Tree.
@@ -16,7 +18,7 @@ import java.util.Properties;
 public class BPlusConfiguration implements Serializable {
 
 	private int pageSize; // page size (in bytes)
-	// private int maxKeysinNode; // maximum number of keys in one node
+	private int maxKeysinNode; // maximum number of keys in one node
 	private int keySize; // key size (in bytes)
 	private int entrySize; // entry size (in bytes)
 	private int treeDegree; // tree degree (internal node degree)
@@ -48,6 +50,12 @@ public class BPlusConfiguration implements Serializable {
 //			System.out.print(e.getMessage());
 //		}
 //    	this.entrySize = 20;
+		try {
+			this.maxKeysinNode = getNodeSize();
+		} catch (DBAppException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		basicParams(1024, 8, 20);
 		initializeCommon(pageSize, keySize, entrySize, 1000);
 
@@ -120,11 +128,15 @@ public class BPlusConfiguration implements Serializable {
 		this.lookupPageSize = pageSize - headerSize; // lookup page size
 		this.conditionThreshold = conditionThreshold; // iterations for conditioning
 		// now calculate the tree degree
-		this.treeDegree = calculateDegree(2 * keySize, internalNodeHeaderSize);
-		// leaf & overflow have the same header size.
-		this.leafNodeDegree = calculateDegree((2 * keySize) + entrySize, leafHeaderSize);
-		this.overflowPageDegree = calculateDegree(entrySize, leafHeaderSize);
-		this.lookupOverflowPageDegree = calculateDegree(keySize, lookupOverflowHeaderSize);
+//		this.treeDegree = calculateDegree(2 * keySize, internalNodeHeaderSize);
+		this.treeDegree = (1+ getMaxInternalNodeCapacity())/2;
+//		// leaf & overflow have the same header size.
+//		this.leafNodeDegree = calculateDegree((2 * keySize) + entrySize, leafHeaderSize);
+		this.leafNodeDegree = (1+ getMaxLeafNodeCapacity())/2;
+//		this.overflowPageDegree = calculateDegree(entrySize, leafHeaderSize);
+		this.overflowPageDegree=25;
+//		this.lookupOverflowPageDegree = calculateDegree(keySize, lookupOverflowHeaderSize);
+		this.lookupOverflowPageDegree=63;
 		checkDegreeValidity();
 	}
 
@@ -135,9 +147,9 @@ public class BPlusConfiguration implements Serializable {
 	 * @param elementHeaderSize the node header size (in bytes)
 	 * @return the node degree
 	 */
-	private int calculateDegree(int elementSize, int elementHeaderSize) {
-		return ((int) (((pageSize - elementHeaderSize) / (2.0 * elementSize))/* +0.5 */));
-	}
+//	private int calculateDegree(int elementSize, int elementHeaderSize) {
+//		return ((int) (((pageSize - elementHeaderSize) / (2.0 * elementSize))/* +0.5 */));
+//	}
 
 	/**
 	 *
@@ -171,38 +183,38 @@ public class BPlusConfiguration implements Serializable {
 	}
 
 	public int getMaxInternalNodeCapacity() {
-
-		try {
-			FileReader reader = new FileReader("config\\DBApp.properties");
-
-			Properties p = new Properties();
-			p.load(reader);
-
-			return Integer.parseInt(p.getProperty("NodeSize"));
-			// System.out.println(p.getProperty("password")); }
-		} catch (IOException e) {
-			System.out.println("CANT FIND FILE");
-			;
-		}
-		return -1;
+		return maxKeysinNode;
+//		try {
+//			FileReader reader = new FileReader("config\\DBApp.properties");
+//
+//			Properties p = new Properties();
+//			p.load(reader);
+//
+//			return Integer.parseInt(p.getProperty("NodeSize"));
+//			// System.out.println(p.getProperty("password")); }
+//		} catch (IOException e) {
+//			System.out.println("CANT FIND FILE");
+//			;
+//		}
+//		return -1;
 		// return((2*treeDegree) - 1);
 	}
 
 	public int getMaxLeafNodeCapacity() {
-
-		try {
-			FileReader reader = new FileReader("config\\DBApp.properties");
-
-			Properties p = new Properties();
-			p.load(reader);
-
-			return Integer.parseInt(p.getProperty("NodeSize"));
-			// System.out.println(p.getProperty("password")); }
-		} catch (IOException e) {
-			System.out.println("CANT FIND FILE");
-			;
-		}
-		return -1;
+		return maxKeysinNode;
+//		try {
+//			FileReader reader = new FileReader("config\\DBApp.properties");
+//
+//			Properties p = new Properties();
+//			p.load(reader);
+//
+//			return Integer.parseInt(p.getProperty("NodeSize"));
+//			// System.out.println(p.getProperty("password")); }
+//		} catch (IOException e) {
+//			System.out.println("CANT FIND FILE");
+//			;
+//		}
+//		return -1;
 
 		// return((2*leafNodeDegree) - 1);
 
@@ -217,7 +229,8 @@ public class BPlusConfiguration implements Serializable {
 	}
 
 	public int getMinLeafNodeCapacity() {
-		return (int) Math.floor((getMaxLeafNodeCapacity() + 1) / 2);
+//		return 3;
+		return (int) Math.floor((getMaxLeafNodeCapacity() + 1) / 2) - 1;
 		// return(leafNodeDegree-1);
 	}
 
@@ -287,4 +300,22 @@ public class BPlusConfiguration implements Serializable {
 		System.out.println("\nLookup page overflow Degree" + getOverflowPageDegree() + "\n\tExpected cap: "
 				+ getMaxInternalNodeCapacity());
 	}
+	
+	public static int getNodeSize() throws DBAppException {
+		int num;
+
+		try {
+			FileReader reader = new FileReader("config\\DBApp.properties");
+
+			Properties p = new Properties();
+			p.load(reader);
+
+			return num = Integer.parseInt(p.getProperty("NodeSize"));
+			// System.out.println(p.getProperty("password")); }
+		} catch (IOException e) {
+			throw new DBAppException("error in finding config file");
+		}
+
+	}
 }
+

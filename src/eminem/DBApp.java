@@ -2497,11 +2497,11 @@ public class DBApp {
 			ArrayList<String> columns = getColNames(strTableName);
 			if (!columns.contains(strColName)) {
 				throw new DBAppException("Column does not exist");
-			} else {
+//			} else {
 
 				// check column does not already have an index isindex
-				if (isIndexed(strTableName, strColName)) {
-					throw new DBAppException("Column already have an index");
+//				if (isIndexed(strTableName, strColName)) {
+//					throw new DBAppException("Column already have an index");
 				} else {
 
 					// change indexed false to true in metadata
@@ -2550,7 +2550,7 @@ public class DBApp {
 					bt.getTreeConfiguration().printConfiguration();
 
 				}
-			}
+//			}
 		}
 	}
 
@@ -2662,6 +2662,31 @@ public class DBApp {
 		}
 		return hash;
 	}
+	
+	
+	public void checkTree() throws DBAppException, FileNotFoundException, IOException, InvalidBTreeStateException {
+		String strTableName = "boo";
+		Hashtable<String, String> htblColNameType = new Hashtable();
+
+		htblColNameType.put("id", "java.lang.Integer");
+		htblColNameType.put("name", "java.lang.String");
+		htblColNameType.put("age", "java.lang.Integer");
+		createTable(strTableName, "id", htblColNameType);
+		
+		for (int i = 0; i < 210; i++) {
+		Hashtable htblColNameValue = new Hashtable();
+		htblColNameValue.put("id", new Integer(i));
+		htblColNameValue.put("name", new String("Ab"));
+		htblColNameValue.put("age", new Integer(i%50));
+		insertIntoTable(strTableName, htblColNameValue);
+		}
+		createBTreeIndex(strTableName, "age");	
+//		BPlusTree bt = (BPlusTree)deserializeTree("data//" + "Student_age" + ".class");
+//		bt.deleteKey(2, false);
+//		bt.printTree();
+//		bt.getTreeConfiguration().printConfiguration();
+
+	}
 
 	public static void main(String[] args)
 			throws FileNotFoundException, DBAppException, IOException, InvalidBTreeStateException {
@@ -2677,10 +2702,10 @@ public class DBApp {
 //		// htblColNameType.put("adsfs", "java.lang.Long");
 //		htblColNameType.put("name", "java.lang.String");
 //		htblColNameType.put("age", "java.lang.Integer");
-//		htblColNameType.put("date", "java.util.Date");
-//		htblColNameType.put("gpa", "java.lang.Double");
-//		htblColNameType.put("shape", "java.awt.Polygon");
-//		htblColNameType.put("grad", "java.lang.Boolean");
+////		htblColNameType.put("date", "java.util.Date");
+////		htblColNameType.put("gpa", "java.lang.Double");
+////		htblColNameType.put("shape", "java.awt.Polygon");
+////		htblColNameType.put("grad", "java.lang.Boolean");
 //		 dbApp.createTable(strTableName, "id", htblColNameType);
 //		dbApp.makeIndexed(strTableName, "name");
 
@@ -2691,28 +2716,28 @@ public class DBApp {
 
 		// System.out.println(dbApp.maxPageSize);
 //** insert tuples**
-//		for (int i = 0; i < 10; i++) {
+//		for (int i = 0; i < 210; i++) {
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer());
+//		htblColNameValue.put("id", new Integer(i));
 //		htblColNameValue.put("name", new String("Ab"));
-//		htblColNameValue.put("age", new Integer(100%50));
-//		htblColNameValue.put("date", new Date(2000, 11, 23));
+//		htblColNameValue.put("age", new Integer(i%50));
+////		htblColNameValue.put("date", new Date(2000, 11, 23));
 //////		System.out.println((new Date(2020, 11, 11).getClass()));
 //////		System.out.println((new Date(2020, 11, 11)).toString());
 //
-//			htblColNameValue.put("gpa", new Double(2.0));
-//		
-//			if (4%2==0) {
-//					htblColNameValue.put("grad", true);			
-//			}
-//			else			htblColNameValue.put("grad", false);
-		// Polygon p = new Polygon();
-		// p.addPoint(1,1);
-		// p.addPoint(2,2);
-		// System.out.println("n:"+p.npoints);
-		// htblColNameValue.put("shape", p);
+////			htblColNameValue.put("gpa", new Double(2.0));
+////		
+////			if (4%2==0) {
+////					htblColNameValue.put("grad", true);			
+////			}
+////			else			htblColNameValue.put("grad", false);
+////		 Polygon p = new Polygon();
+////		 p.addPoint(1,1);
+////		 p.addPoint(2,2);
+////		 System.out.println("n:"+p.npoints);
+////		 htblColNameValue.put("shape", p);
 ////////
-		// dbApp.insertIntoTable(strTableName, htblColNameValue);
+//		 dbApp.insertIntoTable(strTableName, htblColNameValue);
 //		}
 
 //		Hashtable htblColNameValue = new Hashtable();
@@ -2758,15 +2783,17 @@ public class DBApp {
 ////////
 
 //** testing SELECT**
-		SQLTerm[] arrSQLTerms;
-		arrSQLTerms = new SQLTerm[1];
-		for (int i = 0; i < arrSQLTerms.length; i++) {
-			arrSQLTerms[i] = new SQLTerm();
-		}
-		arrSQLTerms[0]._strTableName = "Student";
-		arrSQLTerms[0]._strColumnName = "age";
-		arrSQLTerms[0]._strOperator = "<=";
-		arrSQLTerms[0]._objValue = new Integer(38);
+
+//		SQLTerm[] arrSQLTerms;
+//		arrSQLTerms = new SQLTerm[1];
+//		for (int i = 0; i < arrSQLTerms.length; i++) {
+//			arrSQLTerms[i] = new SQLTerm();
+//		}
+//		arrSQLTerms[0]._strTableName = "Student";
+//		arrSQLTerms[0]._strColumnName = "age";
+//		arrSQLTerms[0]._strOperator = "<=";
+//		arrSQLTerms[0]._objValue = new Integer(38);
+
 //////
 //		arrSQLTerms[1]._strTableName = "Student";
 //		arrSQLTerms[1]._strColumnName = "id";
@@ -2781,10 +2808,12 @@ public class DBApp {
 //////		 System.out.println(arrSQLTerms[0]._strTableName);
 //////		
 //////		
-		String[] strarrOperators = new String[0];
+
+//		String[] strarrOperators = new String[0];
 //////		strarrOperators[0] = "XOR";
 //////		strarrOperators[1] = "AND";
 //////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
+
 //		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
 //		while (resultSet.hasNext()) {
 //			System.out.print(resultSet.next() + " ");
@@ -2793,8 +2822,9 @@ public class DBApp {
 //////	  
 
 //***testing B+ tree
-//		dbApp.createBTreeIndex(strTableName, "age");		
-		displayTableContent(strTableName);
+//		dbApp.createBTreeIndex(strTableName, "age");
+		dbApp.checkTree();
+//		displayTableContent(strTableName);
 
 //		long modified = dbApp.modifyKey(new Integer(30));
 //		BPlusTree b = (BPlusTree) deserializeTree("data//" + "Student_age" + ".class");
