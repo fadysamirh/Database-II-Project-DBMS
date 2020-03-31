@@ -32,16 +32,16 @@ public class Table implements Serializable {
 		this.usedPagesNames = new Vector<String>();
 		this.usedIndicesNames = new Vector<String>();
 		colNames = new String[htblColNameType.size()];
-		
+
 		// added for delete
 
 		try {
 
 			boolean flag = true;
+			boolean validClustering = false;
 			Enumeration e = htblColNameType.keys();
-			Enumeration n = htblColNameType.elements();			
+			Enumeration n = htblColNameType.elements();
 			FileWriter writer = new FileWriter("data//metadata.csv", true);
-			
 
 			File mymetadata = new File("data//metadata.csv");
 			if (mymetadata.length() == 0) {
@@ -53,6 +53,9 @@ public class Table implements Serializable {
 
 				String key = (String) e.nextElement();
 				String value = (String) n.nextElement();
+				if (key.equals(strClusteringKeyColumn)) {
+					validClustering = true;
+				}
 				switch (value) {
 				case ("java.lang.Integer"):
 					break;
@@ -84,6 +87,9 @@ public class Table implements Serializable {
 
 				writer.append("\n");
 				i++;
+			}
+			if (!validClustering) {
+				throw new DBAppException("invalid clustering key column");
 			}
 
 			writer.flush();
@@ -124,4 +130,3 @@ public class Table implements Serializable {
 //		System.out.println();
 //	}
 }
-
