@@ -2104,30 +2104,18 @@ public class DBApp {
 		return result;
 	}
 
-	public static ArrayList<Tuple> andOperator2(ArrayList<Tuple> first, ArrayList<Tuple> second, int firstCol,
-			int secondCol) throws DBAppException {
+	public static ArrayList<Tuple> andOperator2(ArrayList<Tuple> first, ArrayList<Tuple> second) throws DBAppException {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
 		for (int i = 0; i < first.size(); i++) {
-			// String f = first.get(i).toString();
-			Object fKey = first.get(i).vtrTupleObj.get(firstCol);
-			// System.out.println(fKey);
-			Object sKey = first.get(i).vtrTupleObj.get(secondCol);
-			// System.out.println(sKey);
+			Tuple f = first.get(i);
+			String fs = f.toString();
 			for (int j = 0; j < second.size(); j++) {
-				// String s = second.get(j).toString();
-				Object secondfKey = second.get(j).vtrTupleObj.get(firstCol);
-				// System.out.println(secondfKey);
-				Object secondsKey = second.get(j).vtrTupleObj.get(secondCol);
-				if (Tuple.compareToHelper(fKey, secondfKey) == 0) {
-					// System.out.println("check");
-					if (Tuple.compareToHelper(sKey, secondsKey) == 0) {
-						// System.out.println("check");
-						// to avoid duplicates
-						second.remove(j);
-						result.add(first.get(i));
-						break;
-					}
+				Tuple s = second.get(j);
+				String ss = s.toString();
+				if (fs.equals(ss)) {
+					result.add(f);
 				}
+
 			}
 		}
 		// System.out.println(result);
@@ -2166,46 +2154,40 @@ public class DBApp {
 		return result;
 	}
 
-	public static ArrayList<Tuple> xorOperator2(ArrayList<Tuple> first, ArrayList<Tuple> second, int firstCol,
-			int secondCol) throws DBAppException {
+	public static ArrayList<Tuple> xorOperator2(ArrayList<Tuple> first, ArrayList<Tuple> second) throws DBAppException {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
-		boolean fCondition = false;
-		boolean sCondition = false;
+		// boolean fCondition = false;
+		// boolean sCondition = false;
 		for (int i = 0; i < first.size(); i++) {
-			Object fKey = first.get(i).vtrTupleObj.get(firstCol);
-			// System.out.println(fKey);
-			Object sKey = first.get(i).vtrTupleObj.get(secondCol);
-			// System.out.println(sKey);
+			Tuple f = first.get(i);
+			String fs = f.toString();
 			for (int j = 0; j < second.size(); j++) {
-				Object secondfKey = second.get(j).vtrTupleObj.get(firstCol);
-				// System.out.println(secondfKey);
-				Object secondsKey = second.get(j).vtrTupleObj.get(secondCol);
-				if (Tuple.compareToHelper(fKey, secondfKey) == 0) {
-					// System.out.println(fKey);
-					// System.out.println(secondfKey);
-					// System.out.println("check");
-					fCondition = true;
+				Tuple s = second.get(j);
+				String ss = s.toString();
+				if (fs.equals(ss)) {
+					first.remove(i);
+					second.remove(j);
+
+//				}
+//				if ((fCondition && !sCondition)) {
+//					second.remove(j);
+//					// System.out.println(fCondition);
+//					// System.out.println(sCondition);
+//					// System.out.println(first.get(i));
+//					result.add(first.get(i));
+//				} else if ((!fCondition && sCondition)) {
+//					second.remove(j);
+//					// System.out.println(fCondition);
+//					// System.out.println(sCondition);
+//					// System.out.println(first.get(i));
+//					result.add(first.get(i));
+//				}
 
 				}
-				if (Tuple.compareToHelper(sKey, secondsKey) == 0) {
-					// System.out.println("check");
-					sCondition = true;
-				}
-				if ((fCondition && !sCondition)) {
-					second.remove(j);
-					// System.out.println(fCondition);
-					// System.out.println(sCondition);
-					// System.out.println(first.get(i));
-					result.add(first.get(i));
-				} else if ((!fCondition && sCondition)) {
-					second.remove(j);
-					// System.out.println(fCondition);
-					// System.out.println(sCondition);
-					// System.out.println(first.get(i));
-					result.add(first.get(i));
-				}
-
 			}
+		}
+		for (int i = 0; i < first.size(); i++) {
+			result.add(first.get(i));
 		}
 		for (int i = 0; i < second.size(); i++) {
 			result.add(second.get(i));
@@ -2243,13 +2225,13 @@ public class DBApp {
 			}
 			switch (operator) {
 			case ("AND"):
-				result = andOperator2(first, second, colNumbers.get(colRefer - 1), colNumbers.get(colRefer));
+				result = andOperator2(first, second);
 				break;
 			case ("OR"):
 				result = orOperator2(first, second);
 				break;
 			case ("XOR"):
-				result = xorOperator2(first, second, colNumbers.get(colRefer - 1), colNumbers.get(colRefer));
+				result = xorOperator2(first, second);
 				break;
 			default:
 				throw new DBAppException("invalid operator");
@@ -2397,7 +2379,7 @@ public class DBApp {
 		return result;
 	}
 
-	public static boolean handleSelectionOperators(String tableName, Tuple tup, String[] strarrOperators,
+	public static boolean handleSelectionOperatorsLinearly(String tableName, Tuple tup, String[] strarrOperators,
 			SQLTerm[] arrSQLTerms) throws DBAppException {
 		boolean result = false;
 		boolean[] selection = new boolean[arrSQLTerms.length];
@@ -2515,6 +2497,123 @@ public class DBApp {
 
 	}
 
+//	public static ArrayList<Tuple> equalOperatorIndex(BPlusTree b, long modified, String colName)
+//			throws DBAppException {
+//		ArrayList<Tuple> result = new ArrayList<Tuple>();
+//		try {
+//			boolean nextPage = true;
+//			String tab = b.treeName;
+//			String[] tabbb = tab.split("_");
+//			String tableName = tabbb[0];
+//			SearchResult s = b.searchKey(modified, false);
+//			String fullIndex = s.getValues().getFirst();
+//			String[] separated = fullIndex.split(",");
+//			String pageName = separated[0];
+//			// int firstOcc = Integer.parseInt(separated[1]);
+//			Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+//
+//			int pageNumber = p.number;
+//			if (isClusteringKey(tableName, colName))
+//				for (int j = firstOcc; j < p.vtrTuples.size(); j++) {
+//
+//					Tuple tup = p.vtrTuples.get(j);
+//					Object tupKey = tup.vtrTupleObj.get(tup.index);
+//					// System.out.println(tupKey);
+//					if (Tuple.compareToHelper(tupKey, key) == 0) {
+//
+//						result.add(tup);
+//					} else {
+//						nextPage = false;
+//						break;
+//
+//					}
+//				}
+//			serialize(p);
+//			while (nextPage) {
+//				pageNumber++;
+//				// System.out.println(startPageIndex);
+//				if (pageNumber < t.usedPagesNames.size()) {
+//					// System.out.println("check6");
+//					String secondPage = t.usedPagesNames.get(pageNumber);
+//					Page next = (Page) getDeserlaized("data//" + secondPage + ".class");
+//					for (int j = 0; j < next.vtrTuples.size(); j++) {
+//						Tuple tup = next.vtrTuples.get(j);
+//
+//						Object tupKey = tup.vtrTupleObj.get(tup.index);
+//						if (tupKey.equals(key)) {
+//
+//							// String tupObj = "";
+//							for (int z = 0; z < tup.vtrTupleObj.size(); z++) {
+//								result.add(tup);
+//								// tupObj = tupObj + tup.vtrTupleObj.get(z) + "";
+//								// System.out.println(tupObj);
+//							}
+//							// result.add(tupObj);
+//
+//						} else {
+//							nextPage = false;
+//							break;
+//						}
+//
+//					}
+//					serialize(next);
+//				} else {
+//					nextPage = false;
+//				}
+//
+//			}
+//
+//		} catch (Exception e) {
+//			throw new DBAppException("error in equal with index");
+//		}
+//		return result;
+//	}
+
+	public static ArrayList<Tuple> handleIndexed(BPlusTree b, Object key, String operator, String colName)
+			throws DBAppException {
+		ArrayList<Tuple> result = new ArrayList<Tuple>();
+		long modified = modifyKey(key);
+		switch (operator) {
+		case ("="):
+			// result = equalOperatorIndex(b, modified, colName);
+		}
+//		// SearchResult s = b.searchKey(modified, false);
+//		RangeResult r = b.rangeStopSearch(modified, false);
+//		RangeResult s = new RangeResult();
+//		for (int w = 0; w < r.getQueryResult().size(); w++) {
+//			long k = r.getQueryResult().get(w).getKey();
+//			if (k != modified) {
+//				// to avoid getting values equal to our key as this is handled by equal operator
+//				s.getQueryResult().add(r.getQueryResult().get(w));
+//			}
+//		}
+//		for (int w = 0; w < s.getQueryResult().size(); w++) {
+//			String fullIndex = s.getQueryResult().get(w).getValue();
+//			String[] separated = fullIndex.split(",");
+//			String pageName = separated[0];
+//			String n = separated[1];
+//			String[] removeSpaces = n.split(" ");
+//			String m = removeSpaces[0];
+//			// System.out.println(n.getClass());
+//			int tupPosition = Integer.parseInt(m);
+//			Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+//			result.add(p.vtrTuples.get(tupPosition));
+//			serialize(p);
+//
+//		}
+//		serializeTree(b);
+//	}
+		return result;
+
+	}
+
+	public static ArrayList<Tuple> handleSetOperatorsIndex(ArrayList<ArrayList<Tuple>> midRes, String[] strarrOperators)
+			throws DBAppException {
+		ArrayList<Tuple> result = new ArrayList<Tuple>();
+		return result;
+
+	}
+
 	public Iterator selectFromTable(SQLTerm[] arrSQLTerms, String[] strarrOperators) throws DBAppException {
 
 		ArrayList<Tuple> resultList = new ArrayList<Tuple>();
@@ -2531,8 +2630,8 @@ public class DBApp {
 			// boolean noneIndexed = false;
 			boolean existsIndexed = false;
 			boolean existsClustering = false;
+			boolean allIndexed = true;
 
-			// case 2 all are indexed => use index for each
 			// case 3 one of them is clustering and not indexed => check if there is an or
 			// condition
 			// if yes then check if the col after or is indexed => if yes, then use index
@@ -2547,6 +2646,8 @@ public class DBApp {
 				}
 				if (isIndexed(tableName, curCol)) {
 					existsIndexed = true;
+				} else {
+					allIndexed = false;
 				}
 			}
 			if (!existsIndexed && !existsClustering) {
@@ -2558,7 +2659,7 @@ public class DBApp {
 					for (int j = 0; j < p.vtrTuples.size(); j++) {
 						Tuple tup = p.vtrTuples.get(j);
 						boolean satisfied = false;
-						satisfied = handleSelectionOperators(tableName, tup, strarrOperators, arrSQLTerms);
+						satisfied = handleSelectionOperatorsLinearly(tableName, tup, strarrOperators, arrSQLTerms);
 						if (satisfied) {
 							// System.out.println("check");
 							resultList.add(tup);
@@ -2566,6 +2667,19 @@ public class DBApp {
 					}
 					serialize(p);
 				}
+
+			} else if (allIndexed) {
+				// case 2 all are indexed => use index for each
+				ArrayList<ArrayList<Tuple>> midRes = new ArrayList<ArrayList<Tuple>>();
+				for (int i = 0; i < arrSQLTerms.length; i++) {
+					String colName = arrSQLTerms[i]._strColumnName;
+					String operator = arrSQLTerms[i]._strOperator;
+					Object key = arrSQLTerms[i]._objValue;
+					BPlusTree b = (BPlusTree) deserializeTree("data//" + t.name + "_" + colName + ".class");
+					midRes.add(handleIndexed(b, key, operator, colName));
+					serializeTree(b);
+				}
+				resultList = handleSetOperatorsIndex(midRes, strarrOperators);
 
 			}
 
