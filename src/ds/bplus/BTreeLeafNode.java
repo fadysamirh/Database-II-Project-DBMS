@@ -8,6 +8,7 @@ import eminem.DBAppException;
 
 class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKey> {
 	protected static int LEAFORDER;
+	
 	private ReferenceValues[] values;
 	
 	@Override
