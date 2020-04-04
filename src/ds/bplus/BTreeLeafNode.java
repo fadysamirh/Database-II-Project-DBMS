@@ -53,7 +53,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 		return (TValue)this.values[index];
 	}
 
-	public void setValue(int index, TValue value) {
+	public void setValue(int index, TValue value) throws DBAppException {
 		this.values[index].setReference(value);
 	}
 	
@@ -80,7 +80,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	
 	/* The codes below are used to support insertion operation */
 	
-	public void insertKey(TKey key, TValue value) {
+	public void insertKey(TKey key, TValue value) throws DBAppException {
 		Object[] superKeys=super.keys;
 		boolean containsKey=false;
 		int i;
@@ -102,7 +102,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 		}
 	}
 	
-	private void insertAt(int index, TKey key, TValue value) {
+	private void insertAt(int index, TKey key, TValue value) throws DBAppException {
 		// move space for the new key
 		
 		for (int i = this.getKeyCount() - 1; i >= index; --i) {
@@ -155,16 +155,12 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 			return false;
 		
 		//check how many references do I have
-		int countRef=values[index].getReferences().size();
+		int countRef=values[index].getSize();
+	//	System.out.println(countRef);
 		
 		if(countRef!=1) {
-			if(values[index].getReferences().contains(value)) {
-				values[index].removeReference(value);
-				return true;
-			}
-			else {
-				return false;
-			}
+			values[index].removeReference(value);
+			return true;
 		}
 		else {	
 			this.deleteAt(index);
@@ -201,10 +197,11 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	
 	/**
 	 * Notice that the key sunk from parent is be abandoned. 
+	 * @throws DBAppException 
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void fusionWithSibling(TKey sinkKey, BTreeNode<TKey> rightSibling) {
+	protected void fusionWithSibling(TKey sinkKey, BTreeNode<TKey> rightSibling) throws DBAppException {
 		BTreeLeafNode<TKey, TValue> siblingLeaf = (BTreeLeafNode<TKey, TValue>)rightSibling;
 		
 		int j = this.getKeyCount();
@@ -221,7 +218,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	
 	@Override
 	@SuppressWarnings("unchecked")
-	protected TKey transferFromSibling(TKey sinkKey, BTreeNode<TKey> sibling, int borrowIndex) {
+	protected TKey transferFromSibling(TKey sinkKey, BTreeNode<TKey> sibling, int borrowIndex) throws DBAppException {
 		BTreeLeafNode<TKey, TValue> siblingNode = (BTreeLeafNode<TKey, TValue>)sibling;
 		
 		this.insertKey(siblingNode.getKey(borrowIndex), siblingNode.getValue(borrowIndex));

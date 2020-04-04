@@ -54,8 +54,9 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 
 	/**
 	 * Delete a key and its associated value from the tree.
+	 * @throws DBAppException 
 	 */
-	public void delete(TKey key, TValue value) { // key=fady tvalue =page 1 deletes only one instance of key fady and page 1
+	public void delete(TKey key, TValue value) throws DBAppException { // key=fady tvalue =page 1 deletes only one instance of key fady and page 1
 		BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
 
 		if (leaf.delete(key, value) && leaf.isUnderflow()) {

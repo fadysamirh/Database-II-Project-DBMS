@@ -123,7 +123,7 @@ abstract class BTreeNode<TKey extends Comparable<TKey>> {
 		this.rightSibling = silbling;
 	}
 	
-	public BTreeNode<TKey> dealUnderflow() {
+	public BTreeNode<TKey> dealUnderflow() throws DBAppException {
 		if (this.getParent() == null)
 			return null;
 		
@@ -149,11 +149,11 @@ abstract class BTreeNode<TKey extends Comparable<TKey>> {
 		}
 	}
 	
-	protected abstract void processChildrenTransfer(BTreeNode<TKey> borrower, BTreeNode<TKey> lender, int borrowIndex);
+	protected abstract void processChildrenTransfer(BTreeNode<TKey> borrower, BTreeNode<TKey> lender, int borrowIndex) throws DBAppException;
 	
-	protected abstract BTreeNode<TKey> processChildrenFusion(BTreeNode<TKey> leftChild, BTreeNode<TKey> rightChild);
+	protected abstract BTreeNode<TKey> processChildrenFusion(BTreeNode<TKey> leftChild, BTreeNode<TKey> rightChild) throws DBAppException;
 	
-	protected abstract void fusionWithSibling(TKey sinkKey, BTreeNode<TKey> rightSibling);
+	protected abstract void fusionWithSibling(TKey sinkKey, BTreeNode<TKey> rightSibling) throws DBAppException;
 	
-	protected abstract TKey transferFromSibling(TKey sinkKey, BTreeNode<TKey> sibling, int borrowIndex);
+	protected abstract TKey transferFromSibling(TKey sinkKey, BTreeNode<TKey> sibling, int borrowIndex) throws DBAppException;
 }
