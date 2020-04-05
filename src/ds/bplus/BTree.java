@@ -13,10 +13,7 @@ import eminem.DBAppException;
 public class BTree<TKey extends Comparable<TKey>, TValue> {
 	private BTreeNode<TKey> root;
 
-	public void update(TKey key, TValue oldRef, TValue newRef) {
-		BTreeLeafNode node= findLeafNodeShouldContainKey(key);
-		node.update(key, oldRef, newRef);
-	}
+
 	
 	@Override
 	public String toString() {
@@ -47,7 +44,8 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 	/**
 	 * Search a key value on the tree and return its associated value.
 	 */
-	public TValue search(TKey key) {
+	
+	public TValue search(TKey key) { //returns ReferenceValues that contains a list of overflow nodes
 		BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
 
 		int index = leaf.search(key);
@@ -56,8 +54,9 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 
 	/**
 	 * Delete a key and its associated value from the tree.
+	 * @throws DBAppException 
 	 */
-	public void delete(TKey key, TValue value) {
+	public void delete(TKey key, TValue value) throws DBAppException { // key=fady tvalue =page 1 deletes only one instance of key fady and page 1
 		BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
 
 		if (leaf.delete(key, value) && leaf.isUnderflow()) {
@@ -66,6 +65,10 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 				this.root = n;
 		}
 
+	}
+	public void update(TKey key, TValue oldRef, TValue newRef) { //fady page 1 wadeto page 2 (fady,page1,page2) only one instance
+		BTreeLeafNode node= findLeafNodeShouldContainKey(key);
+		node.update(key, oldRef, newRef);
 	}
 
 	/**
