@@ -24,6 +24,12 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Vector;
 
+import javax.naming.directory.SearchResult;
+
+import ds.bplus.BTree;
+import ds.bplus.OverflowNode;
+import ds.bplus.ReferenceValues;
+
 //import ds.bplus.bptree.BPlusTree;
 //import ds.bplus.bptree.RangeResult;
 //import ds.bplus.bptree.SearchResult;
@@ -1783,6 +1789,58 @@ public class DBApp {
 							serialize(p);
 
 						}
+						// code for not having the tuple number from the index
+
+//						String pageName = "";
+//						int count = -1;
+//						// String pageName_numberOcc = "";
+//						ArrayList<String> pageNames = new ArrayList<String>();
+//						for (int w = 0; w < s.getValues().size(); w++) {
+//							String fullIndex = s.getValues().get(w);
+//							String[] separated = fullIndex.split(",");
+//							String newPageName = separated[0];
+//							if (newPageName.equals(pageName)) {
+//								count++;
+//							} else if (count == -1) {
+//								pageName = newPageName;
+//								count = 0;
+//							} else {
+//								pageNames.add(pageName + "_" + count);
+//								pageName = newPageName;
+//								count = 0;
+//
+//							}
+//							if (w == (s.getValues().size() - 1)) {
+//								//System.out.println("check");
+//								pageNames.add(pageName + "_" + count);
+//								// pageName = newPageName;
+//								// count = 0;
+//							}
+//							//System.out.println(s.getValues().size());
+//						}
+//
+//						for (int u = 0; u < pageNames.size(); u++) {
+//							String[] x = pageNames.get(u).split("_");
+//							pageName = x[0];
+//							int count2 = Integer.parseInt(x[1]);
+//							Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+//							for (int c = 0; c < p.vtrTuples.size(); c++) {
+//								Tuple toBeChecked = p.vtrTuples.get(c);
+//								Object checkKey = toBeChecked.vtrTupleObj.get(colNum);
+//								// System.out.println(checkKey);
+//								// long checKeyMod = modifyKey(checkKey);
+//								if (Tuple.compareToHelper(checkKey, key) == 0) {
+//									System.out.println(toBeChecked.toString());
+//									if (count2 == 0) {
+//										result.add(toBeChecked);
+//										break;
+//									} else {
+//										count2--;
+//									}
+//								}
+//							}
+//							serialize(p);
+//						}
 						serializeTree(b);
 					}
 				}
@@ -2341,6 +2399,59 @@ public class DBApp {
 
 	}
 
+	public static ArrayList<Tuple> getTuplesFromIndexSearch(ArrayList<String> midRes, String tableName, String colName,
+			Object key) throws DBAppException {
+		ArrayList<Tuple> result = new ArrayList<Tuple>();
+		int colNum = getColNumber(tableName, colName);
+		String pageName = "";
+		int count = -1;
+		ArrayList<String> pageNames = new ArrayList<String>();
+		for (int w = 0; w < midRes.size(); w++) {
+//			String fullIndex = s.getValues().get(w);
+//			String[] separated = fullIndex.split(",");
+//			String newPageName = separated[0];
+			String newPageName = midRes.get(w);
+			if (newPageName.equals(pageName)) {
+				count++;
+			} else if (count == -1) {
+				pageName = newPageName;
+				count = 0;
+			} else {
+				pageNames.add(pageName + "_" + count);
+				pageName = newPageName;
+				count = 0;
+
+			}
+			if (w == (midRes.size() - 1)) {
+				pageNames.add(pageName + "_" + count);
+			}
+		}
+
+		for (int u = 0; u < pageNames.size(); u++) {
+			String[] x = pageNames.get(u).split("_");
+			pageName = x[0];
+			int count2 = Integer.parseInt(x[1]);
+			Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+			for (int c = 0; c < p.vtrTuples.size(); c++) {
+				Tuple toBeChecked = p.vtrTuples.get(c);
+				Object checkKey = toBeChecked.vtrTupleObj.get(colNum);
+				// System.out.println(checkKey);
+				// long checKeyMod = modifyKey(checkKey);
+				if (Tuple.compareToHelper(checkKey, key) == 0) {
+					System.out.println(toBeChecked.toString());
+					if (count2 == 0) {
+						result.add(toBeChecked);
+						break;
+					} else {
+						count2--;
+					}
+				}
+			}
+			serialize(p);
+		}
+		return result;
+	}
+
 	public static int getColNumber(String tableName, String colName) throws DBAppException {
 		int result = -1;
 		String csvFile = "data/metadata.csv";
@@ -2508,10 +2619,15 @@ public class DBApp {
 			String tableName = t.name;
 
 			// binary search to find the tuple
-			SearchResult s = b.searchKey(modified, false);
-			if (s.isFound()) {
+			// SearchResult s = b.searchKey(modified, false);
+			BTree btree = new BTree(); // TODO change this to deserialized tree
+			Comparable k = (Comparable) key;
+			ReferenceValues ref = (ReferenceValues) btree.search(k);
+			if (!(ref.getReferences().isEmpty())) {
 				if (isClusteringKey(tableName, colName)) {
-					String fullIndex = s.getValues().getFirst();
+					// String fullIndex = s.getValues().getFirst();
+					OverflowNode n = ref.getReferences().get(0);
+					String fullIndex = n.referenceOfKeys.get(0) + "";
 					String[] separated = fullIndex.split(",");
 					String pageName = separated[0];
 //					// int firstOcc = Integer.parseInt(separated[1]);
@@ -2591,57 +2707,63 @@ public class DBApp {
 				} else {
 					// retrieve from every occurrence found from tree;
 					// search linearly for the each occurrence
-					int colNum = getColNumber(tableName, colName);
-					String pageName = "";
-					int count = -1;
-					// String pageName_numberOcc = "";
-					ArrayList<String> pageNames = new ArrayList<String>();
-					for (int w = 0; w < s.getValues().size(); w++) {
-						String fullIndex = s.getValues().get(w);
-						String[] separated = fullIndex.split(",");
-						String newPageName = separated[0];
-						if (newPageName.equals(pageName)) {
-							count++;
-						} else if (count == -1) {
-							pageName = newPageName;
-							count = 0;
-						} else {
-							pageNames.add(pageName + "_" + count);
-							pageName = newPageName;
-							count = 0;
-
+					ArrayList<String> midRes = new ArrayList<String>();
+					for (int i = 0; i < ref.getReferences().size(); i++) {
+						OverflowNode x = ref.getReferences().get(i);
+						System.out.println("size =" + x.referenceOfKeys.size());
+						for (int j = 0; j < x.referenceOfKeys.size(); j++) {
+							midRes.add(x.referenceOfKeys.get(j) + " ");
 						}
-						if (w == (s.getValues().size() - 1)) {
-							//System.out.println("check");
-							pageNames.add(pageName + "_" + count);
-							// pageName = newPageName;
-							// count = 0;
-						}
-						//System.out.println(s.getValues().size());
 					}
 
-					for (int u = 0; u < pageNames.size(); u++) {
-						String[] x = pageNames.get(u).split("_");
-						pageName = x[0];
-						int count2 = Integer.parseInt(x[1]);
-						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-						for (int c = 0; c < p.vtrTuples.size(); c++) {
-							Tuple toBeChecked = p.vtrTuples.get(c);
-							Object checkKey = toBeChecked.vtrTupleObj.get(colNum);
-							// System.out.println(checkKey);
-							// long checKeyMod = modifyKey(checkKey);
-							if (Tuple.compareToHelper(checkKey, key) == 0) {
-								System.out.println(toBeChecked.toString());
-								if (count2 == 0) {
-									result.add(toBeChecked);
-									break;
-								} else {
-									count2--;
-								}
-							}
-						}
-						serialize(p);
-					}
+					result = getTuplesFromIndexSearch(midRes, tableName, colName, key);
+
+//					int colNum = getColNumber(tableName, colName);
+//					String pageName = "";
+//					int count = -1;
+//					ArrayList<String> pageNames = new ArrayList<String>();
+//					for (int w = 0; w < s.getValues().size(); w++) {
+//						String fullIndex = s.getValues().get(w);
+//						String[] separated = fullIndex.split(",");
+//						String newPageName = separated[0];
+//						if (newPageName.equals(pageName)) {
+//							count++;
+//						} else if (count == -1) {
+//							pageName = newPageName;
+//							count = 0;
+//						} else {
+//							pageNames.add(pageName + "_" + count);
+//							pageName = newPageName;
+//							count = 0;
+//
+//						}
+//						if (w == (s.getValues().size() - 1)) {
+//							pageNames.add(pageName + "_" + count);
+//						}
+//					}
+
+//					for (int u = 0; u < pageNames.size(); u++) {
+//						String[] x = pageNames.get(u).split("_");
+//						pageName = x[0];
+//						int count2 = Integer.parseInt(x[1]);
+//						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+//						for (int c = 0; c < p.vtrTuples.size(); c++) {
+//							Tuple toBeChecked = p.vtrTuples.get(c);
+//							Object checkKey = toBeChecked.vtrTupleObj.get(colNum);
+//							// System.out.println(checkKey);
+//							// long checKeyMod = modifyKey(checkKey);
+//							if (Tuple.compareToHelper(checkKey, key) == 0) {
+//								System.out.println(toBeChecked.toString());
+//								if (count2 == 0) {
+//									result.add(toBeChecked);
+//									break;
+//								} else {
+//									count2--;
+//								}
+//							}
+//						}
+//						serialize(p);
+//					}
 				}
 			}
 		} catch (Exception e) {

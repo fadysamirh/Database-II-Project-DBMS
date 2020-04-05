@@ -8,7 +8,7 @@ import java.util.Properties;
 import eminem.DBAppException;
 
 public class OverflowNode {
-	ArrayList <Object> referenceOfKeys;
+	public ArrayList <Object> referenceOfKeys;
 	int nodeOrder;
 	
 	public OverflowNode() throws DBAppException {
