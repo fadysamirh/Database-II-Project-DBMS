@@ -77,6 +77,20 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 		return -1;
 	}
 	
+	public int searchMinStart(TKey minkey) {
+		for (int i = 0; i < this.getKeyCount(); ++i) {
+			 int cmp = this.getKey(i).compareTo(minkey);
+			 if (cmp >= 0) {
+				 return i;
+			 }
+//			 else if (cmp < 0) {
+//				 return -1;
+//			 }
+		}
+		
+		return -1;
+	}
+	
 	
 	/* The codes below are used to support insertion operation */
 	

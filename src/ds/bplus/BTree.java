@@ -1,5 +1,7 @@
 package ds.bplus;
 
+import java.util.ArrayList;
+
 import eminem.DBAppException;
 
 /**
@@ -13,8 +15,6 @@ import eminem.DBAppException;
 public class BTree<TKey extends Comparable<TKey>, TValue> {
 	private BTreeNode<TKey> root;
 
-
-	
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
@@ -44,19 +44,34 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 	/**
 	 * Search a key value on the tree and return its associated value.
 	 */
-	
-	public TValue search(TKey key) { //returns ReferenceValues that contains a list of overflow nodes
+
+	public TValue search(TKey key) { // returns ReferenceValues that contains a list of overflow nodes
 		BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
 
 		int index = leaf.search(key);
 		return (index == -1) ? null : leaf.getValue(index);
 	}
 
+	public ArrayList<TValue> rangeMinSearch(TKey startkey) throws DBAppException {
+		BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeStartKey(startkey);
+		ArrayList<TValue> v = new ArrayList<TValue>();
+		for (int i = 0; i < leaf.keys.length; i++) {
+			//System.out.println(leaf.keys[i]);
+			v.add(leaf.getValue(leaf.searchMinStart(startkey)));
+		}
+		// int index = leaf.search(startkey);
+		// return (index == -1) ? null : leaf.getValue(index);
+		return v;
+
+	}
+
 	/**
 	 * Delete a key and its associated value from the tree.
-	 * @throws DBAppException 
+	 * 
+	 * @throws DBAppException
 	 */
-	public void delete(TKey key, TValue value) throws DBAppException { // key=fady tvalue =page 1 deletes only one instance of key fady and page 1
+	public void delete(TKey key, TValue value) throws DBAppException { // key=fady tvalue =page 1 deletes only one
+																		// instance of key fady and page 1
 		BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
 
 		if (leaf.delete(key, value) && leaf.isUnderflow()) {
@@ -66,8 +81,10 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 		}
 
 	}
-	public void update(TKey key, TValue oldRef, TValue newRef) { //fady page 1 wadeto page 2 (fady,page1,page2) only one instance
-		BTreeLeafNode node= findLeafNodeShouldContainKey(key);
+
+	public void update(TKey key, TValue oldRef, TValue newRef) { // fady page 1 wadeto page 2 (fady,page1,page2) only
+																	// one instance
+		BTreeLeafNode node = findLeafNodeShouldContainKey(key);
 		node.update(key, oldRef, newRef);
 	}
 
@@ -79,6 +96,15 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 		BTreeNode<TKey> node = this.root;
 		while (node.getNodeType() == TreeNodeType.InnerNode) {
 			node = ((BTreeInnerNode<TKey>) node).getChild(node.search(key));
+		}
+
+		return (BTreeLeafNode<TKey, TValue>) node;
+	}
+
+	private BTreeLeafNode<TKey, TValue> findLeafNodeStartKey(TKey key) {
+		BTreeNode<TKey> node = this.root;
+		while (node.getNodeType() == TreeNodeType.InnerNode) {
+			node = ((BTreeInnerNode<TKey>) node).getChild(node.searchMinStart(key));
 		}
 
 		return (BTreeLeafNode<TKey, TValue>) node;
