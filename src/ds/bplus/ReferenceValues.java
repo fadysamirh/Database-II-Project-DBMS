@@ -1,10 +1,11 @@
 package ds.bplus;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import eminem.DBAppException;
 
-public class ReferenceValues {
+public class ReferenceValues implements Serializable {
 	ArrayList<OverflowNode> overFlowNodes;
 
 	public ReferenceValues() {

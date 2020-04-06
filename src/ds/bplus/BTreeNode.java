@@ -1,12 +1,14 @@
 package ds.bplus;
 
+import java.io.Serializable;
+
 import eminem.DBAppException;
 
 enum TreeNodeType {
 	InnerNode, LeafNode
 }
 
-abstract class BTreeNode<TKey extends Comparable<TKey>> {
+abstract class BTreeNode<TKey extends Comparable<TKey>> implements Serializable{
 	protected Object[] keys;
 	protected int keyCount;
 	protected BTreeNode<TKey> parentNode;

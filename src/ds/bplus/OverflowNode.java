@@ -2,12 +2,13 @@ package ds.bplus;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Properties;
 
 import eminem.DBAppException;
 
-public class OverflowNode {
+public class OverflowNode implements Serializable {
 	public ArrayList <Object> referenceOfKeys;
 	int nodeOrder;
 	

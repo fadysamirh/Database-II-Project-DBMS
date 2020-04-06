@@ -1,5 +1,9 @@
 package ds.bplus;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import eminem.DBAppException;
@@ -12,9 +16,10 @@ import eminem.DBAppException;
  * @param <TKey> the data type of the key
  * @param <TValue> the data type of the value
  */
-public class BTree<TKey extends Comparable<TKey>, TValue> {
+public class BTree<TKey extends Comparable<TKey>, TValue> implements Serializable {
 	private BTreeNode<TKey> root;
-
+	public String treeName ;
+	
 	private ArrayList<BTreeLeafNode<TKey, TValue>> findLeafNodeStartKey(TKey key) {
 		BTreeNode<TKey> node = this.root;
 		ArrayList<BTreeLeafNode<TKey, TValue>> result = new ArrayList<BTreeLeafNode<TKey, TValue>>();
@@ -143,4 +148,19 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 		return (BTreeLeafNode<TKey, TValue>) node;
 	}
 
+	public void serializeTree() throws DBAppException , IOException{
+
+		try {
+			String n = this.treeName;
+			ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//" + n + ".class"));
+
+			bin.writeObject(this);
+			bin.flush();
+			bin.close();
+		} 
+		catch (Exception e) 
+		{
+			throw new DBAppException("error in serialization");
+		}
+	}
 }

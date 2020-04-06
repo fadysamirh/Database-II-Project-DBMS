@@ -2,11 +2,12 @@ package ds.bplus;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Properties;
 
 import eminem.DBAppException;
 
-class BTreeInnerNode<TKey extends Comparable<TKey>> extends BTreeNode<TKey> {
+class BTreeInnerNode<TKey extends Comparable<TKey>> extends BTreeNode<TKey> implements Serializable {
 	protected static int INNERORDER;
 	protected Object[] children; 
 	
