@@ -2952,7 +2952,7 @@ public class DBApp {
 //		dbApp.createBTreeIndex(strTableName, "age");
 //		BTree a = (BTree) (getDeserlaized("data//" + "BTree" + strTableName + "age" + ".class"));
 //		System.out.println(a.toString());
-//		System.out.println(a.rangeMinSearch(30));
+//		System.out.println(a.rangeMaxSearch(30));
 //		a.serializeTree();
 //		dbApp.makeIndexed(strTableName, "name");
 
@@ -2968,7 +2968,7 @@ public class DBApp {
 //		Hashtable htblColNameValue = new Hashtable();
 //		htblColNameValue.put("id", new Integer(5));
 //		htblColNameValue.put("name", new String("Ab"));
-//		htblColNameValue.put("age", new Integer(35));
+//		htblColNameValue.put("age", new Integer(25));
 //		htblColNameValue.put("date", new Date(2000, 11, 23));
 //////			System.out.println((new Date(2020, 11, 11).getClass()));
 //////			System.out.println((new Date(2020, 11, 11)).toString());
