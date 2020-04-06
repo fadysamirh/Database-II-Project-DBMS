@@ -11,6 +11,8 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 
 	private ReferenceValues[] values;
 
+	
+
 	@Override
 	public String toString() {
 		String s = "[";
@@ -54,6 +56,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 
 	public void setValue(int index, TValue value) throws DBAppException {
 		this.values[index].setReference(value);
+		//System.out.println(value);
 	}
 
 	@Override
@@ -104,12 +107,22 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 		}
 		if (containsKey) {
 			values[i].setReference(value);
+
 		} else {
 			int index = 0;
 			while (index < this.getKeyCount() && this.getKey(index).compareTo(key) < 0)
 				++index;
 			this.insertAt(index, key, value);
+
+		//	System.out.println("key: "+key +" value: "+value);
 		}
+//		else {
+//		int index = 0;
+//		while (index < this.getKeyCount() && this.getKey(index).compareTo(key) < 0)
+//			++index;
+//		this.insertAt(index, key, value);
+//>>>>>>> 6d27b0eaecd0ad568ca94fda01a12dc6fe0ae450
+//		}
 	}
 
 	private void insertAt(int index, TKey key, TValue value) throws DBAppException {
@@ -139,9 +152,9 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 		BTreeLeafNode<TKey, TValue> newRNode = new BTreeLeafNode<TKey, TValue>();
 		for (int i = midIndex; i < this.getKeyCount(); ++i) {
 			newRNode.setKey(i - midIndex, this.getKey(i));
-			newRNode.setValue(i - midIndex, this.getValue(i));
+			newRNode.setValueShift(i - midIndex, this.getValue(i));
 			this.setKey(i, null);
-			this.setValue(i, null);
+			this.setValueShift(i, null);
 		}
 		newRNode.keyCount = this.getKeyCount() - midIndex;
 		this.keyCount = midIndex;
@@ -216,7 +229,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 		int j = this.getKeyCount();
 		for (int i = 0; i < siblingLeaf.getKeyCount(); ++i) {
 			this.setKey(j + i, siblingLeaf.getKey(i));
-			this.setValue(j + i, siblingLeaf.getValue(i));
+			this.setValueShift(j + i, siblingLeaf.getValue(i));
 		}
 		this.keyCount += siblingLeaf.getKeyCount();
 
