@@ -51,8 +51,6 @@ abstract class BTreeNode<TKey extends Comparable<TKey>> {
 	 */
 	public abstract int search(TKey key);
 
-	public abstract int searchMinStart(TKey key);
-
 	/* The codes below are used to support insertion operation */
 
 	public boolean isOverflow() {

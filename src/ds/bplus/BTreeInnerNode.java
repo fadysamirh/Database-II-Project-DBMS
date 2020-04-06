@@ -76,21 +76,6 @@ class BTreeInnerNode<TKey extends Comparable<TKey>> extends BTreeNode<TKey> {
 		return index;
 	}
 	
-	public int searchMinStart(TKey minkey) {
-		for (int i = 0; i < this.getKeyCount(); ++i) {
-			//System.out.println(minkey);
-			 int cmp = this.getKey(i).compareTo(minkey);
-			 if (cmp >= 0) {
-				 return i;
-			 }
-//			 else if (cmp < 0) {
-//				 return -1;
-//			 }
-		}
-		
-		return -1;
-	}
-	
 	
 	/* The codes below are used to support insertion operation */
 	
