@@ -68,7 +68,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 
 	public void setValue(int index, TValue value) throws DBAppException {
 		this.values[index].setReference(value);
-		System.out.println(value);
+		//System.out.println(value);
 	}
 	
 	@Override
@@ -236,7 +236,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 		int j = this.getKeyCount();
 		for (int i = 0; i < siblingLeaf.getKeyCount(); ++i) {
 			this.setKey(j + i, siblingLeaf.getKey(i));
-			this.setValue(j + i, siblingLeaf.getValue(i));
+			this.setValueShift(j + i, siblingLeaf.getValue(i));
 		}
 		this.keyCount += siblingLeaf.getKeyCount();
 		

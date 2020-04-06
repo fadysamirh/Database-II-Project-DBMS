@@ -15,7 +15,6 @@ import eminem.DBAppException;
 public class BTree<TKey extends Comparable<TKey>, TValue> {
 	private BTreeNode<TKey> root;
 
-<<<<<<< HEAD
 	private ArrayList<BTreeLeafNode<TKey, TValue>> findLeafNodeStartKey(TKey key) {
 		BTreeNode<TKey> node = this.root;
 		ArrayList<BTreeLeafNode<TKey, TValue>> result = new ArrayList<BTreeLeafNode<TKey, TValue>>();
@@ -70,8 +69,6 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 //return (index == -1) ? null : leaf.getValue(index);
 	}
 
-=======
->>>>>>> 8772cb9a133b4f40996acc4c0763efd550b2d824
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
@@ -92,7 +89,7 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 		leaf.insertKey(key, value);
 
 		if (leaf.isOverflow()) {
-			//System.out.print("problem");
+			
 			BTreeNode<TKey> n = leaf.dealOverflow();
 			if (n != null)
 				this.root = n;
@@ -108,19 +105,6 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 
 		int index = leaf.search(key);
 		return (index == -1) ? null : leaf.getValue(index);
-	}
-
-	public ArrayList<TValue> rangeMinSearch(TKey startkey) throws DBAppException {
-		BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeStartKey(startkey);
-		ArrayList<TValue> v = new ArrayList<TValue>();
-		for (int i = 0; i < leaf.keys.length; i++) {
-			//System.out.println(leaf.keys[i]);
-			v.add(leaf.getValue(leaf.searchMinStart(startkey)));
-		}
-		// int index = leaf.search(startkey);
-		// return (index == -1) ? null : leaf.getValue(index);
-		return v;
-
 	}
 
 	/**
@@ -154,15 +138,6 @@ public class BTree<TKey extends Comparable<TKey>, TValue> {
 		BTreeNode<TKey> node = this.root;
 		while (node.getNodeType() == TreeNodeType.InnerNode) {
 			node = ((BTreeInnerNode<TKey>) node).getChild(node.search(key));
-		}
-
-		return (BTreeLeafNode<TKey, TValue>) node;
-	}
-
-	private BTreeLeafNode<TKey, TValue> findLeafNodeStartKey(TKey key) {
-		BTreeNode<TKey> node = this.root;
-		while (node.getNodeType() == TreeNodeType.InnerNode) {
-			node = ((BTreeInnerNode<TKey>) node).getChild(node.searchMinStart(key));
 		}
 
 		return (BTreeLeafNode<TKey, TValue>) node;
