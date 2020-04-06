@@ -1677,8 +1677,8 @@ public class DBApp {
 					BTree b = new BTree();// TODO change when deserialization occurs
 					Comparable k = (Comparable) key;
 					ReferenceValues ref = (ReferenceValues) b.search(k);
-					if (!(ref.getReferences().isEmpty())) {
-						OverflowNode n = ref.getReferences().get(0);
+					if (!(ref.getOverflowNodes().isEmpty())) {
+						OverflowNode n = ref.getOverflowNodes().get(0);
 						String pageName = n.referenceOfKeys.get(0) + "";
 						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
 						int pageNumber = p.number;
@@ -1761,8 +1761,8 @@ public class DBApp {
 					Comparable k = (Comparable) key;
 					ReferenceValues ref = (ReferenceValues) b.search(k);
 					ArrayList<String> midRes = new ArrayList<String>();
-					for (int i = 0; i < ref.getReferences().size(); i++) {
-						OverflowNode x = ref.getReferences().get(i);
+					for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+						OverflowNode x = ref.getOverflowNodes().get(i);
 						System.out.println("size =" + x.referenceOfKeys.size());
 						for (int j = 0; j < x.referenceOfKeys.size(); j++) {
 							midRes.add(x.referenceOfKeys.get(j) + " ");
@@ -1848,79 +1848,82 @@ public class DBApp {
 				if (isClustering) {
 					// use the tree to get only the first occurrence because the rest will be sorted
 					// so no need to use the tree once more
-					long modified = modifyKey(key);
-					BPlusTree b = (BPlusTree) deserializeTree("data//" + t.name + "_" + colName + ".class");
-					// SearchResult s = b.searchKey(modified, false);
-					RangeResult r = b.rangeStartSearch(modified, false);
-					RangeResult s = new RangeResult();
-					for (int w = 0; w < r.getQueryResult().size(); w++) {
-						long k = r.getQueryResult().get(w).getKey();
-						if (k != modified) {
-							// to avoid getting values equal to our key as this is handled by equal operator
-							s.getQueryResult().add(r.getQueryResult().get(w));
-						}
-					}
-					String fullIndex = s.getQueryResult().get(0).getValue();
-					String[] separated = fullIndex.split(",");
-					String pageName = separated[0];
-					int firstOcc = Integer.parseInt(separated[1]);
-					Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+					// TODO change to deserialized tree
+					BTree b = new BTree();
+					ArrayList<String> range = new ArrayList<String>();
+					Comparable k = (Comparable) key;
+					range = b.rangeMinSearch(k);
+					if (!(range.isEmpty())) {
+						String pageName = range.get(0);
+						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+						int i = p.number;
+						int startTuple = -1;
+						serialize(p);
+						for (i = p.number; i < t.usedPagesNames.size(); i++) {
+							String pName = t.usedPagesNames.get(i);
+							Page up = (Page) getDeserlaized("data//" + pName + ".class");
+							if (!(up.vtrTuples.isEmpty())) {
+								Tuple tup = up.vtrTuples.get(up.vtrTuples.size() - 1);
+								Object tupKey = tup.vtrTupleObj.get(tup.index);
+								if (Tuple.compareToHelper(tupKey, key) > 0) {
+									// I am in the right page
+									// search for tuple to begin with
+									for (startTuple = 0; startTuple < up.vtrTuples.size(); startTuple++) {
+										Tuple test = up.vtrTuples.get(startTuple);
+										Object testKey = test.vtrTupleObj.get(test.index);
+										// to avoid getting values equal to our key as this is handled by equal operator
+										if (Tuple.compareToHelper(testKey, key) > 0) {
+											foundStart = true;
+											break;
+										}
+									}
 
-					int pageNumber = p.number;
-					for (int j = firstOcc; j < p.vtrTuples.size(); j++) {
-
-						Tuple tup = p.vtrTuples.get(j);
-						Object tupKey = tup.vtrTupleObj.get(tup.index);
-						// System.out.println(tupKey);
-						if (Tuple.compareToHelper(tupKey, key) > 0) {
-
-							result.add(tup);
-						}
-					}
-					serialize(p);
-					for (int i = pageNumber + 1; i < t.usedPagesNames.size(); i++) {
-						String pName = t.usedPagesNames.get(i);
-						Page current = (Page) getDeserlaized("data//" + pName + ".class");
-						for (int y = 0; y < current.vtrTuples.size(); y++) {
-							Tuple tup = p.vtrTuples.get(y);
-							Object value = tup.vtrTupleObj.get(tup.index);
-							if (Tuple.compareToHelper(value, key) > 0) {
-								result.add(tup);
+								}
+							}
+							serialize(up);
+							if (foundStart) {
+								start = true;
+								break;
 							}
 						}
-						serialize(current);
-					}
-					serializeTree(b);
-
-				} else if (!isClustering) {
-					// retrieve from every occurrence found from tree;
-					long modified = modifyKey(key);
-					BPlusTree b = (BPlusTree) deserializeTree("data//" + t.name + "_" + colName + ".class");
-					// SearchResult s = b.searchKey(modified, false);
-					RangeResult r = b.rangeStartSearch(modified, false);
-					RangeResult s = new RangeResult();
-					for (int w = 0; w < r.getQueryResult().size(); w++) {
-						long k = r.getQueryResult().get(w).getKey();
-						if (k != modified) {
-							// to avoid getting values equal to our key as this is handled by equal operator
-							s.getQueryResult().add(r.getQueryResult().get(w));
+						if (start) {
+							for (int z = i; z < t.usedPagesNames.size(); z++) {
+								String pName = t.usedPagesNames.get(i);
+								Page up = (Page) getDeserlaized("data//" + pName + ".class");
+								for (int y = startTuple; y < up.vtrTuples.size(); y++) {
+									result.add(up.vtrTuples.get(y));
+								}
+								serialize(up);
+							}
 						}
-					}
-					for (int w = 0; w < s.getQueryResult().size(); w++) {
-						String fullIndex = s.getQueryResult().get(w).getValue();
-						String[] separated = fullIndex.split(",");
-						String pageName = separated[0];
-						String n = separated[1];
-						String[] removeSpaces = n.split(" ");
-						String m = removeSpaces[0];
-						// System.out.println(n.getClass());
-						int tupPosition = Integer.parseInt(m);
-						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-						result.add(p.vtrTuples.get(tupPosition));
-						serialize(p);
 
 					}
-					serializeTree(b);
+					// TODO serialize btree
+				}
+
+				else if (!isClustering) {
+					// retrieve from every occurrence found from tree
+					BTree b = new BTree();
+					ArrayList<String> range = new ArrayList<String>();
+					Comparable k = (Comparable) key;
+					range = b.rangeMinSearch(k);
+					if (!(range.isEmpty())) {
+						for (int i = 0; i < range.size(); i++) {
+							Page p = (Page) getDeserlaized("data//" + range.get(i) + ".class");
+							// to avoid getting values equal to our key as this is handled by equal operator
+							int colNum = getColNumber(t.name, colName);
+							for (int j = 0; j < p.vtrTuples.size(); j++) {
+								Tuple tup = p.vtrTuples.get(j);
+								Object tupKey = tup.vtrTupleObj.get(colNum);
+								if (Tuple.compareToHelper(tupKey, key) > 0) {
+									result.add(tup);
+								}
+							}
+							serialize(p);
+						}
+						// TODO serialize btree
+					}
+
 				}
 
 			}

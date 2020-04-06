@@ -44,7 +44,7 @@ public class Testing {
 		btree.insert(14, 7);
 		btree.insert(15, 3);
 		btree.insert(16, 3);
-		System.out.println(btree.toString());
+		//System.out.println(btree.toString());
 
 		// System.out.println(btree.toString());
 
@@ -66,7 +66,7 @@ public class Testing {
 //		}
 
 		ArrayList<String> ref = new ArrayList<String>();
-		ref = btree.rangeMinSearch(5);
+		ref = btree.rangeMinSearch(17);
 		for (int i = 0; i < ref.size(); i++) {
 			System.out.println(ref.get(i));
 		}
