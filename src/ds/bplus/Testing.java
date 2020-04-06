@@ -7,39 +7,54 @@ import eminem.DBAppException;
 public class Testing {
 	public static void main(String[] args) throws DBAppException {
 		BTree btree=new BTree();
+		btree.insert(1, 1);
 //		btree.insert(1, 1);
 //		btree.insert(1, 1);
-//		btree.insert(1, 1);
+//
 		
 		btree.insert(3, 1);
-		btree.insert(3, 1);
-		btree.insert(3, 3);
-		btree.insert(3, 1);
-		btree.insert(3, 1);
-		btree.insert(3, 3);
-		btree.insert(3, 1);
+//		btree.insert(3, 2);
 		btree.insert(3, 1);
 		btree.insert(3, 3);
 		
-//		btree.insert(4, 3);
-//		btree.insert(4, 3);
-//		btree.insert(4, 3);
+		btree.insert(4, 1);
+		btree.insert(4, 1);
+		btree.insert(4, 4);
+		btree.insert(4, 3);
+		
+		btree.insert(5, 3);
+		btree.insert(6, 4);
+		
+		btree.insert(7, 3);
+		btree.insert(8, 3);
+		btree.insert(9, 3);
+		btree.insert(10, 3);
+		btree.insert(11, 5);
+		btree.insert(12, 6);
+		btree.insert(13, 2);
+		btree.insert(14, 7);
+		btree.insert(15, 3);
+		btree.insert(16, 3);
 	
 		
-		ReferenceValues ref= (ReferenceValues) btree.search(3);
-		System.out.println(ref.getReferences().size());
+//		ReferenceValues ref= (ReferenceValues) btree.search(4);
+//		System.out.println(ref.getOverflowNodes().size());
 		//btree.update(3, 1, 2);
-		btree.delete(3, 3);
-		btree.delete(3, 3);
-		btree.delete(3, 3);
+
 		
-		for(int i=0;i<ref.getReferences().size();i++) {
-			OverflowNode b= ref.getReferences().get(i);
-			System.out.println("size =" + b.referenceOfKeys.size());
-			for(int j=0;j<b.referenceOfKeys.size();j++) {
-				System.out.print(b.referenceOfKeys.get(j)+ " ");
-			}
-			System.out.println();
+//		for(int i=0;i<ref.getOverflowNodes().size();i++) {
+//			OverflowNode b= ref.getOverflowNodes().get(i);
+//			System.out.println("size =" + b.referenceOfKeys.size());
+//			for(int j=0;j<b.referenceOfKeys.size();j++) {
+//				System.out.print(b.referenceOfKeys.get(j)+ " ");
+//			}
+//			System.out.println();
+//		}
+		
+		ArrayList<String> ref = new ArrayList<String>();
+		ref = btree.rangeMinSearch(3);
+		for (int i = 0 ; i < ref.size() ; i++) {
+			System.out.println(ref.get(i));
 		}
 		
 //		ArrayList a = new ArrayList<>();

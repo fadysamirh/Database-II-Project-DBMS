@@ -11,6 +11,19 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	
 	private ReferenceValues[] values;
 	
+	public int searchMin(TKey key) {
+		for (int i = 0; i < this.getKeyCount(); ++i) {
+			int cmp = this.getKey(i).compareTo(key);
+			if (cmp >= 0) {
+				return i;
+			}
+//			} else if (cmp > 0) {
+//				return -1;
+//			}
+		}
+
+		return -1;
+	}
 	@Override
 	public String toString() {
 		String s = "[";
@@ -55,6 +68,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 
 	public void setValue(int index, TValue value) throws DBAppException {
 		this.values[index].setReference(value);
+		System.out.println(value);
 	}
 	
 	@Override
@@ -93,6 +107,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 		}
 		if(containsKey) {
 			values[i].setReference(value);
+		//	System.out.println("key: "+key +" value: "+value);
 		}
 		else {
 		int index = 0;
@@ -128,9 +143,9 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 		BTreeLeafNode<TKey, TValue> newRNode = new BTreeLeafNode<TKey, TValue>();
 		for (int i = midIndex; i < this.getKeyCount(); ++i) {
 			newRNode.setKey(i - midIndex, this.getKey(i));
-			newRNode.setValue(i - midIndex, this.getValue(i));
+			newRNode.setValueShift(i - midIndex, this.getValue(i));
 			this.setKey(i, null);
-			this.setValue(i, null);
+			this.setValueShift(i, null);
 		}
 		newRNode.keyCount = this.getKeyCount() - midIndex;
 		this.keyCount = midIndex;

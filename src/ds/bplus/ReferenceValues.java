@@ -19,6 +19,7 @@ public class ReferenceValues {
 	}
 
 	public void setReference(Object strReference) throws DBAppException {
+		//System.out.println(strReference);
 		if (overFlowNodes.size() == 0) {
 			OverflowNode ofn = new OverflowNode();
 			ofn.referenceOfKeys.add(strReference);
@@ -44,7 +45,7 @@ public class ReferenceValues {
 		}
 	}
 
-	public ArrayList<OverflowNode> getReferences() {
+	public ArrayList<OverflowNode> getOverflowNodes() {
 		return overFlowNodes;
 	}
 
