@@ -8,7 +8,7 @@ enum TreeNodeType {
 	InnerNode, LeafNode
 }
 
-abstract class BTreeNode<TKey extends Comparable<TKey>> implements Serializable{
+abstract class BTreeNode<TKey extends Comparable<TKey>> implements Serializable {
 	protected Object[] keys;
 	protected int keyCount;
 	protected BTreeNode<TKey> parentNode;
@@ -52,6 +52,8 @@ abstract class BTreeNode<TKey extends Comparable<TKey>> implements Serializable{
 	 * contain the key for a internal node.
 	 */
 	public abstract int search(TKey key);
+
+//	public abstract int searchMax(TKey key);
 
 	/* The codes below are used to support insertion operation */
 

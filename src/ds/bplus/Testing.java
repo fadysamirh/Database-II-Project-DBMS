@@ -12,7 +12,7 @@ public class Testing {
 //		btree.insert(1, 1);
 //
 		btree.insert(3, 1);
-//		btree.insert(3, 2);
+		btree.insert(3, 2);
 		btree.insert(3, 1);
 		btree.insert(3, 3);
 //		btree.insert(3, 1);
@@ -44,7 +44,7 @@ public class Testing {
 		btree.insert(14, 7);
 		btree.insert(15, 3);
 		btree.insert(16, 3);
-		//System.out.println(btree.toString());
+	System.out.println(btree.toString());
 
 		// System.out.println(btree.toString());
 
@@ -56,20 +56,20 @@ public class Testing {
 //		btree.delete(3, 3);
 //		btree.delete(3, 3);
 
-//		for (int i = 0; i < ref.getReferences().size(); i++) {
-//			OverflowNode b = ref.getReferences().get(i);
-//			System.out.println("size =" + b.referenceOfKeys.size());
+//		for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+//			OverflowNode b = ref.getOverflowNodes().get(i);
+//			//System.out.println("size =" + b.referenceOfKeys.size());
 //			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
 //				System.out.print(b.referenceOfKeys.get(j) + " ");
 //			}
 //			System.out.println();
 //		}
 
-		ArrayList<String> ref = new ArrayList<String>();
-		ref = btree.rangeMinSearch(17);
-		for (int i = 0; i < ref.size(); i++) {
-			System.out.println(ref.get(i));
-		}
+//		ArrayList<String> ref = new ArrayList<String>();
+//		ref = btree.rangeMaxSearch(5);
+//		for (int i = 0; i < ref.size(); i++) {
+//			System.out.println(ref.get(i));
+//		}
 
 //		for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
 //			OverflowNode b = ref.getOverflowNodes().get(i);

@@ -92,6 +92,21 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 
 		return -1;
 	}
+	
+	public int searchMax(TKey key) {
+		for (int i = 0; i < this.getKeyCount(); ++i) {
+			int cmp = this.getKey(i).compareTo(key);
+			System.out.println("key" + this.getKey(i));
+			if (cmp <= 0) {
+				return i;
+			}
+//			} else if (cmp > 0) {
+//				return -1;
+//			}
+		}
+
+		return -1;
+	}
 
 	/* The codes below are used to support insertion operation */
 

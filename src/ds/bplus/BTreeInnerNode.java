@@ -77,6 +77,20 @@ class BTreeInnerNode<TKey extends Comparable<TKey>> extends BTreeNode<TKey> impl
 		return index;
 	}
 	
+//	public int searchMax(TKey key) {
+//		int index = 0;
+//		for (index = 0; index < this.getKeyCount(); ++index) {
+//			int cmp = this.getKey(index).compareTo(key);
+//			if (cmp <= 0) {
+//				return index + 1;
+//			}
+//			else if (cmp > 0) {
+//				return index;
+//			}
+//		}
+//		
+//		return index;
+//	}
 	
 	/* The codes below are used to support insertion operation */
 	
