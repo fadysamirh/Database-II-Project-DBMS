@@ -64,6 +64,7 @@ abstract class BTreeNode<TKey extends Comparable<TKey>> implements Serializable 
 	public BTreeNode<TKey> dealOverflow() throws DBAppException {
 		int midIndex = this.getKeyCount() / 2;
 		TKey upKey = this.getKey(midIndex);
+		
 
 		BTreeNode<TKey> newRNode = this.split();
 
@@ -119,6 +120,7 @@ abstract class BTreeNode<TKey extends Comparable<TKey>> implements Serializable 
 	}
 
 	public BTreeNode<TKey> dealUnderflow() throws DBAppException {
+		
 		if (this.getParent() == null)
 			return null;
 
@@ -134,6 +136,7 @@ abstract class BTreeNode<TKey extends Comparable<TKey>> implements Serializable 
 			this.getParent().processChildrenTransfer(this, rightSibling, 0);
 			return null;
 		}
+		
 
 		// Can not borrow a key from any sibling, then do fusion with sibling
 		if (leftSibling != null) {
