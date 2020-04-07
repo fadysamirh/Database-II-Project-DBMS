@@ -179,19 +179,25 @@ public class DBApp {
 				Tuple nTuple = createTuple(htblColNameValue, strTableName);
 
 				Table toBeInstertedIn = (Table) getDeserlaized("data//" + strTableName + ".class");
+				
+				Boolean Indexed = false ; 
+				
+				// checking if the table has an index
+				if (toBeInstertedIn.usedIndicesNames.size()!=0)
+				{
+					Indexed = true ;
+				}
+				Boolean ClusteringIndexed = false ;
+				
+				// checking if one of the indexes is on the clustering column
+				if (toBeInstertedIn.usedIndicescols.contains(getClusteringKey(strTableName)))
+				{
+					Indexed = true ;
+				}
 
 				if (toBeInstertedIn.usedPagesNames.isEmpty()) {
 					toBeInstertedIn.createPage();
-					Boolean Indexed = false ; 
-					if (toBeInstertedIn.usedIndicesNames.size()!=0)
-					{
-						Indexed = true ;
-					}
-					Boolean ClusteringIndexed = false ;
-					if (toBeInstertedIn.usedIndicescols.contains(getClusteringKey(strTableName)))
-					{
-						Indexed = true ;
-					}
+					
 					if(Indexed)
 					{
 						ArrayList<String> columns = getColNames(strTableName);
@@ -227,21 +233,10 @@ public class DBApp {
 				}
 
 				else {
-					// checking if the table has an index
-					Boolean Indexed = false ; 
-					if (toBeInstertedIn.usedIndicesNames.size()!=0)
-					{
-						Indexed = true ;
-					}
-					// checking if one of the indexes is on the clustering column
-					Boolean ClusteringIndexed = false ;
-					if (toBeInstertedIn.usedIndicescols.contains(getClusteringKey(strTableName)))
-					{
-						Indexed = true ;
-					}
+					
 					Vector<String> usedPages = toBeInstertedIn.usedPagesNames;
-
-					int page = -1;
+                    int page = -1;
+                   
                     // searching in which page the nTuple will fit in it's range
 					for (int i = 0; i < usedPages.size() ; i++) {
 						Page pageToBeInstertedIn = (Page) (getDeserlaized(
@@ -253,10 +248,15 @@ public class DBApp {
 						 
 						int compare2 = (pageToBeInstertedIn.vtrTuples.get(0)).compareTo(nTuple);
 						
+						if (i==0 && (compare2 >= 0)) {
+							page = 0;
+							break;
+						}
 						if (compare1 >= 0 && compare2 <= 0) {
 							page = i;
+							break;
 						}
-						break;
+						
 					}
 					// if nTuple does not fit in any page range if the last page is not full then insert in it else create new page
 					if (page == -1 )
@@ -273,7 +273,7 @@ public class DBApp {
 						}
 						
 					}
-					System.out.println(page);
+					
 					// if the table has index insert the nTuple with the page found in the index
 					if(Indexed)
 					{
@@ -3437,7 +3437,7 @@ public class DBApp {
 		htblColNameType.put("gpa", "java.lang.Double");
 		htblColNameType.put("shape", "java.awt.Polygon");
 		htblColNameType.put("grad", "java.lang.Boolean");
-		//dbApp.createTable(strTableName, "id", htblColNameType);
+	//	dbApp.createTable(strTableName, "id", htblColNameType);
 	//	dbApp.createBTreeIndex(strTableName, "id");
 
 //		dbApp.makeIndexed(strTableName, "name");
@@ -3453,7 +3453,7 @@ public class DBApp {
 //		for (int i = 0; i < 210; i++) {
 
 		Hashtable htblColNameValue = new Hashtable();
-		htblColNameValue.put("id", new Integer(2));
+		htblColNameValue.put("id", new Integer(5));
 		htblColNameValue.put("name", new String("Ab"));
 		htblColNameValue.put("age", new Integer(25));
 		htblColNameValue.put("date", new Date(2000, 11, 23));
@@ -3476,7 +3476,7 @@ public class DBApp {
 		 
 		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
 		 System.out.println(a.toString());
-		 ReferenceValues ref = (ReferenceValues) a.search(3);
+		 ReferenceValues ref = (ReferenceValues) a.search(7);
 			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
 			OverflowNode b = ref.getOverflowNodes().get(i);
 			//System.out.println("size =" + b.referenceOfKeys.size());

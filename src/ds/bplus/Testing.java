@@ -13,9 +13,9 @@ public class Testing {
 		btree.insert(3,"Student0");
 		btree.insert(3,"Student0");
 		
-		btree.insert(3,"Student1");
-		
 		btree.insert(2,"Student1");
+		
+	//	btree.insert(2,"Student1");
 
 
 	//System.out.println(btree.toString());
@@ -24,7 +24,7 @@ public class Testing {
 
 		// System.out.println(btree.toString());
 
-		 ReferenceValues ref = (ReferenceValues) btree.search(0);
+		 ReferenceValues ref = (ReferenceValues) btree.search(2);
 
 		// System.out.println(ref.getReferences().size());
 		// btree.update(3, 1, 2);
