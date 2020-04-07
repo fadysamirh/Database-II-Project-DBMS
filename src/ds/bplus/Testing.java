@@ -7,6 +7,7 @@ import eminem.DBAppException;
 public class Testing {
 	public static void main(String[] args) throws DBAppException {
 		BTree btree = new BTree();
+
 		btree.insert(50,"Student0");
 		btree.insert(40,"Student0");
 		btree.insert(40,"Student0");
@@ -17,13 +18,15 @@ public class Testing {
 
 	//System.out.println(btree.toString());
 
+
+
 		// System.out.println(btree.toString());
 
 		 ReferenceValues ref = (ReferenceValues) btree.search(50);
 
 		// System.out.println(ref.getReferences().size());
 		// btree.update(3, 1, 2);
-//		btree.delete(3, 3);
+//		btree.delete(1, "page1");
 //		btree.delete(3, 3);
 //		btree.delete(3, 3);
 
@@ -37,7 +40,7 @@ public class Testing {
 		}
 
 //		ArrayList<String> ref = new ArrayList<String>();
-//		ref = btree.rangeMaxSearch(5);
+//		ref = btree.rangeMaxSearch(1);
 //		for (int i = 0; i < ref.size(); i++) {
 //			System.out.println(ref.get(i));
 //		}
