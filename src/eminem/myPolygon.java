@@ -2,9 +2,10 @@ package eminem;
 
 import java.awt.Dimension;
 import java.awt.Polygon;
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class myPolygon implements Comparable {
+public class myPolygon implements Comparable, Serializable {
 	Polygon polygon;
 
 	public myPolygon(Polygon p) {

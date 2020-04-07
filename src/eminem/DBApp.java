@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Vector;
 
+import ds.Rtree.RTree;
 import ds.bplus.BTree;
 import ds.bplus.OverflowNode;
 import ds.bplus.ReferenceValues;
@@ -3362,62 +3363,146 @@ public class DBApp {
 			ArrayList<String> columns = getColNames(strTableName);
 			if (!columns.contains(strColName)) {
 				throw new DBAppException("Column does not exist");
-
-			} else {
-
-				// check column does not already have an index isindex
-				if (isIndexed(strTableName, strColName)) {
-					throw new DBAppException("Column already have an index");
+			}else {
+				//check column is of type polygon
+				ArrayList<String> nametype= getArrayOfColoumnDataTyoe(strTableName);
+				
+				if(nametype.contains(strColName+",java.awt.Polygon")){
+					throw new DBAppException("Cannot create a B+Tree on a column of type Polygon");
+					
 				} else {
-
-					// change indexed false to true in metadata
-					makeIndexed(strTableName, strColName);
-
-					// get column index in tuple
-					int colIndex = columns.indexOf(strColName);
-
-					// create a new BPlusTree
-					// TODO restrict max keys in node (page size and key size)
-					BTree bt = new BTree();
-					bt.treeName = "BTree" + strTableName + strColName;
-
-					/*
-					 * Insert already existing records keys into tree loop on all tuples in table
-					 * and insert each key (modify col content) and value(pointer: page name,tuple
-					 * index)
-					 */
-					Table table = (Table) getDeserlaized("data//" + strTableName + ".class");
-					Vector<String> usedPages = table.usedPagesNames;
-
-					for (int i = 0; i < usedPages.size(); i++) {
-
-						Page curPage = (Page) (getDeserlaized("data//" + table.usedPagesNames.get(i) + ".class"));
-						Vector<Tuple> Tuples = curPage.vtrTuples;
-
-						for (int j = 0; j < Tuples.size(); j++) {
-							Tuple curTuple = Tuples.get(j);
-							Object key = curTuple.vtrTupleObj.get(colIndex);
-							bt.insert((Comparable) key, table.usedPagesNames.get(i));
+	
+					// check column does not already have an index isindex
+					if (isIndexed(strTableName, strColName)) {
+						throw new DBAppException("Column already have an index");
+					} else {
+	
+						// change indexed false to true in metadata
+						makeIndexed(strTableName, strColName);
+	
+						// get column index in tuple
+						int colIndex = columns.indexOf(strColName);
+	
+						// create a new BPlusTree
+						// TODO restrict max keys in node (page size and key size)
+						BTree bt = new BTree();
+						bt.treeName = "BTree" + strTableName + strColName;
+	
+						/*
+						 * Insert already existing records keys into tree loop on all tuples in table
+						 * and insert each key (modify col content) and value(pointer: page name,tuple
+						 * index)
+						 */
+						Table table = (Table) getDeserlaized("data//" + strTableName + ".class");
+						Vector<String> usedPages = table.usedPagesNames;
+	
+						for (int i = 0; i < usedPages.size(); i++) {
+	
+							Page curPage = (Page) (getDeserlaized("data//" + table.usedPagesNames.get(i) + ".class"));
+							Vector<Tuple> Tuples = curPage.vtrTuples;
+	
+							for (int j = 0; j < Tuples.size(); j++) {
+								Tuple curTuple = Tuples.get(j);
+								Object key = curTuple.vtrTupleObj.get(colIndex);
+								bt.insert((Comparable) key, table.usedPagesNames.get(i));
+							}
+							serialize(curPage);
 						}
-						serialize(curPage);
+						// add index name to table list of usedIndicesNames then serialize table
+						table.usedIndicescols.add(strColName);
+						table.usedIndicesNames.add(bt.treeName); // or should we just add column name??
+						FileOutputStream f1 = new FileOutputStream("data//" + strTableName + ".class");
+						ObjectOutputStream bin1 = new ObjectOutputStream(f1);
+						bin1.writeObject(table);
+						bin1.flush();
+						bin1.close();
+	
+						// serialize tree
+	
+						bt.serializeTree();
+	
 					}
-					// add index name to table list of usedIndicesNames then serialize table
-					table.usedIndicescols.add(strColName);
-					table.usedIndicesNames.add(bt.treeName); // or should we just add column name??
-					FileOutputStream f1 = new FileOutputStream("data//" + strTableName + ".class");
-					ObjectOutputStream bin1 = new ObjectOutputStream(f1);
-					bin1.writeObject(table);
-					bin1.flush();
-					bin1.close();
-
-					// serialize tree
-
-					bt.serializeTree();
-
 				}
 			}
 		}
 	}
+	
+	public void createRTreeIndex(String strTableName, String strColName)
+			throws DBAppException, FileNotFoundException, IOException {
+		// check table exists
+		boolean found = checkIfTableFound(strTableName);
+
+		if (!found) {
+			throw new DBAppException("Table does not exist");
+		} else {
+			// check column exists
+			ArrayList<String> columns = getColNames(strTableName);
+			if (!columns.contains(strColName)) {
+				throw new DBAppException("Column does not exist");
+			}else {
+				//check column is of type polygon
+				ArrayList<String> nametype= getArrayOfColoumnDataTyoe(strTableName);
+				
+				if(!nametype.contains(strColName+",java.awt.Polygon")){
+					throw new DBAppException("You can only create a RTree on a column of type Polygon");
+				} else {	
+					// check column does not already have an index 
+					if (isIndexed(strTableName, strColName)) {
+						throw new DBAppException("Column already have an index");
+					} else {
+	
+						// change indexed false to true in metadata
+						makeIndexed(strTableName, strColName);
+	
+						// get column index in tuple
+						int colIndex = columns.indexOf(strColName);
+	
+						// create a new RTree
+						RTree rt = new RTree();
+						rt.treeName = "RTree" + strTableName + strColName;
+	
+						/*
+						 * Insert already existing records keys into tree loop on all tuples in table
+						 * and insert each key (modify col content) and value(pointer: page name,tuple
+						 * index)
+						 */
+						Table table = (Table) getDeserlaized("data//" + strTableName + ".class");
+						Vector<String> usedPages = table.usedPagesNames;
+	
+						for (int i = 0; i < usedPages.size(); i++) {
+	
+							Page curPage = (Page) (getDeserlaized("data//" + table.usedPagesNames.get(i) + ".class"));
+							Vector<Tuple> Tuples = curPage.vtrTuples;
+	
+							for (int j = 0; j < Tuples.size(); j++) {
+								Tuple curTuple = Tuples.get(j);
+								Object key = curTuple.vtrTupleObj.get(colIndex);
+								rt.insert((Polygon)key, table.usedPagesNames.get(i));
+							}
+							serialize(curPage);
+						}
+						// add index name to table list of usedIndicesNames then serialize table
+
+						table.usedRtreeCols.add(strColName);
+						table.usedRtreeNames.add(rt.treeName); // or should we just add column name??
+						FileOutputStream f1 = new FileOutputStream("data//" + strTableName + ".class");
+						ObjectOutputStream bin1 = new ObjectOutputStream(f1);
+						bin1.writeObject(table);
+						bin1.flush();
+						bin1.close();
+	
+						// serialize tree
+						rt.serializeTree();
+
+	
+					}
+				}
+			}
+		}
+	}
+
+	
+	
 
 	public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException {
 
@@ -3437,6 +3522,7 @@ public class DBApp {
 		htblColNameType.put("gpa", "java.lang.Double");
 		htblColNameType.put("shape", "java.awt.Polygon");
 		htblColNameType.put("grad", "java.lang.Boolean");
+		
 	//	dbApp.createTable(strTableName, "id", htblColNameType);
 	//	dbApp.createBTreeIndex(strTableName, "id");
 
@@ -3452,39 +3538,39 @@ public class DBApp {
 
 //		for (int i = 0; i < 210; i++) {
 
-		Hashtable htblColNameValue = new Hashtable();
-		htblColNameValue.put("id", new Integer(5));
-		htblColNameValue.put("name", new String("Ab"));
-		htblColNameValue.put("age", new Integer(25));
-		htblColNameValue.put("date", new Date(2000, 11, 23));
-//////			System.out.println((new Date(2020, 11, 11).getClass()));
-//////			System.out.println((new Date(2020, 11, 11)).toString());
-		
-		htblColNameValue.put("gpa", new Double(2.0));
-			
-		if (4 % 2 == 0) {
-			htblColNameValue.put("grad", true);
-		} else
-			htblColNameValue.put("grad", false);
-		Polygon p = new Polygon();
-		p.addPoint(1, 1);
-		p.addPoint(2, 2);
-////			 System.out.println("n:"+p.npoints);
-		htblColNameValue.put("shape", p);
+//		Hashtable htblColNameValue = new Hashtable();
+//		htblColNameValue.put("id", new Integer(5));
+//		htblColNameValue.put("name", new String("Ab"));
+//		htblColNameValue.put("age", new Integer(25));
+//		htblColNameValue.put("date", new Date(2000, 11, 23));
+////////			System.out.println((new Date(2020, 11, 11).getClass()));
+////////			System.out.println((new Date(2020, 11, 11)).toString());
+//		
+//		htblColNameValue.put("gpa", new Double(2.0));
+//			
+//		if (4 % 2 == 0) {
+//			htblColNameValue.put("grad", true);
+//		} else
+//			htblColNameValue.put("grad", false);
+//		Polygon p = new Polygon();
+//		p.addPoint(1, 1);
+//		p.addPoint(2, 2);
+//////			 System.out.println("n:"+p.npoints);
+//		htblColNameValue.put("shape", p);
 		
 	//	 dbApp.insertIntoTable(strTableName, htblColNameValue);
 		 
-		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
-		 System.out.println(a.toString());
-		 ReferenceValues ref = (ReferenceValues) a.search(7);
-			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
-			OverflowNode b = ref.getOverflowNodes().get(i);
-			//System.out.println("size =" + b.referenceOfKeys.size());
-			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-				System.out.print(b.referenceOfKeys.get(j) + " ");
-			}
-			System.out.println();
-		}
+//		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
+//		 System.out.println(a.toString());
+//		 ReferenceValues ref = (ReferenceValues) a.search(7);
+//			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+//			OverflowNode b = ref.getOverflowNodes().get(i);
+//			//System.out.println("size =" + b.referenceOfKeys.size());
+//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+//				System.out.print(b.referenceOfKeys.get(j) + " ");
+//			}
+//			System.out.println();
+//		}
 		 
 //		}
 
@@ -3539,17 +3625,17 @@ public class DBApp {
 
 	
 //** testing SELECT**
-			displayTableContent(strTableName);
-
-		SQLTerm[] arrSQLTerms;
-		arrSQLTerms = new SQLTerm[1];
-		for (int i = 0; i < arrSQLTerms.length; i++) {
-			arrSQLTerms[i] = new SQLTerm();
-		}
-		arrSQLTerms[0]._strTableName = "Student";
-		arrSQLTerms[0]._strColumnName = "age";
-		arrSQLTerms[0]._strOperator = "<=";
-		arrSQLTerms[0]._objValue = new Integer(60);
+//			displayTableContent(strTableName);
+//
+//		SQLTerm[] arrSQLTerms;
+//		arrSQLTerms = new SQLTerm[1];
+//		for (int i = 0; i < arrSQLTerms.length; i++) {
+//			arrSQLTerms[i] = new SQLTerm();
+//		}
+//		arrSQLTerms[0]._strTableName = "Student";
+//		arrSQLTerms[0]._strColumnName = "age";
+//		arrSQLTerms[0]._strOperator = "<=";
+//		arrSQLTerms[0]._objValue = new Integer(60);
 
 
 //////
