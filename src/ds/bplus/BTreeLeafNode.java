@@ -56,6 +56,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	}
 
 	public void setValue(int index, TValue value) throws DBAppException {
+	
 		if(values[index]==null) {
 			values[index]= new ReferenceValues();
 		}
@@ -99,7 +100,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	public int searchMax(TKey key) {
 		for (int i = 0; i < this.getKeyCount(); ++i) {
 			int cmp = this.getKey(i).compareTo(key);
-			System.out.println("key" + this.getKey(i));
+			//System.out.println("key" + this.getKey(i));
 			if (cmp <= 0) {
 				return i;
 			}
@@ -114,7 +115,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	/* The codes below are used to support insertion operation */
 
 	public void insertKey(TKey key, TValue value) throws DBAppException {
-
+		//System.out.println(value);
 		Object[] superKeys = super.keys;
 		boolean containsKey = false;
 		int i;
@@ -126,12 +127,15 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 			}
 		}
 		if (containsKey) {
+			
 			values[i].setReference(value);
 
 		} else {
+			
 			int index = 0;
-			while (index < this.getKeyCount() && this.getKey(index).compareTo(key) < 0)
-				++index;
+			while (index < this.getKeyCount() && this.getKey(index).compareTo(key) < 0) {
+				
+				++index;}
 			this.insertAt(index, key, value);
 
 		//	System.out.println("key: "+key +" value: "+value);
@@ -147,7 +151,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 
 	private void insertAt(int index, TKey key, TValue value) throws DBAppException {
 		// move space for the new key
-	
+		
 		for (int i = this.getKeyCount() - 1; i >= index; --i) {
 			this.setKey(i + 1, this.getKey(i));
 			this.setValueShift(i + 1, this.getValue(i));
@@ -155,6 +159,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 
 		// insert new key and value
 		this.setKey(index, key);
+		this.setValueShift(index, null);
 		this.setValue(index, value);
 
 		++this.keyCount;
@@ -177,6 +182,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 			this.setKey(i, null);
 			this.setValueShift(i, null);
 		}
+		
 		newRNode.keyCount = this.getKeyCount() - midIndex;
 		this.keyCount = midIndex;
 

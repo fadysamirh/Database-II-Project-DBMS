@@ -21,12 +21,15 @@ public class ReferenceValues implements Serializable {
 	}
 
 	public void setReference(Object strReference) throws DBAppException {
-		System.out.println(strReference);
+
 		if (overFlowNodes.size() == 0) {
 			OverflowNode ofn = new OverflowNode();
 			ofn.referenceOfKeys.add(strReference);
 			overFlowNodes.add(ofn);
+
 		} else {
+
+			
 			for (int i = 0; i < overFlowNodes.size(); i++) {
 				OverflowNode ofn = overFlowNodes.get(i);
 
@@ -45,6 +48,7 @@ public class ReferenceValues implements Serializable {
 				}
 			}
 		}
+
 	}
 
 	public ArrayList<OverflowNode> getOverflowNodes() {
@@ -66,9 +70,11 @@ public class ReferenceValues implements Serializable {
 	}
 
 	public void replaceRef(Object oldRef, Object newRef) {
+		
 		for (int i = 0; i < overFlowNodes.size(); i++) {
 			OverflowNode ofn = overFlowNodes.get(i);
 			ArrayList<Object> referenceOfKeys = ofn.referenceOfKeys;
+			
 			if (referenceOfKeys.contains(oldRef)) {
 				int indexOfOld = referenceOfKeys.indexOf(oldRef);
 				

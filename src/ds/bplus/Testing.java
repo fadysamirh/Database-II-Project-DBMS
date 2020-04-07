@@ -8,13 +8,15 @@ public class Testing {
 	public static void main(String[] args) throws DBAppException {
 		BTree btree = new BTree();
 
-		btree.insert(50,"Student0");
-		btree.insert(40,"Student0");
-		btree.insert(40,"Student0");
-		btree.insert(25,"Student0");
-		btree.insert(25,"Student1");
-		btree.insert(25,"Student1");
-		btree.insert(50,"Student1");
+		btree.insert(0,"Student0");
+		btree.insert(1,"Student0");
+		btree.insert(3,"Student0");
+		btree.insert(3,"Student0");
+		
+		btree.insert(3,"Student1");
+		
+		btree.insert(2,"Student1");
+
 
 	//System.out.println(btree.toString());
 
@@ -22,7 +24,7 @@ public class Testing {
 
 		// System.out.println(btree.toString());
 
-		 ReferenceValues ref = (ReferenceValues) btree.search(50);
+		 ReferenceValues ref = (ReferenceValues) btree.search(0);
 
 		// System.out.println(ref.getReferences().size());
 		// btree.update(3, 1, 2);
