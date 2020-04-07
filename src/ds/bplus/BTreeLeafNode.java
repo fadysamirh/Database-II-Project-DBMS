@@ -56,8 +56,11 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	}
 
 	public void setValue(int index, TValue value) throws DBAppException {
+		if(values[index]==null) {
+			values[index]= new ReferenceValues();
+		}
 		this.values[index].setReference(value);
-		//System.out.println(value);
+		
 	}
 
 	@Override
@@ -111,6 +114,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	/* The codes below are used to support insertion operation */
 
 	public void insertKey(TKey key, TValue value) throws DBAppException {
+
 		Object[] superKeys = super.keys;
 		boolean containsKey = false;
 		int i;
@@ -143,7 +147,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 
 	private void insertAt(int index, TKey key, TValue value) throws DBAppException {
 		// move space for the new key
-
+	
 		for (int i = this.getKeyCount() - 1; i >= index; --i) {
 			this.setKey(i + 1, this.getKey(i));
 			this.setValue(i + 1, this.getValue(i));
@@ -152,6 +156,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 		// insert new key and value
 		this.setKey(index, key);
 		this.setValue(index, value);
+
 		++this.keyCount;
 	}
 

@@ -31,19 +31,81 @@ public class Testing {
 //		btree.insert(4, 1);
 //		btree.insert(4, 4);
 
-//		btree.insert(4, 3);
-//		btree.insert(5, 3);
-//		btree.insert(6, 4);
-//		btree.insert(7, 3);
-//		btree.insert(8, 3);
-//		btree.insert(9, 3);
-//		btree.insert(10, 3);
-//		btree.insert(11, 5);
-//		btree.insert(12, 6);
-//		btree.insert(13, 2);
-//		btree.insert(14, 7);
-//		btree.insert(15, 3);
-//		btree.insert(16, 3);
+
+		btree.insert(4, 3);
+		btree.insert(5, 3);
+		btree.insert(6, 4);
+		btree.insert(7, 3);
+		btree.insert(8, 3);
+		btree.insert(9, 3);
+		btree.insert(1, 1);
+//		btree.insert(1, 1);
+//		btree.insert(1, 1);
+//
+		btree.insert(3, 1);
+		btree.insert(3, 2);
+		btree.insert(3, 1);
+		btree.insert(3, 3);
+//		btree.insert(3, 1);
+//		btree.insert(3, 1);
+//		btree.insert(3, 3);
+//		btree.insert(3, 1);
+//		btree.insert(3, 1);
+//		btree.insert(3, 3);
+
+		btree.insert(4, 1);
+		btree.insert(4, 1);
+		btree.insert(4, 4);
+
+		btree.insert(4, 3);
+		btree.insert(4, 1);
+		btree.insert(4, 1);
+		btree.insert(4, 4);
+
+		btree.insert(4, 3);
+		btree.insert(5, 3);
+		btree.insert(6, 4);
+		btree.insert(7, 3);
+		btree.insert(8, 3);
+		btree.insert(9, 3);
+		btree.insert(1, 1);
+//		btree.insert(1, 1);
+//		btree.insert(1, 1);
+//
+		btree.insert(3, 1);
+		btree.insert(3, 2);
+		btree.insert(3, 1);
+		btree.insert(3, 3);
+//		btree.insert(3, 1);
+//		btree.insert(3, 1);
+//		btree.insert(3, 3);
+//		btree.insert(3, 1);
+//		btree.insert(3, 1);
+//		btree.insert(3, 3);
+
+		btree.insert(4, 1);
+		btree.insert(4, 1);
+		btree.insert(4, 4);
+
+		btree.insert(4, 3);
+		btree.insert(4, 1);
+		btree.insert(4, 1);
+		btree.insert(4, 4);
+
+		btree.insert(1, 3);
+		btree.insert(202, 3);
+		btree.insert(10, 4);
+		btree.insert(100, 3);
+		btree.insert(74, 3);
+		btree.insert(9, 3);
+		btree.insert(10, 3);
+		btree.insert(11, 5);
+		btree.insert(12, 6);
+		btree.insert(13, 2);
+		btree.insert(14, 7);
+		btree.insert(15, 3);
+		btree.insert(16, 3);
+
 	System.out.println(btree.toString());
 
 		// System.out.println(btree.toString());
