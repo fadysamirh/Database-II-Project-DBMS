@@ -1694,6 +1694,7 @@ public class DBApp {
 				}
 				if (found == true) {
 					return i;
+
 				}
 			}
 
@@ -1947,43 +1948,45 @@ public class DBApp {
 					// use binary search
 					boolean nextPage = true;
 					int startPageIndex = getPageToBeInsertedIndexUsingClusteringKey(t, key + "");
-					String pageName = t.usedPagesNames.get(startPageIndex);
 					// System.out.println(startPageIndex);
-					Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-					int startTupleIndex = getStartIndexStartUpdate(key, startPageIndex, t);
-					// System.out.println(startTupleIndex);
+					if (startPageIndex >= 0) {
+						String pageName = t.usedPagesNames.get(startPageIndex);
+						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+						int startTupleIndex = getStartIndexStartUpdate(key, startPageIndex, t);
+						// System.out.println(startTupleIndex);
 
-					for (int j = startTupleIndex; j < p.vtrTuples.size(); j++) {
+						for (int j = startTupleIndex; j < p.vtrTuples.size(); j++) {
 
-						Tuple tup = p.vtrTuples.get(j);
-						Object tupKey = tup.vtrTupleObj.get(tup.index);
-						// System.out.println(tupKey);
-						if (tupKey.equals(key)) {
-							result.add(tup);
-						} else {
-							nextPage = false;
-						}
-						serialize(p);
-					}
-					while (nextPage) {
-						startPageIndex++;
-						// System.out.println(startPageIndex);
-						if (startPageIndex < t.usedPagesNames.size()) {
-							String secondPage = t.usedPagesNames.get(startPageIndex);
-							Page next = (Page) getDeserlaized("data//" + secondPage + ".class");
-							for (int j = 0; j < next.vtrTuples.size(); j++) {
-								Tuple tup = next.vtrTuples.get(j);
-								Object tupKey = tup.vtrTupleObj.get(tup.index);
-								if (tupKey.equals(key)) {
-									result.add(tup);
-								} else {
-									nextPage = false;
-									break;
-								}
+							Tuple tup = p.vtrTuples.get(j);
+							Object tupKey = tup.vtrTupleObj.get(tup.index);
+							// System.out.println(tupKey);
+							if (tupKey.equals(key)) {
+								result.add(tup);
+							} else {
+								nextPage = false;
 							}
-							serialize(next);
-						} else {
-							nextPage = false;
+							serialize(p);
+						}
+						while (nextPage) {
+							startPageIndex++;
+							// System.out.println(startPageIndex);
+							if (startPageIndex < t.usedPagesNames.size()) {
+								String secondPage = t.usedPagesNames.get(startPageIndex);
+								Page next = (Page) getDeserlaized("data//" + secondPage + ".class");
+								for (int j = 0; j < next.vtrTuples.size(); j++) {
+									Tuple tup = next.vtrTuples.get(j);
+									Object tupKey = tup.vtrTupleObj.get(tup.index);
+									if (tupKey.equals(key)) {
+										result.add(tup);
+									} else {
+										nextPage = false;
+										break;
+									}
+								}
+								serialize(next);
+							} else {
+								nextPage = false;
+							}
 						}
 					}
 				} else if (!isClustering) {
@@ -2107,25 +2110,27 @@ public class DBApp {
 
 				} else if (!isClustering) {
 					// retrieve from every occurrence found from tree;
-					// System.out.println("data//" + "BTree" + t.name + colName + ".class");
+					 //System.out.println("data//" + "BTree" + t.name + colName + ".class");
 					BTree b = (BTree) getDeserlaized("data//" + "BTree" + t.name + colName + ".class");
 					Comparable k = (Comparable) key;
 					// System.out.println(k);
 					ReferenceValues ref = (ReferenceValues) b.search(k);
 					ArrayList<String> midRes = new ArrayList<String>();
-					// System.out.println(ref.getOverflowNodes().size());
-					for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
-						OverflowNode x = ref.getOverflowNodes().get(i);
-						// System.out.println( x.referenceOfKeys.get(0));
-						for (int j = 0; j < x.referenceOfKeys.size(); j++) {
-							if ((x.referenceOfKeys.get(j) + " ").contains(t.name)) {
-								midRes.add(x.referenceOfKeys.get(j) + " ");
-								// System.out.println(x.referenceOfKeys.get(j) + " ");
+					 //System.out.println(ref == null);
+					if (ref != null) {
+						for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+							OverflowNode x = ref.getOverflowNodes().get(i);
+							// System.out.println( x.referenceOfKeys.get(0));
+							for (int j = 0; j < x.referenceOfKeys.size(); j++) {
+								if ((x.referenceOfKeys.get(j) + " ").contains(t.name)) {
+									midRes.add(x.referenceOfKeys.get(j) + " ");
+									// System.out.println(x.referenceOfKeys.get(j) + " ");
+								}
 							}
 						}
+						result = getTuplesFromIndexSearch(midRes, t.name, colName, key);
 					}
-
-					result = getTuplesFromIndexSearch(midRes, t.name, colName, key);
+					//System.out.println("check");
 					b.serializeTree();
 				}
 			}
@@ -2694,9 +2699,13 @@ public class DBApp {
 		int count = -1;
 		ArrayList<String> pageNames = new ArrayList<String>();
 		ArrayList<String> copyNames = new ArrayList<String>();
-		copyNames = midRes;
+		for (int i = 0; i < midRes.size(); i++) {
+			copyNames.add(midRes.get(i));
+		}
+		// copyNames = midRes;
 		for (int w = 0; w < midRes.size(); w++) {
 			String newPageName = midRes.get(w);
+			// System.out.println(newPageName);
 			count = -1;
 			for (int j = 0; j < copyNames.size(); j++) {
 				if (newPageName.equals(copyNames.get(j))) {
@@ -2753,7 +2762,7 @@ public class DBApp {
 					if (Tuple.compareToHelper(checkKey, key) < 0) {
 						if (count2 > -1) {
 							result.add(toBeChecked);
-							System.out.println(toBeChecked);
+							// System.out.println(toBeChecked);
 							count2--;
 						}
 						// System.out.println(toBeChecked.toString());
@@ -3419,17 +3428,17 @@ public class DBApp {
 
 //**create table**
 
-		Hashtable<String, String> htblColNameType = new Hashtable();
+//		Hashtable<String, String> htblColNameType = new Hashtable();
 
-		htblColNameType.put("id", "java.lang.Integer");
-		htblColNameType.put("name", "java.lang.String");
-		htblColNameType.put("age", "java.lang.Integer");
-		htblColNameType.put("date", "java.util.Date");
-		htblColNameType.put("gpa", "java.lang.Double");
-		htblColNameType.put("shape", "java.awt.Polygon");
-		htblColNameType.put("grad", "java.lang.Boolean");
-		//dbApp.createTable(strTableName, "id", htblColNameType);
-	//	dbApp.createBTreeIndex(strTableName, "id");
+//		htblColNameType.put("id", "java.lang.Integer");
+//		htblColNameType.put("name", "java.lang.String");
+//		htblColNameType.put("age", "java.lang.Integer");
+//		htblColNameType.put("date", "java.util.Date");
+//		htblColNameType.put("gpa", "java.lang.Double");
+//		htblColNameType.put("shape", "java.awt.Polygon");
+//		htblColNameType.put("grad", "java.lang.Boolean");
+//		dbApp.createTable(strTableName, "id", htblColNameType);
+//		dbApp.createBTreeIndex(strTableName, "age");
 
 //		dbApp.makeIndexed(strTableName, "name");
 
@@ -3438,54 +3447,52 @@ public class DBApp {
 //		System.out.println(a.colNames[1]);
 //		System.out.println(a.colNames[2]);
 
-
 //** insert tuples**
 
 //		for (int i = 0; i < 210; i++) {
 
-
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(6));
+//		htblColNameValue.put("id", new Integer(4));
 //		htblColNameValue.put("name", new String("Ab"));
-//		htblColNameValue.put("age", new Integer(50));
+//		htblColNameValue.put("age", new Integer(30));
 //		dbApp.insertIntoTable(strTableName, htblColNameValue);
 //		htblColNameValue.put("date", new Date(2000, 11, 23));
 
-		Hashtable htblColNameValue = new Hashtable();
-		htblColNameValue.put("id", new Integer(2));
-		htblColNameValue.put("name", new String("Ab"));
-		htblColNameValue.put("age", new Integer(25));
-		htblColNameValue.put("date", new Date(2000, 11, 23));
+//		Hashtable htblColNameValue = new Hashtable();
+//		htblColNameValue.put("id", new Integer(2));
+//		htblColNameValue.put("name", new String("Ab"));
+//		htblColNameValue.put("age", new Integer(25));
+//		htblColNameValue.put("date", new Date(2000, 11, 23));
+//
+////////			System.out.println((new Date(2020, 11, 11).getClass()));
+////////			System.out.println((new Date(2020, 11, 11)).toString());
+//		
+//		htblColNameValue.put("gpa", new Double(2.0));
+//			
+//		if (4 % 2 == 0) {
+//			htblColNameValue.put("grad", true);
+//		} else
+//			htblColNameValue.put("grad", false);
+//		Polygon p = new Polygon();
+//		p.addPoint(1, 1);
+//		p.addPoint(2, 2);
+//////			 System.out.println("n:"+p.npoints);
+//		htblColNameValue.put("shape", p);
 
-//////			System.out.println((new Date(2020, 11, 11).getClass()));
-//////			System.out.println((new Date(2020, 11, 11)).toString());
-		
-		htblColNameValue.put("gpa", new Double(2.0));
-			
-		if (4 % 2 == 0) {
-			htblColNameValue.put("grad", true);
-		} else
-			htblColNameValue.put("grad", false);
-		Polygon p = new Polygon();
-		p.addPoint(1, 1);
-		p.addPoint(2, 2);
-////			 System.out.println("n:"+p.npoints);
-		htblColNameValue.put("shape", p);
-		
-	//	 dbApp.insertIntoTable(strTableName, htblColNameValue);
-		 
-		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
-		 System.out.println(a.toString());
-		 ReferenceValues ref = (ReferenceValues) a.search(3);
-			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
-			OverflowNode b = ref.getOverflowNodes().get(i);
-			//System.out.println("size =" + b.referenceOfKeys.size());
-			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-				System.out.print(b.referenceOfKeys.get(j) + " ");
-			}
-			System.out.println();
-		}
-		 
+		// dbApp.insertIntoTable(strTableName, htblColNameValue);
+
+//		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
+//		 System.out.println(a.toString());
+//		 ReferenceValues ref = (ReferenceValues) a.search(3);
+//			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+//			OverflowNode b = ref.getOverflowNodes().get(i);
+//			//System.out.println("size =" + b.referenceOfKeys.size());
+//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+//				System.out.print(b.referenceOfKeys.get(j) + " ");
+//			}
+//			System.out.println();
+//		}
+
 //		}
 
 //		Hashtable htblColNameValue = new Hashtable();
@@ -3536,16 +3543,13 @@ public class DBApp {
 //		dbApp.updateTable(strTableName, "9", hash);
 ////////
 
-//
-//		BTree a = (BTree) (getDeserlaized("data//" + "BTree" + strTableName + "age" + ".class"));
-//		System.out.println(a.toString());
-////		System.out.println(a.rangeMaxSearch(30));
-//		a.serializeTree();
+		BTree a = (BTree) (getDeserlaized("data//" + "BTree" + strTableName + "age" + ".class"));
+		System.out.println(a.toString());
+//		System.out.println(a.rangeMaxSearch(30));
+		a.serializeTree();
 
-
-	
 //** testing SELECT**
-			displayTableContent(strTableName);
+		// displayTableContent(strTableName);
 
 		SQLTerm[] arrSQLTerms;
 		arrSQLTerms = new SQLTerm[1];
@@ -3554,9 +3558,8 @@ public class DBApp {
 		}
 		arrSQLTerms[0]._strTableName = "Student";
 		arrSQLTerms[0]._strColumnName = "age";
-		arrSQLTerms[0]._strOperator = "=";
-		arrSQLTerms[0]._objValue = new Integer(25);
-
+		arrSQLTerms[0]._strOperator = "<=";
+		arrSQLTerms[0]._objValue = new Integer(60);
 
 //////
 //		arrSQLTerms[1]._strTableName = "Student";
@@ -3573,7 +3576,7 @@ public class DBApp {
 //////		
 //////		
 
-		//String[] strarrOperators = new String[0];
+		String[] strarrOperators = new String[0];
 //		strarrOperators[0] = "AND";
 //////		strarrOperators[1] = "AND";
 //////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
@@ -3597,10 +3600,10 @@ public class DBApp {
 //		} catch (Exception e) {
 //			throw new DBAppException("error in displaying data in table");
 //		}
-	//	dbApp.createBTreeIndex(strTableName, "age");
-		
-	//	dbApp.checkTree();
-	//	displayTableContent(strTableName);
+		// dbApp.createBTreeIndex(strTableName, "age");
+
+		// dbApp.checkTree();
+		displayTableContent(strTableName);
 
 //		long modified = dbApp.modifyKey(new Integer(30));
 //		BTree b = (BTree) getDeserlaized("data//" + "BTreeStudentage" + ".class");
