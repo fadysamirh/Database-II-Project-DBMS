@@ -146,6 +146,7 @@ public class BTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 	 */
 	public void insert(TKey key, TValue value) throws DBAppException {
 		BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
+	
 		leaf.insertKey(key, value);
 
 		if (leaf.isOverflow()) {
