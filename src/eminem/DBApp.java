@@ -180,38 +180,35 @@ public class DBApp {
 				Tuple nTuple = createTuple(htblColNameValue, strTableName);
 
 				Table toBeInstertedIn = (Table) getDeserlaized("data//" + strTableName + ".class");
-				
-				Boolean Indexed = false ; 
-				
+
+				Boolean Indexed = false;
+
 				// checking if the table has an index
-				if (toBeInstertedIn.usedIndicesNames.size()!=0)
-				{
-					Indexed = true ;
+				if (toBeInstertedIn.usedIndicesNames.size() != 0) {
+					Indexed = true;
 				}
-				Boolean ClusteringIndexed = false ;
-				
+				Boolean ClusteringIndexed = false;
+
 				// checking if one of the indexes is on the clustering column
-				if (toBeInstertedIn.usedIndicescols.contains(getClusteringKey(strTableName)))
-				{
-					Indexed = true ;
+				if (toBeInstertedIn.usedIndicescols.contains(getClusteringKey(strTableName))) {
+					Indexed = true;
 				}
 
 				if (toBeInstertedIn.usedPagesNames.isEmpty()) {
 					toBeInstertedIn.createPage();
-					
-					if(Indexed)
-					{
+
+					if (Indexed) {
 						ArrayList<String> columns = getColNames(strTableName);
-						for(int i = 0 ; i<toBeInstertedIn.usedIndicesNames.size();i++)
-						{
-							BTree toUpdate = (BTree)getDeserlaized("data//" + toBeInstertedIn.usedIndicesNames.elementAt(i)+ ".class");
+						for (int i = 0; i < toBeInstertedIn.usedIndicesNames.size(); i++) {
+							BTree toUpdate = (BTree) getDeserlaized(
+									"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
 							String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
 							int colIndex = columns.indexOf(colName);
 							Object key = nTuple.vtrTupleObj.get(colIndex);
-							
-							toUpdate.insert((Comparable) key,toBeInstertedIn.usedPagesNames.get(0));
+
+							toUpdate.insert((Comparable) key, toBeInstertedIn.usedPagesNames.get(0));
 							toUpdate.serializeTree();
-						
+
 						}
 					}
 
@@ -234,22 +231,38 @@ public class DBApp {
 				}
 
 				else {
-					
+
 					Vector<String> usedPages = toBeInstertedIn.usedPagesNames;
-                    int page = -1;
-                   
-                    // searching in which page the nTuple will fit in it's range
-					for (int i = 0; i < usedPages.size() ; i++) {
+					int page = -1;
+
+					if (ClusteringIndexed) {
+						Vector<String> pageNames = new Vector<String>();
+
+						int index = toBeInstertedIn.usedIndicescols.indexOf(getClusteringKey(strTableName));
+						BTree toUpdate = (BTree) getDeserlaized(
+								"data//" + toBeInstertedIn.usedIndicesNames.elementAt(index) + ".class");
+
+						ReferenceValues ref = (ReferenceValues) toUpdate
+								.search((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
+						for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+							OverflowNode b = ref.getOverflowNodes().get(i);
+							for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+								pageNames.add((String) b.referenceOfKeys.get(j));
+							}
+						}
+					}
+					// searching in which page the nTuple will fit in it's range
+					for (int i = 0; i < usedPages.size(); i++) {
 						Page pageToBeInstertedIn = (Page) (getDeserlaized(
 								"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
 						Vector<Tuple> Tuples = pageToBeInstertedIn.vtrTuples;
 
 						int compare1 = (pageToBeInstertedIn.vtrTuples.lastElement()).compareTo(nTuple);
-						 
+
 						int compare2 = (pageToBeInstertedIn.vtrTuples.get(0)).compareTo(nTuple);
-						
-						if (i==0 && (compare2 >= 0)) {
+
+						if (i == 0 && (compare2 >= 0)) {
 							page = 0;
 							break;
 						}
@@ -257,46 +270,41 @@ public class DBApp {
 							page = i;
 							break;
 						}
-						
+
 					}
-					// if nTuple does not fit in any page range if the last page is not full then insert in it else create new page
-					if (page == -1 )
-					{   
+					// if nTuple does not fit in any page range if the last page is not full then
+					// insert in it else create new page
+					if (page == -1) {
 						Page pageToBeInstertedIn = (Page) (getDeserlaized(
 								"data//" + toBeInstertedIn.usedPagesNames.lastElement() + ".class"));
-						
-						if(pageToBeInstertedIn.vtrTuples.size() == maxPageSize){	
-						toBeInstertedIn.createPage();
-                        page = toBeInstertedIn.usedPagesNames.size()-1;}
-						else
-						{
-							page = toBeInstertedIn.usedPagesNames.size()-1;
+
+						if (pageToBeInstertedIn.vtrTuples.size() == maxPageSize) {
+							toBeInstertedIn.createPage();
+							page = toBeInstertedIn.usedPagesNames.size() - 1;
+						} else {
+							page = toBeInstertedIn.usedPagesNames.size() - 1;
 						}
-						
+
 					}
-					
+
 					// if the table has index insert the nTuple with the page found in the index
-					if(Indexed)
-					{
+					if (Indexed) {
 						ArrayList<String> columns = getColNames(strTableName);
-						for(int i = 0 ; i<=toBeInstertedIn.usedIndicesNames.size()-1;i++)
-						{
-							BTree toUpdate = (BTree)getDeserlaized("data//" + toBeInstertedIn.usedIndicesNames.elementAt(i)+ ".class");
+						for (int i = 0; i <= toBeInstertedIn.usedIndicesNames.size() - 1; i++) {
+							BTree toUpdate = (BTree) getDeserlaized(
+									"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
 							String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
 							int colIndex = columns.indexOf(colName);
 							Object key = nTuple.vtrTupleObj.get(colIndex);
-							
-							toUpdate.insert((Comparable) key,toBeInstertedIn.usedPagesNames.get(page));
-							
+
+							toUpdate.insert((Comparable) key, toBeInstertedIn.usedPagesNames.get(page));
+
 							toUpdate.serializeTree();
-							 
-							
-						
+
 						}
 					}
-					
-			
-                    					Page pageToBeInstertedIn0 = (Page) (getDeserlaized(
+
+					Page pageToBeInstertedIn0 = (Page) (getDeserlaized(
 							"data//" + toBeInstertedIn.usedPagesNames.get(page) + ".class"));
 
 					Vector<Tuple> Tuples0 = pageToBeInstertedIn0.vtrTuples;
@@ -304,8 +312,9 @@ public class DBApp {
 					// get the index in page in which tuple should be inserted binary search
 					int tupleindex = TuplebinarySearch(pageToBeInstertedIn0, 0,
 							(pageToBeInstertedIn0.vtrTuples.size()) - 1, nTuple);
-                 
-					// get the index in page in which tuple should be inserted non binary if not found binary
+
+					// get the index in page in which tuple should be inserted non binary if not
+					// found binary
 					if (tupleindex == -1) {
 						int j = 0;
 
@@ -320,13 +329,11 @@ public class DBApp {
 						}
 						tupleindex = j;
 					}
-					
-					
 
 					if (tupleindex > 0) {
 						tupleindex = tupleindex - 1;
 					}
-                    // inserting the new tuple in it's place and bubbling the max tuple in page
+					// inserting the new tuple in it's place and bubbling the max tuple in page
 					for (int j = tupleindex; j <= Tuples0.size() - 1; j++) {
 						Tuple TuplesinPage = Tuples0.get(j);
 
@@ -344,30 +351,29 @@ public class DBApp {
 					}
 					boolean flag2 = true;
 
-					// if there is a place in the same page no ref will be updated 
+					// if there is a place in the same page no ref will be updated
 					if (pageToBeInstertedIn0.vtrTuples.size() < maxPageSize) {
 						pageToBeInstertedIn0.vtrTuples.add(nTuple);
 
 						flag2 = false;
 					}
 					// if there is no place the last tuple ref should change to the next page
-					if(flag2)
-					{
-						if(Indexed)
-    					{
-    						ArrayList<String> columns = getColNames(strTableName);
-    						for(int i = 0 ; i<toBeInstertedIn.usedIndicesNames.size();i++)
-    						{
-    							BTree toUpdate = (BTree)getDeserlaized("data//" + toBeInstertedIn.usedIndicesNames.elementAt(i)+ ".class");
-    							String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
-    							int colIndex = columns.indexOf(colName);
-    							Object key = nTuple.vtrTupleObj.get(colIndex);
-    							if(toBeInstertedIn.usedPagesNames.size()-1 != page)
-    							toUpdate.update((Comparable) key,toBeInstertedIn.usedPagesNames.get(page),toBeInstertedIn.usedPagesNames.get(page+1));
-    							toUpdate.serializeTree();
-    						
-    						}
-    					}
+					if (flag2) {
+						if (Indexed) {
+							ArrayList<String> columns = getColNames(strTableName);
+							for (int i = 0; i < toBeInstertedIn.usedIndicesNames.size(); i++) {
+								BTree toUpdate = (BTree) getDeserlaized(
+										"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
+								String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
+								int colIndex = columns.indexOf(colName);
+								Object key = nTuple.vtrTupleObj.get(colIndex);
+								if (toBeInstertedIn.usedPagesNames.size() - 1 != page)
+									toUpdate.update((Comparable) key, toBeInstertedIn.usedPagesNames.get(page),
+											toBeInstertedIn.usedPagesNames.get(page + 1));
+								toUpdate.serializeTree();
+
+							}
+						}
 					}
 					FileOutputStream f1 = new FileOutputStream("data//" + pageToBeInstertedIn0.pageName + ".class");
 
@@ -424,23 +430,23 @@ public class DBApp {
 
 							}
 							{
-								if(flag == 0)
-								{
-									if(Indexed)
-			    					{
-			    						ArrayList<String> columns = getColNames(strTableName);
-			    						for(int k = 0 ; k<toBeInstertedIn.usedIndicesNames.size();k++)
-			    						{
-			    							BTree toUpdate = (BTree)getDeserlaized("data//" + toBeInstertedIn.usedIndicesNames.elementAt(k)+ ".class");
-			    							String colName = toBeInstertedIn.usedIndicescols.elementAt(k);
-			    							int colIndex = columns.indexOf(colName);
-			    							Object key = nTuple.vtrTupleObj.get(colIndex);
-			    							if(i != usedPages.size()-1){
-			    							toUpdate.update((Comparable) key,toBeInstertedIn.usedPagesNames.get(i),toBeInstertedIn.usedPagesNames.get(i+1));
-			    							toUpdate.serializeTree();}
-			    						
-			    						}
-			    					}
+								if (flag == 0) {
+									if (Indexed) {
+										ArrayList<String> columns = getColNames(strTableName);
+										for (int k = 0; k < toBeInstertedIn.usedIndicesNames.size(); k++) {
+											BTree toUpdate = (BTree) getDeserlaized("data//"
+													+ toBeInstertedIn.usedIndicesNames.elementAt(k) + ".class");
+											String colName = toBeInstertedIn.usedIndicescols.elementAt(k);
+											int colIndex = columns.indexOf(colName);
+											Object key = nTuple.vtrTupleObj.get(colIndex);
+											if (i != usedPages.size() - 1) {
+												toUpdate.update((Comparable) key, toBeInstertedIn.usedPagesNames.get(i),
+														toBeInstertedIn.usedPagesNames.get(i + 1));
+												toUpdate.serializeTree();
+											}
+
+										}
+									}
 								}
 							}
 							ObjectOutputStream bin = new ObjectOutputStream(
@@ -481,20 +487,21 @@ public class DBApp {
 										+ ".class"));
 
 								p.vtrTuples.add(nTuple);
-								if(Indexed)
-		    					{
-		    						ArrayList<String> columns = getColNames(strTableName);
-		    						for(int k = 0 ; k<toBeInstertedIn.usedIndicesNames.size();k++)
-		    						{
-		    							BTree toUpdate = (BTree)getDeserlaized("data//" + toBeInstertedIn.usedIndicesNames.elementAt(k)+ ".class");
-		    							String colName = toBeInstertedIn.usedIndicescols.elementAt(k);
-		    							int colIndex = columns.indexOf(colName);
-		    							Object key = nTuple.vtrTupleObj.get(colIndex);
-		    							toUpdate.update((Comparable) key,toBeInstertedIn.usedPagesNames.get(usedPages.size()-2),toBeInstertedIn.usedPagesNames.get(usedPages.size()-1));
-		    							toUpdate.serializeTree();
-		    						
-		    						}
-		    					}
+								if (Indexed) {
+									ArrayList<String> columns = getColNames(strTableName);
+									for (int k = 0; k < toBeInstertedIn.usedIndicesNames.size(); k++) {
+										BTree toUpdate = (BTree) getDeserlaized(
+												"data//" + toBeInstertedIn.usedIndicesNames.elementAt(k) + ".class");
+										String colName = toBeInstertedIn.usedIndicescols.elementAt(k);
+										int colIndex = columns.indexOf(colName);
+										Object key = nTuple.vtrTupleObj.get(colIndex);
+										toUpdate.update((Comparable) key,
+												toBeInstertedIn.usedPagesNames.get(usedPages.size() - 2),
+												toBeInstertedIn.usedPagesNames.get(usedPages.size() - 1));
+										toUpdate.serializeTree();
+
+									}
+								}
 
 								ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//"
 										+ toBeInstertedIn.usedPagesNames.get(toBeInstertedIn.usedPagesNames.size() - 1)
@@ -520,6 +527,7 @@ public class DBApp {
 			}
 		}
 	}
+
 	public static int TuplebinarySearch(Page p, int first, int last, Tuple key) {
 		int mid = (first + last) / 2;
 		int pos = -1;
@@ -721,7 +729,8 @@ public class DBApp {
 
 	}
 
-	public void deleteFromTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException, IOException {
+	public void deleteFromTable(String strTableName, Hashtable<String, Object> htblColNameValue)
+			throws DBAppException, IOException {
 
 		Table newTable = (Table) getDeserlaized("data//" + strTableName + ".class");
 		// String type = clusteringKeyType(newTable);
@@ -880,14 +889,14 @@ public class DBApp {
 			}
 		} else {
 			ArrayList<Integer> listOfColNum = new ArrayList<Integer>();
-			
+
 			for (int k = 0; k < listOfAvailableIndices.size(); k++) {
 				listOfColNum.add(getColNumber(strTableName, listOfAvailableIndices.get(k)));
-				
+
 			}
 //			for(int l=0;l<listOfColNum.size();l++)
 //				System.out.println(listOfColNum.get(l));
-			
+
 			ArrayList<String> listOfColName = getColNames(strTableName);
 
 			ArrayList<String> intersect = new ArrayList<String>();
@@ -897,10 +906,10 @@ public class DBApp {
 				if (dTupleArray[listOfColNum.get(k)] != null) {
 
 					BTree btree = (BTree) getDeserlaized(
-							"data//" + "BTree" +strTableName+ listOfColName.get(listOfColNum.get(k)) + ".class");
-					
+							"data//" + "BTree" + strTableName + listOfColName.get(listOfColNum.get(k)) + ".class");
+
 					ReferenceValues ref = (ReferenceValues) btree.search((Comparable) dTupleArray[listOfColNum.get(k)]);
-					
+
 					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
 
 					ArrayList<String> listOfFlattenReference = new ArrayList<String>();
@@ -910,7 +919,7 @@ public class DBApp {
 						OverflowNode ofn = lstofn.get(j);
 						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
 							System.out.println(ofn.referenceOfKeys.get(m));
-							String reference=(ofn.referenceOfKeys.get(m)).toString();
+							String reference = (ofn.referenceOfKeys.get(m)).toString();
 							listOfFlattenReference.add(reference);
 						}
 					}
@@ -954,14 +963,14 @@ public class DBApp {
 					}
 					if (flag) {
 
-						Tuple deletedT=tuples.remove(j);
-						for(int p=0;p<deletedT.vtrTupleObj.capacity();p++) {
-							if(listOfColNum.contains(p)) {
-								String colName=getColNames(strTableName).get(p);
-							BTree btree = (BTree) getDeserlaized(
-										"data//" + "BTree" +strTableName+colName  + ".class");
-							btree.delete((Comparable) deletedT.vtrTupleObj.get(p), pageToBeDeleteFrom.pageName);
-							btree.serializeTree();
+						Tuple deletedT = tuples.remove(j);
+						for (int p = 0; p < deletedT.vtrTupleObj.capacity(); p++) {
+							if (listOfColNum.contains(p)) {
+								String colName = getColNames(strTableName).get(p);
+								BTree btree = (BTree) getDeserlaized(
+										"data//" + "BTree" + strTableName + colName + ".class");
+								btree.delete((Comparable) deletedT.vtrTupleObj.get(p), pageToBeDeleteFrom.pageName);
+								btree.serializeTree();
 							}
 						}
 
@@ -986,7 +995,8 @@ public class DBApp {
 						try {
 
 							String n = pageToBeDeleteFrom.pageName;
-							ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//" + n + ".class"));
+							ObjectOutputStream bin = new ObjectOutputStream(
+									new FileOutputStream("data//" + n + ".class"));
 
 							bin.writeObject(pageToBeDeleteFrom);
 							bin.flush();
@@ -997,7 +1007,6 @@ public class DBApp {
 					}
 
 				}
-				
 
 			}
 
@@ -1322,7 +1331,6 @@ public class DBApp {
 							b.serializeTree();
 							// System.out.println(startPageIndex);
 
-
 						} else {
 							startPageIndex = getPageToBeInsertedIndexUsingClusteringKey(toBeUpdatedIn,
 									strClusteringKey);
@@ -1645,13 +1653,13 @@ public class DBApp {
 		try {
 			Page p = (Page) name;
 			String n = p.pageName;
-			
+
 			ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//" + n + ".class"));
 
 			bin.writeObject(name);
 			bin.flush();
 			bin.close();
-			
+
 		} catch (Exception e) {
 			throw new DBAppException("error in serialization");
 		}
@@ -1705,6 +1713,7 @@ public class DBApp {
 				}
 				if (found == true) {
 					return i;
+
 				}
 			}
 
@@ -1958,43 +1967,45 @@ public class DBApp {
 					// use binary search
 					boolean nextPage = true;
 					int startPageIndex = getPageToBeInsertedIndexUsingClusteringKey(t, key + "");
-					String pageName = t.usedPagesNames.get(startPageIndex);
 					// System.out.println(startPageIndex);
-					Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-					int startTupleIndex = getStartIndexStartUpdate(key, startPageIndex, t);
-					// System.out.println(startTupleIndex);
+					if (startPageIndex >= 0) {
+						String pageName = t.usedPagesNames.get(startPageIndex);
+						Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+						int startTupleIndex = getStartIndexStartUpdate(key, startPageIndex, t);
+						// System.out.println(startTupleIndex);
 
-					for (int j = startTupleIndex; j < p.vtrTuples.size(); j++) {
+						for (int j = startTupleIndex; j < p.vtrTuples.size(); j++) {
 
-						Tuple tup = p.vtrTuples.get(j);
-						Object tupKey = tup.vtrTupleObj.get(tup.index);
-						// System.out.println(tupKey);
-						if (tupKey.equals(key)) {
-							result.add(tup);
-						} else {
-							nextPage = false;
-						}
-						serialize(p);
-					}
-					while (nextPage) {
-						startPageIndex++;
-						// System.out.println(startPageIndex);
-						if (startPageIndex < t.usedPagesNames.size()) {
-							String secondPage = t.usedPagesNames.get(startPageIndex);
-							Page next = (Page) getDeserlaized("data//" + secondPage + ".class");
-							for (int j = 0; j < next.vtrTuples.size(); j++) {
-								Tuple tup = next.vtrTuples.get(j);
-								Object tupKey = tup.vtrTupleObj.get(tup.index);
-								if (tupKey.equals(key)) {
-									result.add(tup);
-								} else {
-									nextPage = false;
-									break;
-								}
+							Tuple tup = p.vtrTuples.get(j);
+							Object tupKey = tup.vtrTupleObj.get(tup.index);
+							// System.out.println(tupKey);
+							if (tupKey.equals(key)) {
+								result.add(tup);
+							} else {
+								nextPage = false;
 							}
-							serialize(next);
-						} else {
-							nextPage = false;
+							serialize(p);
+						}
+						while (nextPage) {
+							startPageIndex++;
+							// System.out.println(startPageIndex);
+							if (startPageIndex < t.usedPagesNames.size()) {
+								String secondPage = t.usedPagesNames.get(startPageIndex);
+								Page next = (Page) getDeserlaized("data//" + secondPage + ".class");
+								for (int j = 0; j < next.vtrTuples.size(); j++) {
+									Tuple tup = next.vtrTuples.get(j);
+									Object tupKey = tup.vtrTupleObj.get(tup.index);
+									if (tupKey.equals(key)) {
+										result.add(tup);
+									} else {
+										nextPage = false;
+										break;
+									}
+								}
+								serialize(next);
+							} else {
+								nextPage = false;
+							}
 						}
 					}
 				} else if (!isClustering) {
@@ -2124,19 +2135,21 @@ public class DBApp {
 					// System.out.println(k);
 					ReferenceValues ref = (ReferenceValues) b.search(k);
 					ArrayList<String> midRes = new ArrayList<String>();
-					// System.out.println(ref.getOverflowNodes().size());
-					for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
-						OverflowNode x = ref.getOverflowNodes().get(i);
-						// System.out.println("size =" + x.referenceOfKeys.size());
-						for (int j = 0; j < x.referenceOfKeys.size(); j++) {
-							if ((x.referenceOfKeys.get(j) + " ").contains(t.name)) {
-								midRes.add(x.referenceOfKeys.get(j) + " ");
-								// System.out.println(x.referenceOfKeys.get(j) + " ");
+					// System.out.println(ref == null);
+					if (ref != null) {
+						for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+							OverflowNode x = ref.getOverflowNodes().get(i);
+							// System.out.println( x.referenceOfKeys.get(0));
+							for (int j = 0; j < x.referenceOfKeys.size(); j++) {
+								if ((x.referenceOfKeys.get(j) + " ").contains(t.name)) {
+									midRes.add(x.referenceOfKeys.get(j) + " ");
+									// System.out.println(x.referenceOfKeys.get(j) + " ");
+								}
 							}
 						}
+						result = getTuplesFromIndexSearch(midRes, t.name, colName, key);
 					}
-
-					result = getTuplesFromIndexSearch(midRes, t.name, colName, key);
+					// System.out.println("check");
 					b.serializeTree();
 				}
 			}
@@ -2388,7 +2401,7 @@ public class DBApp {
 					range = b.rangeMaxSearch(k);
 					if (!(range.isEmpty())) {
 						ArrayList<String> netRange = new ArrayList<String>();
-						 //System.out.println(range.get(0));
+						// System.out.println(range.get(0));
 						if (!(range.isEmpty())) {
 							for (int i = 0; i < range.size(); i++) {
 								if (range.get(i).contains(t.name)) {
@@ -2705,9 +2718,13 @@ public class DBApp {
 		int count = -1;
 		ArrayList<String> pageNames = new ArrayList<String>();
 		ArrayList<String> copyNames = new ArrayList<String>();
-		copyNames = midRes;
+		for (int i = 0; i < midRes.size(); i++) {
+			copyNames.add(midRes.get(i));
+		}
+		// copyNames = midRes;
 		for (int w = 0; w < midRes.size(); w++) {
 			String newPageName = midRes.get(w);
+			// System.out.println(newPageName);
 			count = -1;
 			for (int j = 0; j < copyNames.size(); j++) {
 				if (newPageName.equals(copyNames.get(j))) {
@@ -2764,7 +2781,7 @@ public class DBApp {
 					if (Tuple.compareToHelper(checkKey, key) < 0) {
 						if (count2 > -1) {
 							result.add(toBeChecked);
-							System.out.println(toBeChecked);
+							// System.out.println(toBeChecked);
 							count2--;
 						}
 						// System.out.println(toBeChecked.toString());
@@ -2776,8 +2793,9 @@ public class DBApp {
 //						}
 					}
 				}
-			}serialize(p);
-		}		
+			}
+			serialize(p);
+		}
 		return result;
 	}
 
@@ -3512,19 +3530,28 @@ public class DBApp {
 		String strTableName = "Student";
 
 //**create table**
+//		Hashtable<String, String> htblColNameType = new Hashtable();
 
-		Hashtable<String, String> htblColNameType = new Hashtable();
+//		htblColNameType.put("id", "java.lang.Integer");
+//		htblColNameType.put("name", "java.lang.String");
+//		htblColNameType.put("age", "java.lang.Integer");
+//		htblColNameType.put("date", "java.util.Date");
+//		htblColNameType.put("gpa", "java.lang.Double");
+//		htblColNameType.put("shape", "java.awt.Polygon");
+//		htblColNameType.put("grad", "java.lang.Boolean");
+//		dbApp.createTable(strTableName, "id", htblColNameType);
+//		dbApp.createBTreeIndex(strTableName, "age");
 
-		htblColNameType.put("id", "java.lang.Integer");
-		htblColNameType.put("name", "java.lang.String");
-		htblColNameType.put("age", "java.lang.Integer");
-		htblColNameType.put("date", "java.util.Date");
-		htblColNameType.put("gpa", "java.lang.Double");
-		htblColNameType.put("shape", "java.awt.Polygon");
-		htblColNameType.put("grad", "java.lang.Boolean");
-		
-	//	dbApp.createTable(strTableName, "id", htblColNameType);
-	//	dbApp.createBTreeIndex(strTableName, "id");
+//		htblColNameType.put("id", "java.lang.Integer");
+//		htblColNameType.put("name", "java.lang.String");
+//		htblColNameType.put("age", "java.lang.Integer");
+//		htblColNameType.put("date", "java.util.Date");
+//		htblColNameType.put("gpa", "java.lang.Double");
+//		htblColNameType.put("shape", "java.awt.Polygon");
+//		htblColNameType.put("grad", "java.lang.Boolean");
+		// dbApp.createTable(strTableName, "id", htblColNameType);
+		// dbApp.createBTreeIndex(strTableName, "id");
+
 
 //		dbApp.makeIndexed(strTableName, "name");
 
@@ -3533,16 +3560,26 @@ public class DBApp {
 //		System.out.println(a.colNames[1]);
 //		System.out.println(a.colNames[2]);
 
-
 //** insert tuples**
 
 //		for (int i = 0; i < 210; i++) {
 
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(5));
+
+
+//		htblColNameValue.put("id", new Integer(4));
+//		htblColNameValue.put("name", new String("Ab"));
+//		htblColNameValue.put("age", new Integer(30));
+//		dbApp.insertIntoTable(strTableName, htblColNameValue);
+//		htblColNameValue.put("date", new Date(2000, 11, 23));
+
+//		Hashtable htblColNameValue = new Hashtable();
+//		htblColNameValue.put("id", new Integer(2));
 //		htblColNameValue.put("name", new String("Ab"));
 //		htblColNameValue.put("age", new Integer(25));
 //		htblColNameValue.put("date", new Date(2000, 11, 23));
+//
+
 ////////			System.out.println((new Date(2020, 11, 11).getClass()));
 ////////			System.out.println((new Date(2020, 11, 11)).toString());
 //		
@@ -3557,12 +3594,15 @@ public class DBApp {
 //		p.addPoint(2, 2);
 //////			 System.out.println("n:"+p.npoints);
 //		htblColNameValue.put("shape", p);
-		
-	//	 dbApp.insertIntoTable(strTableName, htblColNameValue);
-		 
+
+
+
+		// dbApp.insertIntoTable(strTableName, htblColNameValue);
+
 //		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
 //		 System.out.println(a.toString());
-//		 ReferenceValues ref = (ReferenceValues) a.search(7);
+//		 ReferenceValues ref = (ReferenceValues) a.search(3);
+
 //			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
 //			OverflowNode b = ref.getOverflowNodes().get(i);
 //			//System.out.println("size =" + b.referenceOfKeys.size());
@@ -3571,7 +3611,10 @@ public class DBApp {
 //			}
 //			System.out.println();
 //		}
-		 
+
+
+
+
 //		}
 
 //		Hashtable htblColNameValue = new Hashtable();
@@ -3622,20 +3665,24 @@ public class DBApp {
 //		dbApp.updateTable(strTableName, "9", hash);
 ////////
 
+//		BTree a = (BTree) (getDeserlaized("data//" + "BTree" + strTableName + "age" + ".class"));
+//		System.out.println(a.toString());
+////		System.out.println(a.rangeMaxSearch(30));
+//		a.serializeTree();
 
-	
 //** testing SELECT**
-//			displayTableContent(strTableName);
-//
-//		SQLTerm[] arrSQLTerms;
-//		arrSQLTerms = new SQLTerm[1];
-//		for (int i = 0; i < arrSQLTerms.length; i++) {
-//			arrSQLTerms[i] = new SQLTerm();
-//		}
-//		arrSQLTerms[0]._strTableName = "Student";
-//		arrSQLTerms[0]._strColumnName = "age";
-//		arrSQLTerms[0]._strOperator = "<=";
-//		arrSQLTerms[0]._objValue = new Integer(60);
+
+		// displayTableContent(strTableName);
+
+		SQLTerm[] arrSQLTerms;
+		arrSQLTerms = new SQLTerm[1];
+		for (int i = 0; i < arrSQLTerms.length; i++) {
+			arrSQLTerms[i] = new SQLTerm();
+		}
+		arrSQLTerms[0]._strTableName = "Student";
+		arrSQLTerms[0]._strColumnName = "age";
+		arrSQLTerms[0]._strOperator = "<=";
+		arrSQLTerms[0]._objValue = new Integer(60);
 
 
 //////
@@ -3653,7 +3700,7 @@ public class DBApp {
 //////		
 //////		
 
-		//String[] strarrOperators = new String[0];
+		String[] strarrOperators = new String[0];
 //		strarrOperators[0] = "AND";
 //////		strarrOperators[1] = "AND";
 //////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
@@ -3677,10 +3724,10 @@ public class DBApp {
 //		} catch (Exception e) {
 //			throw new DBAppException("error in displaying data in table");
 //		}
-	//	dbApp.createBTreeIndex(strTableName, "age");
-		
-	//	dbApp.checkTree();
-	//	displayTableContent(strTableName);
+		// dbApp.createBTreeIndex(strTableName, "age");
+
+		// dbApp.checkTree();
+		displayTableContent(strTableName);
 
 //		long modified = dbApp.modifyKey(new Integer(30));
 //		BTree b = (BTree) getDeserlaized("data//" + "BTreeStudentage" + ".class");
