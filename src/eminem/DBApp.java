@@ -3425,7 +3425,7 @@ public class DBApp {
 		dbApp.init();
 //	    System.out.println(dbApp.maxPageSize);
 		String strTableName = "Student";
-		displayTableContent(strTableName);
+
 //**create table**
 
 		Hashtable<String, String> htblColNameType = new Hashtable();
@@ -3437,7 +3437,7 @@ public class DBApp {
 		htblColNameType.put("gpa", "java.lang.Double");
 		htblColNameType.put("shape", "java.awt.Polygon");
 		htblColNameType.put("grad", "java.lang.Boolean");
-	//	dbApp.createTable(strTableName, "id", htblColNameType);
+		//dbApp.createTable(strTableName, "id", htblColNameType);
 	//	dbApp.createBTreeIndex(strTableName, "id");
 
 //		dbApp.makeIndexed(strTableName, "name");
@@ -3472,11 +3472,11 @@ public class DBApp {
 ////			 System.out.println("n:"+p.npoints);
 		htblColNameValue.put("shape", p);
 		
-		// dbApp.insertIntoTable(strTableName, htblColNameValue);
+	//	 dbApp.insertIntoTable(strTableName, htblColNameValue);
 		 
 		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
 		 System.out.println(a.toString());
-		 ReferenceValues ref = (ReferenceValues) a.search(1);
+		 ReferenceValues ref = (ReferenceValues) a.search(3);
 			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
 			OverflowNode b = ref.getOverflowNodes().get(i);
 			//System.out.println("size =" + b.referenceOfKeys.size());
@@ -3539,7 +3539,7 @@ public class DBApp {
 
 	
 //** testing SELECT**
-
+			displayTableContent(strTableName);
 
 		SQLTerm[] arrSQLTerms;
 		arrSQLTerms = new SQLTerm[1];
