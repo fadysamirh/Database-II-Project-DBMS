@@ -1822,7 +1822,7 @@ public class DBApp {
 					// System.out.println(ref.getOverflowNodes().size());
 					for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
 						OverflowNode x = ref.getOverflowNodes().get(i);
-						// System.out.println("size =" + x.referenceOfKeys.size());
+						 //System.out.println( x.referenceOfKeys.get(0));
 						for (int j = 0; j < x.referenceOfKeys.size(); j++) {
 							if ((x.referenceOfKeys.get(j) + " ").contains(t.name)) {
 								midRes.add(x.referenceOfKeys.get(j) + " ");
@@ -3145,9 +3145,10 @@ public class DBApp {
 //		for (int i = 0; i < 210; i++) {
 
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(3));
+//		htblColNameValue.put("id", new Integer(6));
 //		htblColNameValue.put("name", new String("Ab"));
-//		htblColNameValue.put("age", new Integer(25));
+//		htblColNameValue.put("age", new Integer(50));
+//		dbApp.insertIntoTable(strTableName, htblColNameValue);
 //		htblColNameValue.put("date", new Date(2000, 11, 23));
 //////			System.out.println((new Date(2020, 11, 11).getClass()));
 //////			System.out.println((new Date(2020, 11, 11)).toString());
@@ -3209,7 +3210,7 @@ public class DBApp {
 
 //		dbApp.updateTable(strTableName, "9", hash);
 ////////
-
+//
 		BTree a = (BTree) (getDeserlaized("data//" + "BTree" + strTableName + "age" + ".class"));
 		System.out.println(a.toString());
 //		System.out.println(a.rangeMaxSearch(30));
@@ -3224,8 +3225,8 @@ public class DBApp {
 		}
 		arrSQLTerms[0]._strTableName = "Student";
 		arrSQLTerms[0]._strColumnName = "age";
-		arrSQLTerms[0]._strOperator = "<=";
-		arrSQLTerms[0]._objValue = new Integer(60);
+		arrSQLTerms[0]._strOperator = "=";
+		arrSQLTerms[0]._objValue = new Integer(25);
 
 //////
 //		arrSQLTerms[1]._strTableName = "Student";

@@ -163,6 +163,7 @@ public class BTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 
 	public TValue search(TKey key) { // returns ReferenceValues that contains a list of overflow nodes
 		BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
+		//System.out.println(leaf.keyCount);
 
 		int index = leaf.search(key);
 		return (index == -1) ? null : leaf.getValue(index);
