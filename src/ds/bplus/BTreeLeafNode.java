@@ -150,7 +150,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 	
 		for (int i = this.getKeyCount() - 1; i >= index; --i) {
 			this.setKey(i + 1, this.getKey(i));
-			this.setValue(i + 1, this.getValue(i));
+			this.setValueShift(i + 1, this.getValue(i));
 		}
 
 		// insert new key and value
@@ -217,6 +217,7 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 
 	private void deleteAt(int index) {
 		int i = index;
+		
 		for (i = index; i < this.getKeyCount() - 1; ++i) {
 			this.setKey(i, this.getKey(i + 1));
 

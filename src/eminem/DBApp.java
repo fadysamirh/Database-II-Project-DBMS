@@ -575,7 +575,22 @@ public class DBApp {
 
 	}
 
-	public void deleteFromTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException {
+	public ArrayList<String> getListOfIndicesNames(Hashtable<String, Object> htblColNameValue, String strTableName)
+			throws DBAppException {
+		Enumeration<String> keys = htblColNameValue.keys();
+		ArrayList<String> listOfAvailableIndices = new ArrayList<String>();
+		while (keys.hasMoreElements()) {
+			String colName = keys.nextElement();
+			boolean flag = isIndexed(strTableName, colName);
+			if (flag) {
+				listOfAvailableIndices.add(colName);
+			}
+		}
+		return listOfAvailableIndices;
+
+	}
+
+	public void deleteFromTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException, IOException {
 
 		Table newTable = (Table) getDeserlaized("data//" + strTableName + ".class");
 		// String type = clusteringKeyType(newTable);
@@ -588,24 +603,198 @@ public class DBApp {
 		Vector<String> usedPages = newTable.usedPagesNames;
 
 		// System.out.println(pageToBeInstertedInIndex + " this is the index");
+		ArrayList<String> listOfAvailableIndices = getListOfIndicesNames(htblColNameValue, strTableName);
 
 		boolean flag2 = false;
 		int i = 0;
 		int[] compareTuple = getDeleteIndexOfArray(dTupleArray);
+		if (listOfAvailableIndices.isEmpty()) {
+			for (i = 0; i < newTable.usedPagesNames.size(); i++) {
 
-		for (i = 0; i < newTable.usedPagesNames.size(); i++) {
+				Page pageToBeDeleteFrom = (Page) (getDeserlaized("data//" + newTable.usedPagesNames.get(i) + ".class"));
 
-			Page pageToBeDeleteFrom = (Page) (getDeserlaized("data//" + newTable.usedPagesNames.get(i) + ".class"));
+				Vector<Tuple> tuples = pageToBeDeleteFrom.vtrTuples;
 
-			Vector<Tuple> tuples = pageToBeDeleteFrom.vtrTuples;
+				Vector temp = new Vector();
+				temp.add(htblColNameValue.get(key));
 
-			Vector temp = new Vector();
-			temp.add(htblColNameValue.get(key));
+				// System.out.println(htblColNameValue.get(key)+"keyvalue");
+				Tuple keyTuple = new Tuple(temp, 0);
 
-			// System.out.println(htblColNameValue.get(key)+"keyvalue");
-			Tuple keyTuple = new Tuple(temp, 0);
+				if (!hasKey) {
+					for (int j = 0; j < tuples.size(); j++) {
+						Tuple t = tuples.get(j);
 
-			if (!hasKey) {
+						boolean flag = true;
+						for (int k = 0; k < compareTuple.length; k++) {
+							// System.out.println(k);
+							// System.out.println(dTupleArray[compareTuple[k]] +"");
+							// System.out.println(t.vtrTupleObj.get(compareTuple[k]));
+							//////////////////////////// deleting based on a polygon
+							if (dTupleArray[compareTuple[k]] instanceof Polygon) {
+								myPolygon p1 = new myPolygon((Polygon) dTupleArray[compareTuple[k]]);
+								myPolygon p2 = new myPolygon((Polygon) t.vtrTupleObj.get(compareTuple[k]));
+								if (!p1.equals(p2)) {
+									flag = false;
+									break;
+								}
+							}
+							///////////////////////////////
+							else if (!dTupleArray[compareTuple[k]].equals(t.vtrTupleObj.get(compareTuple[k]))) {
+								flag = false;
+								System.out.println("check6");
+
+								break;
+							}
+
+						}
+						if (flag) {
+
+							tuples.remove(j);
+
+							j--;
+							if (tuples.size() == 0) {
+								// delete page and from table
+								File file = new File("data//" + newTable.usedPagesNames.get(i) + ".class");
+
+								if (file.delete()) {
+
+									System.out.println("File deleted successfully");
+								} else {
+									System.out.println("Failed to delete the file");
+								}
+
+								newTable.usedPagesNames.remove(i);
+								i--;
+
+							}
+						}
+
+					}
+				} else if (getFirstOccurrenceIndex(tuples, keyTuple) != -1) {
+
+					int indexOfFirstOcc = getFirstOccurrenceIndex(tuples, keyTuple);
+					// System.out.println(indexOfFirstOcc+"LOL");
+
+					for (int j = indexOfFirstOcc; j < tuples.size(); j++) {
+						Tuple t = tuples.get(j);
+
+						if (t.compareTo(keyTuple) != 0) {
+							break;
+						}
+						boolean flag = true;
+						for (int k = 0; k < compareTuple.length; k++) {
+							// System.out.println(k);
+							// System.out.println(dTupleArray[compareTuple[k]] +"");
+							// System.out.println(t.vtrTupleObj.get(compareTuple[k]));
+							//////////////////////////// deleting based on a polygon
+							if (dTupleArray[compareTuple[k]] instanceof Polygon) {
+								myPolygon p1 = new myPolygon((Polygon) dTupleArray[compareTuple[k]]);
+								myPolygon p2 = new myPolygon((Polygon) t.vtrTupleObj.get(compareTuple[k]));
+								if (!p1.equals(p2)) {
+									flag = false;
+									break;
+								}
+							}
+							///////////////////////////////
+							else if (!dTupleArray[compareTuple[k]].equals(t.vtrTupleObj.get(compareTuple[k]))) {
+								flag = false;
+								System.out.println("check6");
+
+								break;
+							}
+
+						}
+
+						if (flag) {
+
+							tuples.remove(j);
+
+							j--;
+							if (tuples.size() == 0) {
+								// delete page and from table
+								File file = new File("data//" + newTable.usedPagesNames.get(i) + ".class");
+
+								if (file.delete()) {
+
+									System.out.println("File deleted successfully");
+								} else {
+									System.out.println("Failed to delete the file");
+								}
+
+								newTable.usedPagesNames.remove(i);
+								i--;
+
+							}
+						}
+
+					}
+
+				}
+
+				if (tuples.size() != 0) {
+					try {
+
+						String n = pageToBeDeleteFrom.pageName;
+						ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//" + n + ".class"));
+
+						bin.writeObject(pageToBeDeleteFrom);
+						bin.flush();
+						bin.close();
+					} catch (Exception e) {
+						throw new DBAppException("error in serializing file");
+					}
+				}
+
+			}
+		} else {
+			ArrayList<Integer> listOfColNum = new ArrayList<Integer>();
+			
+			for (int k = 0; k < listOfAvailableIndices.size(); k++) {
+				listOfColNum.add(getColNumber(strTableName, listOfAvailableIndices.get(k)));
+				
+			}
+//			for(int l=0;l<listOfColNum.size();l++)
+//				System.out.println(listOfColNum.get(l));
+			
+			ArrayList<String> listOfColName = getColNames(strTableName);
+
+			ArrayList<String> intersect = new ArrayList<String>();
+
+			for (int k = 0; k < listOfColNum.size(); k++) { // looping over col that has an index
+
+				if (dTupleArray[listOfColNum.get(k)] != null) {
+
+					BTree btree = (BTree) getDeserlaized(
+							"data//" + "BTree" +strTableName+ listOfColName.get(listOfColNum.get(k)) + ".class");
+					
+					ReferenceValues ref = (ReferenceValues) btree.search((Comparable) dTupleArray[listOfColNum.get(k)]);
+					
+					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
+
+					ArrayList<String> listOfFlattenReference = new ArrayList<String>();
+
+					// code for flattening
+					for (int j = 0; j < lstofn.size(); j++) {
+						OverflowNode ofn = lstofn.get(j);
+						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
+							System.out.println(ofn.referenceOfKeys.get(m));
+							String reference=(ofn.referenceOfKeys.get(m)).toString();
+							listOfFlattenReference.add(reference);
+						}
+					}
+					// end of flattening now I have a list of references [page1,page2,page3] ..
+					if (intersect.isEmpty()) {
+						intersect = listOfFlattenReference;
+					} else {
+						intersect = intersection(listOfFlattenReference, intersect);
+					}
+				}
+			}
+			intersect = removeDuplicates(intersect);
+			for (i = 0; i < intersect.size(); i++) {
+				Page pageToBeDeleteFrom = (Page) (getDeserlaized("data//" + intersect.get(i) + ".class"));
+				Vector<Tuple> tuples = pageToBeDeleteFrom.vtrTuples;
 				for (int j = 0; j < tuples.size(); j++) {
 					Tuple t = tuples.get(j);
 
@@ -634,7 +823,16 @@ public class DBApp {
 					}
 					if (flag) {
 
-						tuples.remove(j);
+						Tuple deletedT=tuples.remove(j);
+						for(int p=0;p<deletedT.vtrTupleObj.capacity();p++) {
+							if(listOfColNum.contains(p)) {
+								String colName=getColNames(strTableName).get(p);
+							BTree btree = (BTree) getDeserlaized(
+										"data//" + "BTree" +strTableName+colName  + ".class");
+							btree.delete((Comparable) deletedT.vtrTupleObj.get(p), pageToBeDeleteFrom.pageName);
+							btree.serializeTree();
+							}
+						}
 
 						j--;
 						if (tuples.size() == 0) {
@@ -653,81 +851,23 @@ public class DBApp {
 
 						}
 					}
+					if (tuples.size() != 0) {
+						try {
 
-				}
-			} else if (getFirstOccurrenceIndex(tuples, keyTuple) != -1) {
+							String n = pageToBeDeleteFrom.pageName;
+							ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//" + n + ".class"));
 
-				int indexOfFirstOcc = getFirstOccurrenceIndex(tuples, keyTuple);
-				// System.out.println(indexOfFirstOcc+"LOL");
-
-				for (int j = indexOfFirstOcc; j < tuples.size(); j++) {
-					Tuple t = tuples.get(j);
-
-					if (t.compareTo(keyTuple) != 0) {
-						break;
-					}
-					boolean flag = true;
-					for (int k = 0; k < compareTuple.length; k++) {
-						// System.out.println(k);
-						// System.out.println(dTupleArray[compareTuple[k]] +"");
-						// System.out.println(t.vtrTupleObj.get(compareTuple[k]));
-						//////////////////////////// deleting based on a polygon
-						if (dTupleArray[compareTuple[k]] instanceof Polygon) {
-							myPolygon p1 = new myPolygon((Polygon) dTupleArray[compareTuple[k]]);
-							myPolygon p2 = new myPolygon((Polygon) t.vtrTupleObj.get(compareTuple[k]));
-							if (!p1.equals(p2)) {
-								flag = false;
-								break;
-							}
-						}
-						///////////////////////////////
-						else if (!dTupleArray[compareTuple[k]].equals(t.vtrTupleObj.get(compareTuple[k]))) {
-							flag = false;
-							System.out.println("check6");
-
-							break;
-						}
-
-					}
-
-					if (flag) {
-
-						tuples.remove(j);
-
-						j--;
-						if (tuples.size() == 0) {
-							// delete page and from table
-							File file = new File("data//" + newTable.usedPagesNames.get(i) + ".class");
-
-							if (file.delete()) {
-
-								System.out.println("File deleted successfully");
-							} else {
-								System.out.println("Failed to delete the file");
-							}
-
-							newTable.usedPagesNames.remove(i);
-							i--;
-
+							bin.writeObject(pageToBeDeleteFrom);
+							bin.flush();
+							bin.close();
+						} catch (Exception e) {
+							throw new DBAppException("error in serializing file");
 						}
 					}
 
 				}
+				
 
-			}
-
-			if (tuples.size() != 0) {
-				try {
-
-					String n = pageToBeDeleteFrom.pageName;
-					ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//" + n + ".class"));
-
-					bin.writeObject(pageToBeDeleteFrom);
-					bin.flush();
-					bin.close();
-				} catch (Exception e) {
-					throw new DBAppException("error in serializing file");
-				}
 			}
 
 		}
@@ -742,6 +882,38 @@ public class DBApp {
 			throw new DBAppException("error in serializing file");
 		}
 
+	}
+
+	public ArrayList<String> intersection(ArrayList<String> list1, ArrayList<String> list2) {
+		ArrayList<String> list = new ArrayList<String>();
+
+		for (String t : list1) {
+			if (list2.contains(t)) {
+				list.add(t);
+			}
+		}
+
+		return list;
+	}
+
+	public ArrayList<String> removeDuplicates(ArrayList<String> list) {
+
+		// Create a new ArrayList
+		ArrayList<String> newList = new ArrayList<String>();
+
+		// Traverse through the first list
+		for (String element : list) {
+
+			// If this element is not present in newList
+			// then add it
+			if (!newList.contains(element)) {
+
+				newList.add(element);
+			}
+		}
+
+		// return the new list
+		return newList;
 	}
 
 	public int[] getDeleteIndexOfArray(Object[] o) {
@@ -1039,12 +1211,12 @@ public class DBApp {
 								for (int j = 0; j < colNames.size(); j++) {
 									if (colNames.get(j).equals(col)) {
 										if (isIndexed(strTableName, colNames.get(j))) {
-											
+
 											BTree bt = (BTree) getDeserlaized(
 													"data//" + "BTree" + strTableName + colNames.get(j) + ".class");
 											Object oldValue = old.vtrTupleObj.get(j);
 											Comparable oldValueCom = (Comparable) oldValue;
-											//System.out.println(oldValueCom);
+											// System.out.println(oldValueCom);
 											bt.delete(oldValueCom, startPage.pageName);
 											Comparable newValueCom = (Comparable) valuesToBeUpdated.get(i);
 											bt.insert(newValueCom, startPage.pageName);
@@ -3016,71 +3188,39 @@ public class DBApp {
 	public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException {
 
 		DBApp dbApp = new DBApp();
-		 dbApp.init();
+		dbApp.init();
 //	    System.out.println(dbApp.maxPageSize);
 		String strTableName = "Student";
+		displayTableContent(strTableName);
 //**create table**
 //		Hashtable<String, String> htblColNameType = new Hashtable();
-
 //		htblColNameType.put("id", "java.lang.Integer");
 //		htblColNameType.put("name", "java.lang.String");
 //		htblColNameType.put("age", "java.lang.Integer");
-//		htblColNameType.put("date", "java.util.Date");
-//		htblColNameType.put("gpa", "java.lang.Double");
-//		htblColNameType.put("shape", "java.awt.Polygon");
-//		htblColNameType.put("grad", "java.lang.Boolean");
 //		dbApp.createTable(strTableName, "id", htblColNameType);
-//		dbApp.createBTreeIndex(strTableName, "age");
+		
+//		Hashtable htblColNameValue = new Hashtable();
+//		htblColNameValue.put("id", new Integer(6));
+//		htblColNameValue.put("name", new String("Ab"));
+//		htblColNameValue.put("age", new Integer(50));
+//		dbApp.insertIntoTable(strTableName, htblColNameValue);
 
-//		dbApp.makeIndexed(strTableName, "name");
-
-//		Table a=(Table)getDeserlaized("data//Student.class");
-//		System.out.println(a.colNames[0]);
-//		System.out.println(a.colNames[1]);
-//		System.out.println(a.colNames[2]);
-
-		// System.out.println(dbApp.maxPageSize);
 //** insert tuples**
-//		for (int i = 0; i < 210; i++) {
-
+//		for (int i = 0; i < 20; i++) {
+//
 //		Hashtable htblColNameValue = new Hashtable();
 //		htblColNameValue.put("id", new Integer(8));
 //		htblColNameValue.put("name", new String("Ab"));
-//		htblColNameValue.put("age", new Integer(75));
-//		htblColNameValue.put("date", new Date(2000, 11, 23));
-//////			System.out.println((new Date(2020, 11, 11).getClass()));
-//////			System.out.println((new Date(2020, 11, 11)).toString());
-		//
-//		htblColNameValue.put("gpa", new Double(2.0));
-////			
-//		if (4 % 2 == 0) {
-//			htblColNameValue.put("grad", true);
-//		} else
-//			htblColNameValue.put("grad", false);
-//		Polygon p = new Polygon();
-//		p.addPoint(1, 1);
-//		p.addPoint(2, 2);
-////			 System.out.println("n:"+p.npoints);
-//		htblColNameValue.put("shape", p);
-		////////
-//		 dbApp.insertIntoTable(strTableName, htblColNameValue);
-//		}
-
-//		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(50));
-//		htblColNameValue.put("name", new String("c"));
-//		htblColNameValue.put("age", new Integer("50"));
-////////////		htblColNameValue.put("date", new Date(2000, 12, 23));
-//////////		Polygon p = new Polygon();
-//////////		p.addPoint(1,3);
-//////////		p.addPoint(2,4);
-////////////////////		System.out.println("n:"+p.npoints);
-//////////		htblColNameValue.put("shape",  p);
+//		htblColNameValue.put("age", new Integer(i));
+//
 //		dbApp.insertIntoTable(strTableName, htblColNameValue);
-
+//		}
+//		
+//
+//		
 //**delete tuples**
 //		Hashtable<String, Object> htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", 1);
+//	htblColNameValue.put("age", 11);
 //		htblColNameValue.put("name", "asdfghj");
 //		htblColNameValue.put("gpa", 2.0);
 //		htblColNameValue.put("date", new Date(2000, 11, 23));
@@ -3100,31 +3240,31 @@ public class DBApp {
 //		System.out.println(pageToBeDeleteFrom1.vtrTuples.toString());
 
 ////**update table**
-		Hashtable hash = new Hashtable();
-		hash.put("age", new Integer(10));
-//		hash.put("name", new String("a"));
-//////		hash.put("gpa", new Double(0.6));
-//////		hash.put("date", new Date(2000-05-23));
-
-		dbApp.updateTable(strTableName, "6", hash);
-////////
-		
-		BTree a = (BTree) (getDeserlaized("data//" + "BTree" + strTableName + "age" + ".class"));
-		System.out.println(a.toString());
-//		System.out.println(a.rangeMaxSearch(30));
-		a.serializeTree();
+//		Hashtable hash = new Hashtable();
+//		hash.put("age", new Integer(10));
+////		hash.put("name", new String("a"));
+////////		hash.put("gpa", new Double(0.6));
+////////		hash.put("date", new Date(2000-05-23));
+//
+//		dbApp.updateTable(strTableName, "6", hash);
+//////////
+//
+//		BTree a = (BTree) (getDeserlaized("data//" + "BTree" + strTableName + "age" + ".class"));
+//		System.out.println(a.toString());
+////		System.out.println(a.rangeMaxSearch(30));
+//		a.serializeTree();
 
 //** testing SELECT**
-
-		SQLTerm[] arrSQLTerms;
-		arrSQLTerms = new SQLTerm[1];
-		for (int i = 0; i < arrSQLTerms.length; i++) {
-			arrSQLTerms[i] = new SQLTerm();
-		}
-		arrSQLTerms[0]._strTableName = "Student";
-		arrSQLTerms[0]._strColumnName = "age";
-		arrSQLTerms[0]._strOperator = ">=";
-		arrSQLTerms[0]._objValue = new Integer(30);
+//
+//		SQLTerm[] arrSQLTerms;
+//		arrSQLTerms = new SQLTerm[1];
+//		for (int i = 0; i < arrSQLTerms.length; i++) {
+//			arrSQLTerms[i] = new SQLTerm();
+//		}
+//		arrSQLTerms[0]._strTableName = "Student";
+//		arrSQLTerms[0]._strColumnName = "age";
+//		arrSQLTerms[0]._strOperator = ">=";
+//		arrSQLTerms[0]._objValue = new Integer(30);
 
 //////
 //		arrSQLTerms[1]._strTableName = "Student";
@@ -3141,7 +3281,7 @@ public class DBApp {
 //////		
 //////		
 
-		String[] strarrOperators = new String[0];
+		//String[] strarrOperators = new String[0];
 //		strarrOperators[0] = "AND";
 //////		strarrOperators[1] = "AND";
 //////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
@@ -3154,12 +3294,31 @@ public class DBApp {
 //////	  
 
 //***testing B+ tree
-//		dbApp.createBTreeIndex(strTableName, "age");
-//		dbApp.checkTree();
-		displayTableContent(strTableName);
+//		Table a= (Table) getDeserlaized("data//Student.class");
+//		displayTableContent(a.name);
+//		try {
+//			ObjectOutputStream bin = new ObjectOutputStream(new FileOutputStream("data//Student.class"));
+//			bin.writeObject(a);
+//			bin.flush();
+//			bin.close();
+//
+//		} catch (Exception e) {
+//			throw new DBAppException("error in displaying data in table");
+//		}
+	//	dbApp.createBTreeIndex(strTableName, "age");
+		
+	//	dbApp.checkTree();
+	//	displayTableContent(strTableName);
 
 //		long modified = dbApp.modifyKey(new Integer(30));
-//		BPlusTree b = (BPlusTree) deserializeTree("data//" + "Student_age" + ".class");
+//		BTree b = (BTree) getDeserlaized("data//" + "BTreeStudentage" + ".class");
+//		ReferenceValues a= (ReferenceValues) b.search(50);
+//		for(int i=0;i<a.getOverflowNodes().size();i++) {
+//			OverflowNode c=a.getOverflowNodes().get(i);
+//			for(int j=0;j<c.referenceOfKeys.size();j++) {
+//				System.out.println(c.referenceOfKeys.get(j));
+//			}
+//		}
 //		RangeResult r = b.rangeStopSearch(modified, false);
 //		System.out.println(r.getQueryResult().size());
 //		System.out.println(r.getQueryResult().get(0).getValue());
