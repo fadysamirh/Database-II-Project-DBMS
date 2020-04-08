@@ -717,7 +717,7 @@ public class DBApp {
 	public ArrayList<String> getListOfIndicesNames(Hashtable<String, Object> htblColNameValue, String strTableName)
 			throws DBAppException {
 		Enumeration<String> keys = htblColNameValue.keys();
-		Enumeration<Object> values=(Enumeration<Object>) htblColNameValue.values();
+		Enumeration<Object> values=htblColNameValue.elements();
 		ArrayList<String> listOfAvailableIndices = new ArrayList<String>();
 		while (keys.hasMoreElements()) {
 			String colName = keys.nextElement();
@@ -734,7 +734,7 @@ public class DBApp {
 	public ArrayList<String> getListRTreeNames(Hashtable<String, Object> htblColNameValue, String strTableName)
 			throws DBAppException {
 		Enumeration<String> keys = htblColNameValue.keys();
-		Enumeration<Object> values=(Enumeration<Object>) htblColNameValue.values();
+		Enumeration<Object> values=htblColNameValue.elements();
 		ArrayList<String> listOfAvailableIndices = new ArrayList<String>();
 		while (keys.hasMoreElements()) {
 			String colName = keys.nextElement();
@@ -915,7 +915,7 @@ public class DBApp {
 
 			}
 			ArrayList<Integer> listOfColNumRtree = new ArrayList<Integer>();
-			
+		
 			for (int k = 0; k < listOfRTreeNames.size(); k++) {
 				listOfColNumRtree.add(getColNumber(strTableName, listOfRTreeNames.get(k)));
 
@@ -936,7 +936,9 @@ public class DBApp {
 							"data//" + "BTree" + strTableName + listOfColName.get(listOfColNum.get(k)) + ".class");
 
 					ReferenceValues ref = (ReferenceValues) btree.search((Comparable) dTupleArray[listOfColNum.get(k)]);
-
+					if(ref==null) {
+						break;
+					}
 					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
 
 					ArrayList<String> listOfFlattenReference = new ArrayList<String>();
@@ -966,7 +968,9 @@ public class DBApp {
 							"data//" + "RTree" + strTableName + listOfRTreeNames.get(listOfColNumRtree.get(k)) + ".class");
 
 					ReferenceValues ref = (ReferenceValues) rtree.search( (Polygon)dTupleArray[listOfColNumRtree.get(k)]);
-
+					if(ref==null) {
+						break;
+					}
 					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
 
 					ArrayList<String> listOfFlattenReference = new ArrayList<String>();
@@ -1867,13 +1871,13 @@ public class DBApp {
 //	}
 
 	public static ArrayList<String> getColNames(String strTableName) throws DBAppException {
-		String csvFile = "data/metadata.csv";
+		String csvFile = "data//metadata.csv";
 		BufferedReader br = null;
 		String line = "";
 		String cvsSplitBy = ",";
 		ArrayList<String> arrColumn = new ArrayList<String>();
 		try {
-
+			
 			br = new BufferedReader(new FileReader(csvFile));
 			while ((line = br.readLine()) != null) {
 
@@ -3607,11 +3611,10 @@ public class DBApp {
 		String strTableName = "Student";
 
 //**create table**
-//		Hashtable<String, String> htblColNameType = new Hashtable();
-
-//		htblColNameType.put("id", "java.lang.Integer");
-//		htblColNameType.put("name", "java.lang.String");
-//		htblColNameType.put("age", "java.lang.Integer");
+		Hashtable<String, String> htblColNameType = new Hashtable();
+		htblColNameType.put("id", "java.lang.Integer");
+		htblColNameType.put("name", "java.lang.String");
+		htblColNameType.put("age", "java.lang.Integer");
 //		htblColNameType.put("date", "java.util.Date");
 //		htblColNameType.put("gpa", "java.lang.Double");
 //		htblColNameType.put("shape", "java.awt.Polygon");
@@ -3627,7 +3630,7 @@ public class DBApp {
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
 		// dbApp.createTable(strTableName, "id", htblColNameType);
-		// dbApp.createBTreeIndex(strTableName, "id");
+		 //dbApp.createBTreeIndex(strTableName, "id");
 
 //		dbApp.makeIndexed(strTableName, "name");
 
@@ -3638,14 +3641,16 @@ public class DBApp {
 
 //** insert tuples**
 
-//		for (int i = 0; i < 210; i++) {
-
+//		for (int i = 0; i < 20; i++) {
+//
 //		Hashtable htblColNameValue = new Hashtable();
-
-//		htblColNameValue.put("id", new Integer(4));
+//
+//		htblColNameValue.put("id", new Integer(i));
 //		htblColNameValue.put("name", new String("Ab"));
-//		htblColNameValue.put("age", new Integer(30));
+//		htblColNameValue.put("age", new Integer(i*5/2));
 //		dbApp.insertIntoTable(strTableName, htblColNameValue);
+//		}
+		
 //		htblColNameValue.put("date", new Date(2000, 11, 23));
 
 //		Hashtable htblColNameValue = new Hashtable();
@@ -3704,9 +3709,10 @@ public class DBApp {
 //
 //		
 //**delete tuples**
-//		Hashtable<String, Object> htblColNameValue = new Hashtable();
-//	htblColNameValue.put("age", 11);
+		Hashtable<String, Object> htblColNameValue = new Hashtable();
+	htblColNameValue.put("age", 7);
 //		htblColNameValue.put("name", "asdfghj");
+//		htblColNameValue.put("id", 5);
 //		htblColNameValue.put("gpa", 2.0);
 //		htblColNameValue.put("date", new Date(2000, 11, 23));
 //		Polygon p = new Polygon();
@@ -3715,7 +3721,7 @@ public class DBApp {
 //		htblColNameValue.put("shape", p);
 
 //		dbApp.insertIntoTable(strTableName, htblColNameValue);
-//		dbApp.deleteFromTable(strTableName, htblColNameValue);
+		dbApp.deleteFromTable(strTableName, htblColNameValue);
 
 //		Page pageToBeDeleteFrom = (Page) (getDeserlaized(
 //				"data//Student0.class"));
@@ -3742,17 +3748,18 @@ public class DBApp {
 
 //** testing SELECT**
 
-		// displayTableContent(strTableName);
+		 displayTableContent("Student");
+		
 
-		SQLTerm[] arrSQLTerms;
-		arrSQLTerms = new SQLTerm[1];
-		for (int i = 0; i < arrSQLTerms.length; i++) {
-			arrSQLTerms[i] = new SQLTerm();
-		}
-		arrSQLTerms[0]._strTableName = "Student";
-		arrSQLTerms[0]._strColumnName = "age";
-		arrSQLTerms[0]._strOperator = "<=";
-		arrSQLTerms[0]._objValue = new Integer(60);
+//		SQLTerm[] arrSQLTerms;
+//		arrSQLTerms = new SQLTerm[1];
+//		for (int i = 0; i < arrSQLTerms.length; i++) {
+//			arrSQLTerms[i] = new SQLTerm();
+//		}
+//		arrSQLTerms[0]._strTableName = "Student";
+//		arrSQLTerms[0]._strColumnName = "age";
+//		arrSQLTerms[0]._strOperator = "<=";
+//		arrSQLTerms[0]._objValue = new Integer(60);
 
 //////
 //		arrSQLTerms[1]._strTableName = "Student";
@@ -3796,7 +3803,7 @@ public class DBApp {
 		// dbApp.createBTreeIndex(strTableName, "age");
 
 		// dbApp.checkTree();
-		displayTableContent(strTableName);
+	//	displayTableContent(strTableName);
 
 //		long modified = dbApp.modifyKey(new Integer(30));
 //		BTree b = (BTree) getDeserlaized("data//" + "BTreeStudentage" + ".class");
