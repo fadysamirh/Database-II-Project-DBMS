@@ -717,18 +717,37 @@ public class DBApp {
 	public ArrayList<String> getListOfIndicesNames(Hashtable<String, Object> htblColNameValue, String strTableName)
 			throws DBAppException {
 		Enumeration<String> keys = htblColNameValue.keys();
+		Enumeration<Object> values=(Enumeration<Object>) htblColNameValue.values();
 		ArrayList<String> listOfAvailableIndices = new ArrayList<String>();
 		while (keys.hasMoreElements()) {
 			String colName = keys.nextElement();
+			Object value=values.nextElement();
 			boolean flag = isIndexed(strTableName, colName);
-			if (flag) {
+			
+			if (flag&& !(value instanceof Polygon)) {
 				listOfAvailableIndices.add(colName);
 			}
 		}
 		return listOfAvailableIndices;
 
 	}
+	public ArrayList<String> getListRTreeNames(Hashtable<String, Object> htblColNameValue, String strTableName)
+			throws DBAppException {
+		Enumeration<String> keys = htblColNameValue.keys();
+		Enumeration<Object> values=(Enumeration<Object>) htblColNameValue.values();
+		ArrayList<String> listOfAvailableIndices = new ArrayList<String>();
+		while (keys.hasMoreElements()) {
+			String colName = keys.nextElement();
+			Object value=values.nextElement();
+			boolean flag = isIndexed(strTableName, colName);
+			
+			if (flag&& (value instanceof Polygon)) {
+				listOfAvailableIndices.add(colName);
+			}
+		}
+		return listOfAvailableIndices;
 
+	}
 	public void deleteFromTable(String strTableName, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException, IOException {
 
@@ -744,11 +763,12 @@ public class DBApp {
 
 		// System.out.println(pageToBeInstertedInIndex + " this is the index");
 		ArrayList<String> listOfAvailableIndices = getListOfIndicesNames(htblColNameValue, strTableName);
+		ArrayList<String> listOfRTreeNames = getListRTreeNames(htblColNameValue, strTableName);
 
 		boolean flag2 = false;
 		int i = 0;
 		int[] compareTuple = getDeleteIndexOfArray(dTupleArray);
-		if (listOfAvailableIndices.isEmpty()) {
+		if (listOfAvailableIndices.isEmpty()&&listOfRTreeNames.isEmpty()) {
 			for (i = 0; i < newTable.usedPagesNames.size(); i++) {
 
 				Page pageToBeDeleteFrom = (Page) (getDeserlaized("data//" + newTable.usedPagesNames.get(i) + ".class"));
@@ -889,11 +909,18 @@ public class DBApp {
 			}
 		} else {
 			ArrayList<Integer> listOfColNum = new ArrayList<Integer>();
-
+			
 			for (int k = 0; k < listOfAvailableIndices.size(); k++) {
 				listOfColNum.add(getColNumber(strTableName, listOfAvailableIndices.get(k)));
 
 			}
+			ArrayList<Integer> listOfColNumRtree = new ArrayList<Integer>();
+			
+			for (int k = 0; k < listOfRTreeNames.size(); k++) {
+				listOfColNumRtree.add(getColNumber(strTableName, listOfRTreeNames.get(k)));
+
+			}
+			
 //			for(int l=0;l<listOfColNum.size();l++)
 //				System.out.println(listOfColNum.get(l));
 
@@ -919,6 +946,36 @@ public class DBApp {
 						OverflowNode ofn = lstofn.get(j);
 						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
 							System.out.println(ofn.referenceOfKeys.get(m));
+							String reference = (ofn.referenceOfKeys.get(m)).toString();
+							listOfFlattenReference.add(reference);
+						}
+					}
+					// end of flattening now I have a list of references [page1,page2,page3] ..
+					if (intersect.isEmpty()) {
+						intersect = listOfFlattenReference;
+					} else {
+						intersect = intersection(listOfFlattenReference, intersect);
+					}
+				}
+			}
+			for (int k = 0; k < listOfColNumRtree.size(); k++) { // looping over col that has an rtree
+
+				if (dTupleArray[listOfColNumRtree.get(k)] != null) {
+
+					RTree rtree = (RTree) getDeserlaized(
+							"data//" + "RTree" + strTableName + listOfRTreeNames.get(listOfColNumRtree.get(k)) + ".class");
+
+					ReferenceValues ref = (ReferenceValues) rtree.search( (Polygon)dTupleArray[listOfColNumRtree.get(k)]);
+
+					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
+
+					ArrayList<String> listOfFlattenReference = new ArrayList<String>();
+
+					// code for flattening
+					for (int j = 0; j < lstofn.size(); j++) {
+						OverflowNode ofn = lstofn.get(j);
+						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
+							//System.out.println(ofn.referenceOfKeys.get(m));
 							String reference = (ofn.referenceOfKeys.get(m)).toString();
 							listOfFlattenReference.add(reference);
 						}
@@ -965,12 +1022,19 @@ public class DBApp {
 
 						Tuple deletedT = tuples.remove(j);
 						for (int p = 0; p < deletedT.vtrTupleObj.capacity(); p++) {
-							if (listOfColNum.contains(p)) {
+							if (listOfColNum.contains(p)&& !(deletedT.vtrTupleObj.get(p) instanceof Polygon)) {
 								String colName = getColNames(strTableName).get(p);
 								BTree btree = (BTree) getDeserlaized(
 										"data//" + "BTree" + strTableName + colName + ".class");
 								btree.delete((Comparable) deletedT.vtrTupleObj.get(p), pageToBeDeleteFrom.pageName);
 								btree.serializeTree();
+							}
+							else if(listOfColNumRtree.contains(p)&&(deletedT.vtrTupleObj.get(p) instanceof Polygon)){
+								String colName = getColNames(strTableName).get(p);
+								RTree rtree = (RTree) getDeserlaized(
+										"data//" + "RTree" + strTableName + colName + ".class");
+								rtree.delete((Polygon) deletedT.vtrTupleObj.get(p), pageToBeDeleteFrom.pageName);
+								rtree.serializeTree();
 							}
 						}
 
@@ -2550,44 +2614,61 @@ public class DBApp {
 
 	public static ArrayList<Tuple> xorOperator2(ArrayList<Tuple> first, ArrayList<Tuple> second) throws DBAppException {
 		ArrayList<Tuple> result = new ArrayList<Tuple>();
-		// boolean fCondition = false;
-		// boolean sCondition = false;
-		for (int i = 0; i < first.size(); i++) {
-			Tuple f = first.get(i);
+		ArrayList<Tuple> andRes = new ArrayList<Tuple>();
+		ArrayList<Tuple> orRes = new ArrayList<Tuple>();
+		andRes = andOperator2(first, second);
+		orRes = orOperator2(first, second);
+		for (int i = 0; i < orRes.size(); i++) {
+			Tuple f = orRes.get(i);
 			String fs = f.toString();
-			for (int j = 0; j < second.size(); j++) {
-				Tuple s = second.get(j);
+			for (int j = 0; j < andRes.size(); j++) {
+				Tuple s = andRes.get(j);
 				String ss = s.toString();
-				if (fs.equals(ss)) {
-					first.remove(i);
-					second.remove(j);
-
-//				}
-//				if ((fCondition && !sCondition)) {
-//					second.remove(j);
-//					// System.out.println(fCondition);
-//					// System.out.println(sCondition);
-//					// System.out.println(first.get(i));
-//					result.add(first.get(i));
-//				} else if ((!fCondition && sCondition)) {
-//					second.remove(j);
-//					// System.out.println(fCondition);
-//					// System.out.println(sCondition);
-//					// System.out.println(first.get(i));
-//					result.add(first.get(i));
-//				}
-
+				if (!(fs.equals(ss))) {
+					result.add(f);
+					break;
 				}
 			}
 		}
-		for (int i = 0; i < first.size(); i++) {
-			result.add(first.get(i));
-		}
-		for (int i = 0; i < second.size(); i++) {
-			result.add(second.get(i));
-		}
+
 		return result;
 	}
+	// boolean fCondition = false;
+	// boolean sCondition = false;
+//		for (int i = 0; i < first.size(); i++) {
+//			Tuple f = first.get(i);
+//			String fs = f.toString();
+//			for (int j = 0; j < second.size(); j++) {
+//				Tuple s = second.get(j);
+//				String ss = s.toString();
+//				if (fs.equals(ss)) {
+//					first.remove(i);
+//					second.remove(j);
+//
+////				}
+////				if ((fCondition && !sCondition)) {
+////					second.remove(j);
+////					// System.out.println(fCondition);
+////					// System.out.println(sCondition);
+////					// System.out.println(first.get(i));
+////					result.add(first.get(i));
+////				} else if ((!fCondition && sCondition)) {
+////					second.remove(j);
+////					// System.out.println(fCondition);
+////					// System.out.println(sCondition);
+////					// System.out.println(first.get(i));
+////					result.add(first.get(i));
+////				}
+//
+//				}
+//			}
+//		}
+//		for (int i = 0; i < first.size(); i++) {
+//			result.add(first.get(i));
+//		}
+//		for (int i = 0; i < second.size(); i++) {
+//			result.add(second.get(i));
+//		}
 
 	public static ArrayList<Tuple> handleOperators2(ArrayList<ArrayList<Tuple>> all, ArrayList<Integer> colNumbers,
 			String[] strarrOperators) throws DBAppException {
@@ -3404,31 +3485,31 @@ public class DBApp {
 			ArrayList<String> columns = getColNames(strTableName);
 			if (!columns.contains(strColName)) {
 				throw new DBAppException("Column does not exist");
-			}else {
-				//check column is of type polygon
-				ArrayList<String> nametype= getArrayOfColoumnDataTyoe(strTableName);
-				
-				if(nametype.contains(strColName+",java.awt.Polygon")){
+			} else {
+				// check column is of type polygon
+				ArrayList<String> nametype = getArrayOfColoumnDataTyoe(strTableName);
+
+				if (nametype.contains(strColName + ",java.awt.Polygon")) {
 					throw new DBAppException("Cannot create a B+Tree on a column of type Polygon");
-					
+
 				} else {
-	
+
 					// check column does not already have an index isindex
 					if (isIndexed(strTableName, strColName)) {
 						throw new DBAppException("Column already have an index");
 					} else {
-	
+
 						// change indexed false to true in metadata
 						makeIndexed(strTableName, strColName);
-	
+
 						// get column index in tuple
 						int colIndex = columns.indexOf(strColName);
-	
+
 						// create a new BPlusTree
 						// TODO restrict max keys in node (page size and key size)
 						BTree bt = new BTree();
 						bt.treeName = "BTree" + strTableName + strColName;
-	
+
 						/*
 						 * Insert already existing records keys into tree loop on all tuples in table
 						 * and insert each key (modify col content) and value(pointer: page name,tuple
@@ -3436,12 +3517,12 @@ public class DBApp {
 						 */
 						Table table = (Table) getDeserlaized("data//" + strTableName + ".class");
 						Vector<String> usedPages = table.usedPagesNames;
-	
+
 						for (int i = 0; i < usedPages.size(); i++) {
-	
+
 							Page curPage = (Page) (getDeserlaized("data//" + table.usedPagesNames.get(i) + ".class"));
 							Vector<Tuple> Tuples = curPage.vtrTuples;
-	
+
 							for (int j = 0; j < Tuples.size(); j++) {
 								Tuple curTuple = Tuples.get(j);
 								Object key = curTuple.vtrTupleObj.get(colIndex);
@@ -3457,17 +3538,17 @@ public class DBApp {
 						bin1.writeObject(table);
 						bin1.flush();
 						bin1.close();
-	
+
 						// serialize tree
-	
+
 						bt.serializeTree();
-	
+
 					}
 				}
 			}
 		}
 	}
-	
+
 	public void createRTreeIndex(String strTableName, String strColName)
 			throws DBAppException, FileNotFoundException, IOException {
 		// check table exists
@@ -3480,28 +3561,28 @@ public class DBApp {
 			ArrayList<String> columns = getColNames(strTableName);
 			if (!columns.contains(strColName)) {
 				throw new DBAppException("Column does not exist");
-			}else {
-				//check column is of type polygon
-				ArrayList<String> nametype= getArrayOfColoumnDataTyoe(strTableName);
-				
-				if(!nametype.contains(strColName+",java.awt.Polygon")){
+			} else {
+				// check column is of type polygon
+				ArrayList<String> nametype = getArrayOfColoumnDataTyoe(strTableName);
+
+				if (!nametype.contains(strColName + ",java.awt.Polygon")) {
 					throw new DBAppException("You can only create a RTree on a column of type Polygon");
-				} else {	
-					// check column does not already have an index 
+				} else {
+					// check column does not already have an index
 					if (isIndexed(strTableName, strColName)) {
 						throw new DBAppException("Column already have an index");
 					} else {
-	
+
 						// change indexed false to true in metadata
 						makeIndexed(strTableName, strColName);
-	
+
 						// get column index in tuple
 						int colIndex = columns.indexOf(strColName);
-	
+
 						// create a new RTree
 						RTree rt = new RTree();
 						rt.treeName = "RTree" + strTableName + strColName;
-	
+
 						/*
 						 * Insert already existing records keys into tree loop on all tuples in table
 						 * and insert each key (modify col content) and value(pointer: page name,tuple
@@ -3509,16 +3590,16 @@ public class DBApp {
 						 */
 						Table table = (Table) getDeserlaized("data//" + strTableName + ".class");
 						Vector<String> usedPages = table.usedPagesNames;
-	
+
 						for (int i = 0; i < usedPages.size(); i++) {
-	
+
 							Page curPage = (Page) (getDeserlaized("data//" + table.usedPagesNames.get(i) + ".class"));
 							Vector<Tuple> Tuples = curPage.vtrTuples;
-	
+
 							for (int j = 0; j < Tuples.size(); j++) {
 								Tuple curTuple = Tuples.get(j);
 								Object key = curTuple.vtrTupleObj.get(colIndex);
-								rt.insert((Polygon)key, table.usedPagesNames.get(i));
+								rt.insert((Polygon) key, table.usedPagesNames.get(i));
 							}
 							serialize(curPage);
 						}
@@ -3531,16 +3612,16 @@ public class DBApp {
 						bin1.writeObject(table);
 						bin1.flush();
 						bin1.close();
-	
+
 						// serialize tree
 						rt.serializeTree();
 
-	
 					}
 				}
 			}
 		}
 	}
+
 
 //	public void checkpolygon() throws DBAppException, IOException {
 //		String strTableName = "Shapes";
@@ -3581,7 +3662,7 @@ public class DBApp {
 
 		DBApp dbApp = new DBApp();
 		dbApp.init();
-		dbApp.checkpolygon();
+//		dbApp.checkpolygon();
 //	    System.out.println(dbApp.maxPageSize);
 //		String strTableName = "Student";
 
@@ -3608,7 +3689,6 @@ public class DBApp {
 		// dbApp.createTable(strTableName, "id", htblColNameType);
 		// dbApp.createBTreeIndex(strTableName, "id");
 
-
 //		dbApp.makeIndexed(strTableName, "name");
 
 //		Table a=(Table)getDeserlaized("data//Student.class");
@@ -3621,7 +3701,6 @@ public class DBApp {
 //		for (int i = 0; i < 210; i++) {
 
 //		Hashtable htblColNameValue = new Hashtable();
-
 
 //		htblColNameValue.put("id", new Integer(4));
 //		htblColNameValue.put("name", new String("Ab"));
@@ -3651,8 +3730,6 @@ public class DBApp {
 //////			 System.out.println("n:"+p.npoints);
 //		htblColNameValue.put("shape", p);
 
-
-
 		// dbApp.insertIntoTable(strTableName, htblColNameValue);
 
 //		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
@@ -3667,9 +3744,6 @@ public class DBApp {
 //			}
 //			System.out.println();
 //		}
-
-
-
 
 //		}
 
@@ -3739,7 +3813,6 @@ public class DBApp {
 //		arrSQLTerms[0]._strColumnName = "age";
 //		arrSQLTerms[0]._strOperator = "<=";
 //		arrSQLTerms[0]._objValue = new Integer(60);
-
 
 //////
 //		arrSQLTerms[1]._strTableName = "Student";
