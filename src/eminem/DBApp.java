@@ -1332,161 +1332,162 @@ public class DBApp {
 							// System.out.println(startPageIndex);
 
 						} else {
-							startPageIndex = getPageToBeInsertedIndexUsingClusteringKey(toBeUpdatedIn,
-									strClusteringKey);
-
+							startPageIndex = -1;
+							throw new DBAppException("key not found");
 						}
+					} else {
+						startPageIndex = getPageToBeInsertedIndexUsingClusteringKey(toBeUpdatedIn, strClusteringKey);
 
-						// System.out.println(startPageIndex);
+					}
 
-						String startPageName = toBeUpdatedIn.usedPagesNames.get(startPageIndex);
-						Page startPage = (Page) getDeserlaized("data//" + startPageName + ".class");
+					// System.out.println(startPageIndex);
 
-						int clusterKeyIndex = -1;
-						for (int i = 0; i < colNames.size(); i++) {
-							if (colNames.get(i).equals(toBeUpdatedIn.strClusteringKeyColumn)) {
-								clusterKeyIndex = i;
-							}
+					String startPageName = toBeUpdatedIn.usedPagesNames.get(startPageIndex);
+					Page startPage = (Page) getDeserlaized("data//" + startPageName + ".class");
+
+					int clusterKeyIndex = -1;
+					for (int i = 0; i < colNames.size(); i++) {
+						if (colNames.get(i).equals(toBeUpdatedIn.strClusteringKeyColumn)) {
+							clusterKeyIndex = i;
 						}
+					}
 
-						int startTupleIndex = getStartIndexStartUpdate(enteredKey, startPageIndex, toBeUpdatedIn);
-						// System.out.println("start updating at tuple index:" + startTupleIndex);
-						int tupleIndex = startTupleIndex;
-						while (!enough && (tupleIndex < startPage.vtrTuples.size())) {
+					int startTupleIndex = getStartIndexStartUpdate(enteredKey, startPageIndex, toBeUpdatedIn);
+					// System.out.println("start updating at tuple index:" + startTupleIndex);
+					int tupleIndex = startTupleIndex;
+					while (!enough && (tupleIndex < startPage.vtrTuples.size())) {
 
-							Tuple old = startPage.vtrTuples.get(tupleIndex);
-							String parsed;
-							if (keyType.equals("java.awt.Polygon")) {
-								myPolygon p = new myPolygon((Polygon) old.vtrTupleObj.get(old.index));
-								parsed = p.toString();
+						Tuple old = startPage.vtrTuples.get(tupleIndex);
+						String parsed;
+						if (keyType.equals("java.awt.Polygon")) {
+							myPolygon p = new myPolygon((Polygon) old.vtrTupleObj.get(old.index));
+							parsed = p.toString();
 
-							} else
-								parsed = old.vtrTupleObj.get(old.index) + ""; // polyyy
-							// System.out.println(parsed);
-							// System.out.println(parsed);
-							// System.out.println(enteredKey);
-							if (parsed.equals(strClusteringKey + "")) {
+						} else
+							parsed = old.vtrTupleObj.get(old.index) + ""; // polyyy
+						// System.out.println(parsed);
+						// System.out.println(parsed);
+						// System.out.println(enteredKey);
+						if (parsed.equals(strClusteringKey + "")) {
 
-								// System.out.println("check");
-								for (int i = 0; i < colToBeUpdated.size(); i++) {
-									String col = colToBeUpdated.get(i);
-									for (int j = 0; j < colNames.size(); j++) {
-										if (colNames.get(j).equals(col)) {
-											if (isIndexed(strTableName, colNames.get(j))) {
+							// System.out.println("check");
+							for (int i = 0; i < colToBeUpdated.size(); i++) {
+								String col = colToBeUpdated.get(i);
+								for (int j = 0; j < colNames.size(); j++) {
+									if (colNames.get(j).equals(col)) {
+										if (isIndexed(strTableName, colNames.get(j))) {
 
-												BTree bt = (BTree) getDeserlaized(
-														"data//" + "BTree" + strTableName + colNames.get(j) + ".class");
-												Object oldValue = old.vtrTupleObj.get(j);
-												Comparable oldValueCom = (Comparable) oldValue;
-												// System.out.println(oldValueCom);
-												bt.delete(oldValueCom, startPage.pageName);
-												Comparable newValueCom = (Comparable) valuesToBeUpdated.get(i);
-												bt.insert(newValueCom, startPage.pageName);
-												bt.serializeTree();
-											}
-
-											indexToBeUpdated = j;
-
-											// go change the value of this index with the value in index i in
-											// valuesToBeUpdated
-
-											old.vtrTupleObj.setElementAt(valuesToBeUpdated.get(i), j);
-
-											// tupleIndex++;
-											// System.out.println(old.vtrTupleObj.get(j));
-											// done = true;
-											// break;
+											BTree bt = (BTree) getDeserlaized(
+													"data//" + "BTree" + strTableName + colNames.get(j) + ".class");
+											Object oldValue = old.vtrTupleObj.get(j);
+											Comparable oldValueCom = (Comparable) oldValue;
+											// System.out.println(oldValueCom);
+											bt.delete(oldValueCom, startPage.pageName);
+											Comparable newValueCom = (Comparable) valuesToBeUpdated.get(i);
+											bt.insert(newValueCom, startPage.pageName);
+											bt.serializeTree();
 										}
 
-										// check if the next page has the same key
-										// case2:
-										// check next page if the key is the same update
-										// serialize back
+										indexToBeUpdated = j;
+
+										// go change the value of this index with the value in index i in
+										// valuesToBeUpdated
+
+										old.vtrTupleObj.setElementAt(valuesToBeUpdated.get(i), j);
+
+										// tupleIndex++;
+										// System.out.println(old.vtrTupleObj.get(j));
+										// done = true;
+										// break;
 									}
+
+									// check if the next page has the same key
+									// case2:
+									// check next page if the key is the same update
+									// serialize back
 								}
-								tupleIndex++;
-
-							} else {
-								enough = true;
 							}
+							tupleIndex++;
 
+						} else {
+							enough = true;
 						}
-						serialize(startPage);
-						if (enough != true) {
-							// System.out.println("check53");
 
-							startPageIndex++;
-							boolean next = true;
-							while (next) {
-								while (startPageIndex < toBeUpdatedIn.usedPagesNames.size()) {
-									Page nextPage = (Page) getDeserlaized(
-											"data//" + toBeUpdatedIn.usedPagesNames.get(startPageIndex) + ".class");
+					}
+					serialize(startPage);
+					if (enough != true) {
+						// System.out.println("check53");
 
-									for (int z = 0; z < nextPage.vtrTuples.size(); z++) {
-										Tuple nextTup = nextPage.vtrTuples.get(z);
-										int indexKeyOfFirst = nextTup.index;
-										String k;
-										if (keyType.equals("java.awt.Polygon")) {
-											myPolygon p = new myPolygon(
-													(Polygon) nextTup.vtrTupleObj.get(indexKeyOfFirst));
-											k = p.toString();
-										} else
-											k = nextTup.vtrTupleObj.get(indexKeyOfFirst) + "";// polyyy
-										if (k.equals(strClusteringKey)) {
-											for (int i = 0; i < colToBeUpdated.size(); i++) {
-												String col = colToBeUpdated.get(i);
-												for (int j = 0; j < colNames.size(); j++) {
-													if (colNames.get(j).equals(col)) {
-														if (isIndexed(strTableName, colNames.get(j))) {
-															BTree bt = (BTree) getDeserlaized("data//" + "BTree"
-																	+ strTableName + colNames.get(j) + ".class");
-															Object oldValue = nextTup.vtrTupleObj.get(j);
-															Comparable oldValueCom = (Comparable) oldValue;
-															bt.delete(oldValueCom, startPage.pageName);
-															Comparable newValueCom = (Comparable) valuesToBeUpdated
-																	.get(i);
-															bt.insert(newValueCom, startPage.pageName);
-															bt.serializeTree();
-														}
-														indexToBeUpdated = j;
-														nextTup.vtrTupleObj.setElementAt(valuesToBeUpdated.get(i), j);
+						startPageIndex++;
+						boolean next = true;
+						while (next) {
+							while (startPageIndex < toBeUpdatedIn.usedPagesNames.size()) {
+								Page nextPage = (Page) getDeserlaized(
+										"data//" + toBeUpdatedIn.usedPagesNames.get(startPageIndex) + ".class");
+
+								for (int z = 0; z < nextPage.vtrTuples.size(); z++) {
+									Tuple nextTup = nextPage.vtrTuples.get(z);
+									int indexKeyOfFirst = nextTup.index;
+									String k;
+									if (keyType.equals("java.awt.Polygon")) {
+										myPolygon p = new myPolygon((Polygon) nextTup.vtrTupleObj.get(indexKeyOfFirst));
+										k = p.toString();
+									} else
+										k = nextTup.vtrTupleObj.get(indexKeyOfFirst) + "";// polyyy
+									if (k.equals(strClusteringKey)) {
+										for (int i = 0; i < colToBeUpdated.size(); i++) {
+											String col = colToBeUpdated.get(i);
+											for (int j = 0; j < colNames.size(); j++) {
+												if (colNames.get(j).equals(col)) {
+													if (isIndexed(strTableName, colNames.get(j))) {
+														BTree bt = (BTree) getDeserlaized("data//" + "BTree"
+																+ strTableName + colNames.get(j) + ".class");
+														Object oldValue = nextTup.vtrTupleObj.get(j);
+														Comparable oldValueCom = (Comparable) oldValue;
+														bt.delete(oldValueCom, startPage.pageName);
+														Comparable newValueCom = (Comparable) valuesToBeUpdated.get(i);
+														bt.insert(newValueCom, startPage.pageName);
+														bt.serializeTree();
 													}
-
+													indexToBeUpdated = j;
+													nextTup.vtrTupleObj.setElementAt(valuesToBeUpdated.get(i), j);
 												}
+
 											}
-										} else {
-
-											// continue updating next tuples with the same clustering key until we hit a
-											// wrong one
-											next = false;
-											break;
-
 										}
+									} else {
+
+										// continue updating next tuples with the same clustering key until we hit a
+										// wrong one
+										next = false;
+										break;
 
 									}
-									startPageIndex++;
-									serialize(nextPage);
 
 								}
-								if (startPageIndex == toBeUpdatedIn.usedPagesNames.size())
-									next = false;
+								startPageIndex++;
+								serialize(nextPage);
+
 							}
+							if (startPageIndex == toBeUpdatedIn.usedPagesNames.size())
+								next = false;
 						}
-
-						ObjectOutputStream bin = new ObjectOutputStream(
-								new FileOutputStream("data//" + toBeUpdatedIn.name + ".class"));
-						bin.writeObject(toBeUpdatedIn);
-						bin.flush();
-						bin.close();
-
 					}
 
-					else {
-						System.out.print("wrong data types");
-					}
+					ObjectOutputStream bin = new ObjectOutputStream(
+							new FileOutputStream("data//" + toBeUpdatedIn.name + ".class"));
+					bin.writeObject(toBeUpdatedIn);
+					bin.flush();
+					bin.close();
 
 				}
+
+				else {
+					System.out.print("wrong data types");
+				}
+
 			}
+
 		} catch (Exception e) {
 			throw new DBAppException("error in updating");
 
