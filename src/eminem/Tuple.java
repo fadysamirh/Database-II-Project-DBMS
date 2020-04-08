@@ -39,7 +39,7 @@ public class Tuple extends Vector implements Serializable, Comparable<Tuple> {
 
 	public int compareTo(Tuple t2) {
 		Object O1 = this.vtrTupleObj.get(index);
-		Object O2 = t2.vtrTupleObj.get(index);
+		Object O2 = t2.vtrTupleObj.get(t2.index);
 		int x = 0;
 		try {
 			x = compareToHelper(O1, O2);
