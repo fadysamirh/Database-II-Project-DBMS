@@ -963,9 +963,9 @@ public class DBApp {
 				if (dTupleArray[listOfColNumRtree.get(k)] != null) {
 
 					RTree rtree = (RTree) getDeserlaized(
-							"data//" + "RTree" + strTableName + listOfColName.get(listOfColNum.get(k)) + ".class");
+							"data//" + "RTree" + strTableName + listOfRTreeNames.get(listOfColNumRtree.get(k)) + ".class");
 
-					ReferenceValues ref = (ReferenceValues) rtree.search( (Polygon)dTupleArray[listOfColNum.get(k)]);
+					ReferenceValues ref = (ReferenceValues) rtree.search( (Polygon)dTupleArray[listOfColNumRtree.get(k)]);
 
 					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
 
@@ -1022,12 +1022,19 @@ public class DBApp {
 
 						Tuple deletedT = tuples.remove(j);
 						for (int p = 0; p < deletedT.vtrTupleObj.capacity(); p++) {
-							if (listOfColNum.contains(p)) {
+							if (listOfColNum.contains(p)&& !(deletedT.vtrTupleObj.get(p) instanceof Polygon)) {
 								String colName = getColNames(strTableName).get(p);
 								BTree btree = (BTree) getDeserlaized(
 										"data//" + "BTree" + strTableName + colName + ".class");
 								btree.delete((Comparable) deletedT.vtrTupleObj.get(p), pageToBeDeleteFrom.pageName);
 								btree.serializeTree();
+							}
+							else if(listOfColNumRtree.contains(p)&&(deletedT.vtrTupleObj.get(p) instanceof Polygon)){
+								String colName = getColNames(strTableName).get(p);
+								RTree rtree = (RTree) getDeserlaized(
+										"data//" + "RTree" + strTableName + colName + ".class");
+								rtree.delete((Polygon) deletedT.vtrTupleObj.get(p), pageToBeDeleteFrom.pageName);
+								rtree.serializeTree();
 							}
 						}
 
