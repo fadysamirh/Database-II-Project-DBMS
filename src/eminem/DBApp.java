@@ -460,8 +460,8 @@ public class DBApp {
 					if (flag2) {
 						int flag = 0;
 
-						for (int i = page + 1; i <= usedPages.size() - 2 && flag == 0; i++) {
-
+						for (int i = page+1 ; i <= usedPages.size() - 1 && flag == 0; i++) {
+                            System.out.println(i);
 							Page pageToBeInstertedIn = (Page) (getDeserlaized(
 									"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
@@ -3783,8 +3783,8 @@ public class DBApp {
 		htblColNameType.put("gpa", "java.lang.Double");
 		htblColNameType.put("shape", "java.awt.Polygon");
 		htblColNameType.put("grad", "java.lang.Boolean");
-	  //  dbApp.createTable(strTableName, "id", htblColNameType);
-	//	dbApp.createBTreeIndex(strTableName, "id");
+//	    dbApp.createTable(strTableName, "id", htblColNameType);
+//		dbApp.createRTreeIndex(strTableName, "shape");
 		
 
 //		dbApp.makeIndexed(strTableName, "name");
@@ -3800,7 +3800,7 @@ public class DBApp {
 //		for (int i = 0; i < 210; i++) {
 
 		Hashtable htblColNameValue = new Hashtable();
-		htblColNameValue.put("id", new Integer(8));
+		htblColNameValue.put("id", new Integer(-1));
 		htblColNameValue.put("name", new String("Ab"));
 		htblColNameValue.put("age", new Integer(25));
 		htblColNameValue.put("date", new Date(2000, 11, 23));
@@ -3821,19 +3821,19 @@ public class DBApp {
 		htblColNameValue.put("shape", p);
 		
 		 dbApp.insertIntoTable(strTableName, htblColNameValue);
-//		 
-//		 RTree a = (RTree)(getDeserlaized("data//" +"RTree"+strTableName+"shape" + ".class"));
-//		 System.out.println(a.toString());
-//		 
-//		 RTreeReferenceValues ref = (RTreeReferenceValues) a.search(p);
-//			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
-//			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
-//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-//				System.out.print(b.referenceOfKeys.get(j) + " ");
-//			}
-//			System.out.println();
-//		}
-//		 
+		 
+		 RTree a = (RTree)(getDeserlaized("data//" +"RTree"+strTableName+"shape" + ".class"));
+		 System.out.println(a.toString());
+		 
+		 RTreeReferenceValues ref = (RTreeReferenceValues) a.search(p);
+			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
+			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
+			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+				System.out.print(b.referenceOfKeys.get(j) + " ");
+			}
+			System.out.println();
+		}
+		 
 		
 
 //		Hashtable htblColNameValue = new Hashtable();
