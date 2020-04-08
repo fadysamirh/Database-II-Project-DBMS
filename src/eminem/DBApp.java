@@ -1,4 +1,3 @@
-
 package eminem;
 
 import java.awt.Polygon;
@@ -24,6 +23,8 @@ import java.util.Properties;
 import java.util.Vector;
 
 import ds.Rtree.RTree;
+import ds.Rtree.RTreeOverflowNode;
+import ds.Rtree.RTreeReferenceValues;
 import ds.bplus.BTree;
 import ds.bplus.OverflowNode;
 import ds.bplus.ReferenceValues;
@@ -184,13 +185,14 @@ public class DBApp {
 				Boolean Indexed = false;
 
 				// checking if the table has an index
-				if (toBeInstertedIn.usedIndicesNames.size() != 0) {
+				if (toBeInstertedIn.usedIndicesNames.size() != 0 || toBeInstertedIn.usedRtreeNames.size() != 0) {
 					Indexed = true;
 				}
 				Boolean ClusteringIndexed = false;
 
 				// checking if one of the indexes is on the clustering column
-				if (toBeInstertedIn.usedIndicescols.contains(getClusteringKey(strTableName))) {
+				if (toBeInstertedIn.usedIndicescols.contains(getClusteringKey(strTableName))
+						|| toBeInstertedIn.usedRtreeCols.contains(getClusteringKey(strTableName))) {
 					Indexed = true;
 				}
 
@@ -198,18 +200,35 @@ public class DBApp {
 					toBeInstertedIn.createPage();
 
 					if (Indexed) {
-						ArrayList<String> columns = getColNames(strTableName);
-						for (int i = 0; i < toBeInstertedIn.usedIndicesNames.size(); i++) {
-							BTree toUpdate = (BTree) getDeserlaized(
-									"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
-							String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
-							int colIndex = columns.indexOf(colName);
-							Object key = nTuple.vtrTupleObj.get(colIndex);
+						if (toBeInstertedIn.usedIndicesNames.size() != 0) {
+							ArrayList<String> columns = getColNames(strTableName);
+							for (int i = 0; i < toBeInstertedIn.usedIndicesNames.size(); i++) {
+								BTree toUpdate = (BTree) getDeserlaized(
+										"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
+								String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
+								int colIndex = columns.indexOf(colName);
+								Object key = nTuple.vtrTupleObj.get(colIndex);
 
-							toUpdate.insert((Comparable) key, toBeInstertedIn.usedPagesNames.get(0));
-							toUpdate.serializeTree();
+								toUpdate.insert((Comparable) key, toBeInstertedIn.usedPagesNames.get(0));
+								toUpdate.serializeTree();
 
+							}
 						}
+						if (toBeInstertedIn.usedRtreeNames.size() != 0) {
+							ArrayList<String> columns = getColNames(strTableName);
+							for (int i = 0; i < toBeInstertedIn.usedRtreeNames.size(); i++) {
+								RTree toUpdate = (RTree) getDeserlaized(
+										"data//" + toBeInstertedIn.usedRtreeNames.elementAt(i) + ".class");
+								String colName = toBeInstertedIn.usedRtreeCols.elementAt(i);
+								int colIndex = columns.indexOf(colName);
+								Object key = nTuple.vtrTupleObj.get(colIndex);
+
+								toUpdate.insert((Polygon) key, toBeInstertedIn.usedPagesNames.get(0));
+								toUpdate.serializeTree();
+
+							}
+						}
+
 					}
 
 					Page pageToBeInstertedIn = (Page) getDeserlaized(
@@ -235,22 +254,6 @@ public class DBApp {
 					Vector<String> usedPages = toBeInstertedIn.usedPagesNames;
 					int page = -1;
 
-					if (ClusteringIndexed) {
-						Vector<String> pageNames = new Vector<String>();
-
-						int index = toBeInstertedIn.usedIndicescols.indexOf(getClusteringKey(strTableName));
-						BTree toUpdate = (BTree) getDeserlaized(
-								"data//" + toBeInstertedIn.usedIndicesNames.elementAt(index) + ".class");
-
-						ReferenceValues ref = (ReferenceValues) toUpdate
-								.search((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
-						for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
-							OverflowNode b = ref.getOverflowNodes().get(i);
-							for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-								pageNames.add((String) b.referenceOfKeys.get(j));
-							}
-						}
-					}
 					// searching in which page the nTuple will fit in it's range
 					for (int i = 0; i < usedPages.size(); i++) {
 						Page pageToBeInstertedIn = (Page) (getDeserlaized(
@@ -289,18 +292,34 @@ public class DBApp {
 
 					// if the table has index insert the nTuple with the page found in the index
 					if (Indexed) {
-						ArrayList<String> columns = getColNames(strTableName);
-						for (int i = 0; i <= toBeInstertedIn.usedIndicesNames.size() - 1; i++) {
-							BTree toUpdate = (BTree) getDeserlaized(
-									"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
-							String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
-							int colIndex = columns.indexOf(colName);
-							Object key = nTuple.vtrTupleObj.get(colIndex);
+						if (toBeInstertedIn.usedIndicesNames.size() != 0) {
+							ArrayList<String> columns = getColNames(strTableName);
+							for (int i = 0; i <= toBeInstertedIn.usedIndicesNames.size() - 1; i++) {
+								BTree toUpdate = (BTree) getDeserlaized(
+										"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
+								String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
+								int colIndex = columns.indexOf(colName);
+								Object key = nTuple.vtrTupleObj.get(colIndex);
 
-							toUpdate.insert((Comparable) key, toBeInstertedIn.usedPagesNames.get(page));
+								toUpdate.insert((Comparable) key, toBeInstertedIn.usedPagesNames.get(page));
 
-							toUpdate.serializeTree();
+								toUpdate.serializeTree();
 
+							}
+						}
+						if (toBeInstertedIn.usedRtreeNames.size() != 0) {
+							ArrayList<String> columns = getColNames(strTableName);
+							for (int i = 0; i <= toBeInstertedIn.usedRtreeNames.size() - 1; i++) {
+								RTree toUpdate = (RTree) getDeserlaized(
+										"data//" + toBeInstertedIn.usedRtreeNames.elementAt(i) + ".class");
+								String colName = toBeInstertedIn.usedRtreeCols.elementAt(i);
+								int colIndex = columns.indexOf(colName);
+								Object key = nTuple.vtrTupleObj.get(colIndex);
+
+								toUpdate.insert((Polygon) key, toBeInstertedIn.usedPagesNames.get(page));
+
+								toUpdate.serializeTree();
+							}
 						}
 					}
 
@@ -360,15 +379,32 @@ public class DBApp {
 					// if there is no place the last tuple ref should change to the next page
 					if (flag2) {
 						if (Indexed) {
+							if (toBeInstertedIn.usedIndicesNames.size() != 0) {
+								ArrayList<String> columns = getColNames(strTableName);
+								for (int i = 0; i < toBeInstertedIn.usedIndicesNames.size(); i++) {
+									BTree toUpdate = (BTree) getDeserlaized(
+											"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
+									String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
+									int colIndex = columns.indexOf(colName);
+									Object key = nTuple.vtrTupleObj.get(colIndex);
+									if (toBeInstertedIn.usedPagesNames.size() - 1 != page)
+										toUpdate.update((Comparable) key, toBeInstertedIn.usedPagesNames.get(page),
+												toBeInstertedIn.usedPagesNames.get(page + 1));
+									toUpdate.serializeTree();
+
+								}
+							}
+						}
+						if (toBeInstertedIn.usedRtreeNames.size() != 0) {
 							ArrayList<String> columns = getColNames(strTableName);
-							for (int i = 0; i < toBeInstertedIn.usedIndicesNames.size(); i++) {
-								BTree toUpdate = (BTree) getDeserlaized(
-										"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
-								String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
+							for (int i = 0; i < toBeInstertedIn.usedRtreeNames.size(); i++) {
+								RTree toUpdate = (RTree) getDeserlaized(
+										"data//" + toBeInstertedIn.usedRtreeNames.elementAt(i) + ".class");
+								String colName = toBeInstertedIn.usedRtreeCols.elementAt(i);
 								int colIndex = columns.indexOf(colName);
 								Object key = nTuple.vtrTupleObj.get(colIndex);
 								if (toBeInstertedIn.usedPagesNames.size() - 1 != page)
-									toUpdate.update((Comparable) key, toBeInstertedIn.usedPagesNames.get(page),
+									toUpdate.update((Polygon) key, toBeInstertedIn.usedPagesNames.get(page),
 											toBeInstertedIn.usedPagesNames.get(page + 1));
 								toUpdate.serializeTree();
 
@@ -432,15 +468,34 @@ public class DBApp {
 							{
 								if (flag == 0) {
 									if (Indexed) {
+										if (toBeInstertedIn.usedIndicesNames.size() != 0) {
+											ArrayList<String> columns = getColNames(strTableName);
+											for (int k = 0; k < toBeInstertedIn.usedIndicesNames.size(); k++) {
+												BTree toUpdate = (BTree) getDeserlaized("data//"
+														+ toBeInstertedIn.usedIndicesNames.elementAt(k) + ".class");
+												String colName = toBeInstertedIn.usedIndicescols.elementAt(k);
+												int colIndex = columns.indexOf(colName);
+												Object key = nTuple.vtrTupleObj.get(colIndex);
+												if (i != usedPages.size() - 1) {
+													toUpdate.update((Comparable) key,
+															toBeInstertedIn.usedPagesNames.get(i),
+															toBeInstertedIn.usedPagesNames.get(i + 1));
+													toUpdate.serializeTree();
+												}
+
+											}
+										}
+									}
+									if (toBeInstertedIn.usedRtreeNames.size() != 0) {
 										ArrayList<String> columns = getColNames(strTableName);
-										for (int k = 0; k < toBeInstertedIn.usedIndicesNames.size(); k++) {
-											BTree toUpdate = (BTree) getDeserlaized("data//"
-													+ toBeInstertedIn.usedIndicesNames.elementAt(k) + ".class");
-											String colName = toBeInstertedIn.usedIndicescols.elementAt(k);
+										for (int k = 0; k < toBeInstertedIn.usedRtreeNames.size(); k++) {
+											RTree toUpdate = (RTree) getDeserlaized(
+													"data//" + toBeInstertedIn.usedPagesNames.elementAt(k) + ".class");
+											String colName = toBeInstertedIn.usedRtreeCols.elementAt(k);
 											int colIndex = columns.indexOf(colName);
 											Object key = nTuple.vtrTupleObj.get(colIndex);
 											if (i != usedPages.size() - 1) {
-												toUpdate.update((Comparable) key, toBeInstertedIn.usedPagesNames.get(i),
+												toUpdate.update((Polygon) key, toBeInstertedIn.usedPagesNames.get(i),
 														toBeInstertedIn.usedPagesNames.get(i + 1));
 												toUpdate.serializeTree();
 											}
@@ -488,18 +543,35 @@ public class DBApp {
 
 								p.vtrTuples.add(nTuple);
 								if (Indexed) {
-									ArrayList<String> columns = getColNames(strTableName);
-									for (int k = 0; k < toBeInstertedIn.usedIndicesNames.size(); k++) {
-										BTree toUpdate = (BTree) getDeserlaized(
-												"data//" + toBeInstertedIn.usedIndicesNames.elementAt(k) + ".class");
-										String colName = toBeInstertedIn.usedIndicescols.elementAt(k);
-										int colIndex = columns.indexOf(colName);
-										Object key = nTuple.vtrTupleObj.get(colIndex);
-										toUpdate.update((Comparable) key,
-												toBeInstertedIn.usedPagesNames.get(usedPages.size() - 2),
-												toBeInstertedIn.usedPagesNames.get(usedPages.size() - 1));
-										toUpdate.serializeTree();
+									if (toBeInstertedIn.usedIndicesNames.size() != 0) {
+										ArrayList<String> columns = getColNames(strTableName);
+										for (int k = 0; k < toBeInstertedIn.usedIndicesNames.size(); k++) {
+											BTree toUpdate = (BTree) getDeserlaized("data//"
+													+ toBeInstertedIn.usedIndicesNames.elementAt(k) + ".class");
+											String colName = toBeInstertedIn.usedIndicescols.elementAt(k);
+											int colIndex = columns.indexOf(colName);
+											Object key = nTuple.vtrTupleObj.get(colIndex);
+											toUpdate.update((Comparable) key,
+													toBeInstertedIn.usedPagesNames.get(usedPages.size() - 2),
+													toBeInstertedIn.usedPagesNames.get(usedPages.size() - 1));
+											toUpdate.serializeTree();
 
+										}
+									}
+									if (toBeInstertedIn.usedRtreeNames.size() != 0) {
+										ArrayList<String> columns = getColNames(strTableName);
+										for (int k = 0; k < toBeInstertedIn.usedRtreeNames.size(); k++) {
+											RTree toUpdate = (RTree) getDeserlaized(
+													"data//" + toBeInstertedIn.usedRtreeNames.elementAt(k) + ".class");
+											String colName = toBeInstertedIn.usedRtreeCols.elementAt(k);
+											int colIndex = columns.indexOf(colName);
+											Object key = nTuple.vtrTupleObj.get(colIndex);
+											toUpdate.update((Polygon) key,
+													toBeInstertedIn.usedPagesNames.get(usedPages.size() - 2),
+													toBeInstertedIn.usedPagesNames.get(usedPages.size() - 1));
+											toUpdate.serializeTree();
+
+										}
 									}
 								}
 
@@ -717,11 +789,32 @@ public class DBApp {
 	public ArrayList<String> getListOfIndicesNames(Hashtable<String, Object> htblColNameValue, String strTableName)
 			throws DBAppException {
 		Enumeration<String> keys = htblColNameValue.keys();
+		Enumeration<Object> values = (Enumeration<Object>) htblColNameValue.values();
 		ArrayList<String> listOfAvailableIndices = new ArrayList<String>();
 		while (keys.hasMoreElements()) {
 			String colName = keys.nextElement();
+			Object value = values.nextElement();
 			boolean flag = isIndexed(strTableName, colName);
-			if (flag) {
+
+			if (flag && !(value instanceof Polygon)) {
+				listOfAvailableIndices.add(colName);
+			}
+		}
+		return listOfAvailableIndices;
+
+	}
+
+	public ArrayList<String> getListRTreeNames(Hashtable<String, Object> htblColNameValue, String strTableName)
+			throws DBAppException {
+		Enumeration<String> keys = htblColNameValue.keys();
+		Enumeration<Object> values = (Enumeration<Object>) htblColNameValue.values();
+		ArrayList<String> listOfAvailableIndices = new ArrayList<String>();
+		while (keys.hasMoreElements()) {
+			String colName = keys.nextElement();
+			Object value = values.nextElement();
+			boolean flag = isIndexed(strTableName, colName);
+
+			if (flag && (value instanceof Polygon)) {
 				listOfAvailableIndices.add(colName);
 			}
 		}
@@ -744,11 +837,12 @@ public class DBApp {
 
 		// System.out.println(pageToBeInstertedInIndex + " this is the index");
 		ArrayList<String> listOfAvailableIndices = getListOfIndicesNames(htblColNameValue, strTableName);
+		ArrayList<String> listOfRTreeNames = getListRTreeNames(htblColNameValue, strTableName);
 
 		boolean flag2 = false;
 		int i = 0;
 		int[] compareTuple = getDeleteIndexOfArray(dTupleArray);
-		if (listOfAvailableIndices.isEmpty()) {
+		if (listOfAvailableIndices.isEmpty() && listOfRTreeNames.isEmpty()) {
 			for (i = 0; i < newTable.usedPagesNames.size(); i++) {
 
 				Page pageToBeDeleteFrom = (Page) (getDeserlaized("data//" + newTable.usedPagesNames.get(i) + ".class"));
@@ -894,6 +988,13 @@ public class DBApp {
 				listOfColNum.add(getColNumber(strTableName, listOfAvailableIndices.get(k)));
 
 			}
+			ArrayList<Integer> listOfColNumRtree = new ArrayList<Integer>();
+
+			for (int k = 0; k < listOfRTreeNames.size(); k++) {
+				listOfColNumRtree.add(getColNumber(strTableName, listOfRTreeNames.get(k)));
+
+			}
+
 //			for(int l=0;l<listOfColNum.size();l++)
 //				System.out.println(listOfColNum.get(l));
 
@@ -919,6 +1020,37 @@ public class DBApp {
 						OverflowNode ofn = lstofn.get(j);
 						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
 							System.out.println(ofn.referenceOfKeys.get(m));
+							String reference = (ofn.referenceOfKeys.get(m)).toString();
+							listOfFlattenReference.add(reference);
+						}
+					}
+					// end of flattening now I have a list of references [page1,page2,page3] ..
+					if (intersect.isEmpty()) {
+						intersect = listOfFlattenReference;
+					} else {
+						intersect = intersection(listOfFlattenReference, intersect);
+					}
+				}
+			}
+			for (int k = 0; k < listOfColNumRtree.size(); k++) { // looping over col that has an rtree
+
+				if (dTupleArray[listOfColNumRtree.get(k)] != null) {
+
+					RTree rtree = (RTree) getDeserlaized("data//" + "RTree" + strTableName
+							+ listOfRTreeNames.get(listOfColNumRtree.get(k)) + ".class");
+
+					ReferenceValues ref = (ReferenceValues) rtree
+							.search((Polygon) dTupleArray[listOfColNumRtree.get(k)]);
+
+					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
+
+					ArrayList<String> listOfFlattenReference = new ArrayList<String>();
+
+					// code for flattening
+					for (int j = 0; j < lstofn.size(); j++) {
+						OverflowNode ofn = lstofn.get(j);
+						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
+							// System.out.println(ofn.referenceOfKeys.get(m));
 							String reference = (ofn.referenceOfKeys.get(m)).toString();
 							listOfFlattenReference.add(reference);
 						}
@@ -965,12 +1097,19 @@ public class DBApp {
 
 						Tuple deletedT = tuples.remove(j);
 						for (int p = 0; p < deletedT.vtrTupleObj.capacity(); p++) {
-							if (listOfColNum.contains(p)) {
+							if (listOfColNum.contains(p) && !(deletedT.vtrTupleObj.get(p) instanceof Polygon)) {
 								String colName = getColNames(strTableName).get(p);
 								BTree btree = (BTree) getDeserlaized(
 										"data//" + "BTree" + strTableName + colName + ".class");
 								btree.delete((Comparable) deletedT.vtrTupleObj.get(p), pageToBeDeleteFrom.pageName);
 								btree.serializeTree();
+							} else if (listOfColNumRtree.contains(p)
+									&& (deletedT.vtrTupleObj.get(p) instanceof Polygon)) {
+								String colName = getColNames(strTableName).get(p);
+								RTree rtree = (RTree) getDeserlaized(
+										"data//" + "RTree" + strTableName + colName + ".class");
+								rtree.delete((Polygon) deletedT.vtrTupleObj.get(p), pageToBeDeleteFrom.pageName);
+								rtree.serializeTree();
 							}
 						}
 
@@ -1340,7 +1479,7 @@ public class DBApp {
 
 					}
 
-					// System.out.println(startPageIndex);
+//					 System.out.println(startPageIndex);
 
 					String startPageName = toBeUpdatedIn.usedPagesNames.get(startPageIndex);
 					Page startPage = (Page) getDeserlaized("data//" + startPageName + ".class");
@@ -1352,26 +1491,36 @@ public class DBApp {
 						}
 					}
 
-					int startTupleIndex = getStartIndexStartUpdate(enteredKey, startPageIndex, toBeUpdatedIn);
-					// System.out.println("start updating at tuple index:" + startTupleIndex);
+					int startTupleIndex = getStartIndexStartUpdate(enteredKey, startPageIndex, toBeUpdatedIn);// bt2lesh
+																												// binary
+//					 System.out.println("start updating at tuple index:" + startTupleIndex);
 					int tupleIndex = startTupleIndex;
+					boolean equalArea = false;
 					while (!enough && (tupleIndex < startPage.vtrTuples.size())) {
 
 						Tuple old = startPage.vtrTuples.get(tupleIndex);
 						String parsed;
 						if (keyType.equals("java.awt.Polygon")) {
 							myPolygon p = new myPolygon((Polygon) old.vtrTupleObj.get(old.index));
+							myPolygon entered = new myPolygon((Polygon) enteredKey);
+							equalArea = (p.compareTo(entered) == 0);
 							parsed = p.toString();
 
 						} else
 							parsed = old.vtrTupleObj.get(old.index) + ""; // polyyy
-						// System.out.println(parsed);
-						// System.out.println(parsed);
+//						 System.out.println(parsed);
+//						System.out.println(parsed.equals(strClusteringKey + ""));
 						// System.out.println(enteredKey);
-						if (parsed.equals(strClusteringKey + "")) {
+						if (parsed.equals(strClusteringKey + "") || equalArea) { // in case of polygon parsed and
+																					// strClusteringKey will have same
+																					// area not coordinates
 
-							// System.out.println("check");
+//							 System.out.println("check: equalArea:"+equalArea);
 							for (int i = 0; i < colToBeUpdated.size(); i++) {
+								if (equalArea && !parsed.equals(strClusteringKey + "")) {
+//									System.out.println("skip");
+									continue;
+								}
 								String col = colToBeUpdated.get(i);
 								for (int j = 0; j < colNames.size(); j++) {
 									if (colNames.get(j).equals(col)) {
@@ -1429,13 +1578,22 @@ public class DBApp {
 									Tuple nextTup = nextPage.vtrTuples.get(z);
 									int indexKeyOfFirst = nextTup.index;
 									String k;
+									boolean nextEqualArea = false;
 									if (keyType.equals("java.awt.Polygon")) {
 										myPolygon p = new myPolygon((Polygon) nextTup.vtrTupleObj.get(indexKeyOfFirst));
+										myPolygon entered = new myPolygon((Polygon) enteredKey);
+										nextEqualArea = (p.compareTo(entered) == 0);
 										k = p.toString();
+//										System.out.println(k);
+//										System.out.println(k.equals(strClusteringKey) +"  "+nextEqualArea +"  "+next);
 									} else
 										k = nextTup.vtrTupleObj.get(indexKeyOfFirst) + "";// polyyy
-									if (k.equals(strClusteringKey)) {
+									if (k.equals(strClusteringKey) || nextEqualArea) {
 										for (int i = 0; i < colToBeUpdated.size(); i++) {
+											if (nextEqualArea && !k.equals(strClusteringKey + "")) {
+//												System.out.println("skip");
+												continue;
+											}
 											String col = colToBeUpdated.get(i);
 											for (int j = 0; j < colNames.size(); j++) {
 												if (colNames.get(j).equals(col)) {
@@ -1460,8 +1618,8 @@ public class DBApp {
 										// continue updating next tuples with the same clustering key until we hit a
 										// wrong one
 										next = false;
+//										System.out.println("no more");
 										break;
-
 									}
 
 								}
@@ -1502,7 +1660,7 @@ public class DBApp {
 			Page startPage = (Page) (getDeserlaized(
 					"data//" + toBeInsertedIn.usedPagesNames.get(pageIndex) + ".class"));
 			String keyType = clusteringKeyType(toBeInsertedIn);
-
+//System.out.println("clusteringKeyType:"+keyType);
 			int lowerBound = 0;
 			int upperBound = startPage.vtrTuples.size() - 1;
 			int curIn;
@@ -1525,7 +1683,13 @@ public class DBApp {
 					while (curIn > 0) {
 						Tuple prevTuple = startPage.vtrTuples.get(curIn - 1);
 						Object prevkey = prevTuple.vtrTupleObj.get(prevTuple.index);
-						if (prevkey.equals(key)) {
+						boolean equalArea = false;
+						if (keyType.equals("java.awt.Polygon")) {
+							myPolygon entered = new myPolygon((Polygon) key);
+							myPolygon prevpoly = new myPolygon((Polygon) prevkey);
+							equalArea = (prevpoly.compareTo(entered) == 0);
+						}
+						if (prevkey.equals(key) || equalArea) { // doesnt support polygon
 							// System.out.println(prevkey);
 							// System.out.println(curIn);
 							curIn--;
@@ -3536,6 +3700,40 @@ public class DBApp {
 		}
 	}
 
+//	public void checkpolygon() throws DBAppException, IOException {
+//		String strTableName = "Shapes";
+////		Hashtable<String, String> htblColNameType = new Hashtable();
+////		htblColNameType.put("id", "java.lang.Integer");
+////		htblColNameType.put("name", "java.lang.String");
+//////		htblColNameType.put("shape", "java.awt.Polygon");
+////		createTable(strTableName, "id", htblColNameType);
+////
+////		for (int i = 0; i < 10; i++) {
+////		Hashtable htblColNameValue = new Hashtable();
+////		htblColNameValue.put("id", new Integer(2));
+////		htblColNameValue.put("name", new String("Ab"));
+//////		Polygon p = new Polygon();
+//////		p.addPoint(i, i);
+//////		p.addPoint(i, i);
+//////		htblColNameValue.put("shape", p);
+////		insertIntoTable(strTableName, htblColNameValue);
+////		}
+//
+//		
+//		Hashtable<String, Object> htblColNameValue = new Hashtable();
+//		Polygon p = new Polygon();
+//		p.addPoint(1,1);
+//		p.addPoint(1,1);
+//		htblColNameValue.put("shape", p);
+//		deleteFromTable(strTableName, htblColNameValue);
+//		
+////		Hashtable hash = new Hashtable();
+////		hash.put("name", new String("wwwwwwwww"));		
+////		updateTable(strTableName, "(3,3),(3,3)", hash);
+//		
+//		displayTableContent(strTableName);
+//	}
+
 	public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException {
 
 		DBApp dbApp = new DBApp();
@@ -3544,27 +3742,19 @@ public class DBApp {
 		String strTableName = "Student";
 
 //**create table**
-//		Hashtable<String, String> htblColNameType = new Hashtable();
 
-//		htblColNameType.put("id", "java.lang.Integer");
-//		htblColNameType.put("name", "java.lang.String");
-//		htblColNameType.put("age", "java.lang.Integer");
-//		htblColNameType.put("date", "java.util.Date");
-//		htblColNameType.put("gpa", "java.lang.Double");
-//		htblColNameType.put("shape", "java.awt.Polygon");
-//		htblColNameType.put("grad", "java.lang.Boolean");
-//		dbApp.createTable(strTableName, "id", htblColNameType);
-//		dbApp.createBTreeIndex(strTableName, "age");
+		Hashtable<String, String> htblColNameType = new Hashtable();
 
-//		htblColNameType.put("id", "java.lang.Integer");
-//		htblColNameType.put("name", "java.lang.String");
-//		htblColNameType.put("age", "java.lang.Integer");
-//		htblColNameType.put("date", "java.util.Date");
-//		htblColNameType.put("gpa", "java.lang.Double");
-//		htblColNameType.put("shape", "java.awt.Polygon");
-//		htblColNameType.put("grad", "java.lang.Boolean");
-		// dbApp.createTable(strTableName, "id", htblColNameType);
-		// dbApp.createBTreeIndex(strTableName, "id");
+		htblColNameType.put("id", "java.lang.Integer");
+		htblColNameType.put("name", "java.lang.String");
+		htblColNameType.put("age", "java.lang.Integer");
+		htblColNameType.put("date", "java.util.Date");
+		htblColNameType.put("gpa", "java.lang.Double");
+		htblColNameType.put("shape", "java.awt.Polygon");
+		htblColNameType.put("grad", "java.lang.Boolean");
+	   // dbApp.createTable(strTableName, "id", htblColNameType);
+		//dbApp.createRTreeIndex(strTableName, "shape");
+		
 
 //		dbApp.makeIndexed(strTableName, "name");
 
@@ -3573,56 +3763,47 @@ public class DBApp {
 //		System.out.println(a.colNames[1]);
 //		System.out.println(a.colNames[2]);
 
+
 //** insert tuples**
 
 //		for (int i = 0; i < 210; i++) {
 
-//		Hashtable htblColNameValue = new Hashtable();
-
-//		htblColNameValue.put("id", new Integer(4));
-//		htblColNameValue.put("name", new String("Ab"));
-//		htblColNameValue.put("age", new Integer(30));
-//		dbApp.insertIntoTable(strTableName, htblColNameValue);
-//		htblColNameValue.put("date", new Date(2000, 11, 23));
-
-//		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(2));
-//		htblColNameValue.put("name", new String("Ab"));
-//		htblColNameValue.put("age", new Integer(25));
-//		htblColNameValue.put("date", new Date(2000, 11, 23));
-//
-
-////////			System.out.println((new Date(2020, 11, 11).getClass()));
-////////			System.out.println((new Date(2020, 11, 11)).toString());
-//		
-//		htblColNameValue.put("gpa", new Double(2.0));
-//			
-//		if (4 % 2 == 0) {
-//			htblColNameValue.put("grad", true);
-//		} else
-//			htblColNameValue.put("grad", false);
-//		Polygon p = new Polygon();
-//		p.addPoint(1, 1);
-//		p.addPoint(2, 2);
-//////			 System.out.println("n:"+p.npoints);
-//		htblColNameValue.put("shape", p);
-
+		Hashtable htblColNameValue = new Hashtable();
+		htblColNameValue.put("id", new Integer(4));
+		htblColNameValue.put("name", new String("Ab"));
+		htblColNameValue.put("age", new Integer(25));
+		htblColNameValue.put("date", new Date(2000, 11, 23));
+//////			System.out.println((new Date(2020, 11, 11).getClass()));
+//////			System.out.println((new Date(2020, 11, 11)).toString());
+		
+		htblColNameValue.put("gpa", new Double(2.0));
+			
+		if (4 % 2 == 0) {
+			htblColNameValue.put("grad", true);
+		} else
+			htblColNameValue.put("grad", false);
+		Polygon p = new Polygon();
+		p.addPoint(1, 1);
+		p.addPoint(0, 0);
+		
+////			 System.out.println("n:"+p.npoints);
+		htblColNameValue.put("shape", p);
+		
 		// dbApp.insertIntoTable(strTableName, htblColNameValue);
-
-//		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
-//		 System.out.println(a.toString());
-//		 ReferenceValues ref = (ReferenceValues) a.search(3);
-
-//			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
-//			OverflowNode b = ref.getOverflowNodes().get(i);
-//			//System.out.println("size =" + b.referenceOfKeys.size());
-//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-//				System.out.print(b.referenceOfKeys.get(j) + " ");
-//			}
-//			System.out.println();
-//		}
-
-//		}
+		 
+		 RTree a = (RTree)(getDeserlaized("data//" +"RTree"+strTableName+"shape" + ".class"));
+		 System.out.println(a.toString());
+		 
+		 RTreeReferenceValues ref = (RTreeReferenceValues) a.search(p);
+			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
+			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
+			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+				System.out.print(b.referenceOfKeys.get(j) + " ");
+			}
+			System.out.println();
+		}
+		 
+		
 
 //		Hashtable htblColNameValue = new Hashtable();
 //		htblColNameValue.put("id", new Integer(50));
@@ -3672,14 +3853,10 @@ public class DBApp {
 //		dbApp.updateTable(strTableName, "9", hash);
 ////////
 
-//		BTree a = (BTree) (getDeserlaized("data//" + "BTree" + strTableName + "age" + ".class"));
-//		System.out.println(a.toString());
-////		System.out.println(a.rangeMaxSearch(30));
-//		a.serializeTree();
 
+	
 //** testing SELECT**
-
-		// displayTableContent(strTableName);
+			displayTableContent(strTableName);
 
 		SQLTerm[] arrSQLTerms;
 		arrSQLTerms = new SQLTerm[1];
@@ -3690,6 +3867,7 @@ public class DBApp {
 		arrSQLTerms[0]._strColumnName = "age";
 		arrSQLTerms[0]._strOperator = "<=";
 		arrSQLTerms[0]._objValue = new Integer(60);
+
 
 //////
 //		arrSQLTerms[1]._strTableName = "Student";
@@ -3706,7 +3884,7 @@ public class DBApp {
 //////		
 //////		
 
-		String[] strarrOperators = new String[0];
+		//String[] strarrOperators = new String[0];
 //		strarrOperators[0] = "AND";
 //////		strarrOperators[1] = "AND";
 //////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
@@ -3730,10 +3908,10 @@ public class DBApp {
 //		} catch (Exception e) {
 //			throw new DBAppException("error in displaying data in table");
 //		}
-		// dbApp.createBTreeIndex(strTableName, "age");
-
-		// dbApp.checkTree();
-		displayTableContent(strTableName);
+	//	dbApp.createBTreeIndex(strTableName, "age");
+		
+	//	dbApp.checkTree();
+	//	displayTableContent(strTableName);
 
 //		long modified = dbApp.modifyKey(new Integer(30));
 //		BTree b = (BTree) getDeserlaized("data//" + "BTreeStudentage" + ".class");
@@ -3764,6 +3942,5 @@ public class DBApp {
 		// System.out.println(isIndexed("Student", "id"));
 
 	}
-}
 
-//throw DBAexception 
+}// throw DBAexception

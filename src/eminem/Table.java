@@ -35,8 +35,8 @@ public class Table implements Serializable {
 		this.usedPagesNames = new Vector<String>();
 		this.usedIndicesNames = new Vector<String>();
 		this.usedIndicescols = new Vector<String>();
-		Vector<String> usedRtreeNames= new Vector<String>();;
-		Vector<String> usedRtreeCols= new Vector<String>();;
+		this.usedRtreeNames= new Vector<String>();;
+		this.usedRtreeCols= new Vector<String>();;
 		colNames = new String[htblColNameType.size()];
 
 		// added for delete
