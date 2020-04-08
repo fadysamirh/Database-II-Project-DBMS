@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 
 import eminem.DBAppException;
+import eminem.Tuple;
 
 /**
  * A B+ tree Since the structures and behaviors between internal node and
@@ -197,13 +198,43 @@ public class BTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 	 * Search the leaf node which should contain the specified key
 	 */
 	@SuppressWarnings("unchecked")
-	private BTreeLeafNode<TKey, TValue> findLeafNodeShouldContainKey(TKey key) {
+	public BTreeLeafNode<TKey, TValue> findLeafNodeShouldContainKey(TKey key) {
 		BTreeNode<TKey> node = this.root;
 		while (node.getNodeType() == TreeNodeType.InnerNode) {
 			node = ((BTreeInnerNode<TKey>) node).getChild(node.search(key));
 		}
 
 		return (BTreeLeafNode<TKey, TValue>) node;
+	}
+	
+	public ArrayList<String> rangeMaxSearchKeys(TKey key) { // returns ReferenceValues that contains a list of overflow
+		// nodes
+		// BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
+		ArrayList<BTreeLeafNode<TKey, TValue>> leaves = new ArrayList<BTreeLeafNode<TKey, TValue>>();
+		leaves = this.findLeafNodeStopKey(key);
+		 //System.out.println(leaf.keys[1]);
+		ArrayList<String> result = new ArrayList<String>();
+		//System.out.println(leaves.size());
+		for (int w = 0; w < leaves.size(); w++) {
+			BTreeLeafNode<TKey, TValue> leaf = leaves.get(w);
+			//System.out.println(leaf.keys[1]);
+			for (int i = 0; i < leaf.keys.length; i++) {
+				if (leaf.getKey(i) != null) {
+					if (leaf.getKey(i).compareTo(key) <= 0) {
+						//System.out.println(leaf.keys[i]);
+						int index = leaf.searchMin(leaf.getKey(i));
+						 //System.out.println(index + "s" + leaf.keys[i]);
+						if (index != -1) {
+							result.add(key+ " ");
+							
+						}
+					}
+				}
+			}
+		}
+		return result;
+//int index = leaf.searchMin(key);
+//return (index == -1) ? null : leaf.getValue(index);
 	}
 
 	public void serializeTree() throws DBAppException, IOException {
@@ -219,4 +250,6 @@ public class BTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 			throw new DBAppException("error in serialization");
 		}
 	}
+	
+	
 }

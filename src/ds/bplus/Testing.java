@@ -21,8 +21,11 @@ public class Testing {
 		
 		btree.insert(8,"Student1");
 		
-	//	btree.insert(2,"Student1");
-
+ArrayList<String> a = 	btree.rangeMinSearch(2);
+for(int i = 0 ; i<a.size();i++)
+{
+	System.out.print(a.get(i));
+}
 
 	System.out.println(btree.toString());
 

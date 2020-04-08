@@ -29,10 +29,14 @@ public class Testing {
 		p5.addPoint(1,1);
 		p5.addPoint(3,3);
 		tree.insert(p5, "shape1");
+		Polygon p6 = new Polygon();
+		p6.addPoint(1,1);
+		p6.addPoint(0,0);
+		tree.insert(p6, "shape1");
 		
 		System.out.println(tree.toString());
 		 
-		 RTreeReferenceValues ref = (RTreeReferenceValues) tree.search(p);
+		 RTreeReferenceValues ref = (RTreeReferenceValues) tree.search(p6);
 			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
 			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
 			for (int j = 0; j < b.referenceOfKeys.size(); j++) {

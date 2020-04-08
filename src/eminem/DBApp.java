@@ -29,7 +29,7 @@ import ds.Rtree.RTreeReferenceValues;
 import ds.bplus.BTree;
 import ds.bplus.OverflowNode;
 import ds.bplus.ReferenceValues;
-//import ds.bplus.bptree.RangeResult;
+
 //import ds.bplus.bptree.SearchResult;
 //import ds.bplus.util.InvalidBTreeStateException;
 
@@ -168,6 +168,21 @@ public class DBApp {
 		}
 
 	}
+	public static String getPage (BTree a ,Tuple nTuple)
+	{
+		String res ="";
+		ArrayList<String> Strings1 = a.rangeMinSearch((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
+		if(Strings1.size()!=0)
+		{
+			res = Strings1.get(0);
+		}
+		if(Strings1.size()==0)
+		{
+			ArrayList<String> Strings2 = a.rangeMaxSearch((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
+			res=Strings2.get(0);
+		}
+		return res ;
+	}
 
 	public void insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
@@ -192,8 +207,9 @@ public class DBApp {
 				Boolean ClusteringIndexed = false;
 
 				// checking if one of the indexes is on the clustering column
+				
 				if (toBeInstertedIn.usedIndicescols.contains(getClusteringKey(strTableName)) || toBeInstertedIn.usedRtreeCols.contains(getClusteringKey(strTableName)) ) {
-					Indexed = true;
+					ClusteringIndexed = true;
 				}
 
 				if (toBeInstertedIn.usedPagesNames.isEmpty()) {
@@ -253,7 +269,24 @@ public class DBApp {
 
 					Vector<String> usedPages = toBeInstertedIn.usedPagesNames;
 					int page = -1;
-
+					System.out.println(ClusteringIndexed);
+                     if(ClusteringIndexed)
+                     {
+                    	 ArrayList<String> columns = getColNames(strTableName);
+                    	 int index = nTuple.index;
+                    	 String colname = columns.get(index);
+                    	 
+                    	 if(toBeInstertedIn.usedIndicescols.contains(colname))
+                    	 {
+                    		 int i= toBeInstertedIn.usedIndicescols.indexOf(colname);
+                    		 System.out.println(i);
+                    		 BTree a = (BTree) getDeserlaized(
+ 									"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
+                    		 String pagebyindex = getPage(a, nTuple);
+                    		 System.out.println(pagebyindex+",jb,jb,b,bmnbnn,");
+                    	 }
+                    	 
+                     }
 					// searching in which page the nTuple will fit in it's range
 					for (int i = 0; i < usedPages.size(); i++) {
 						Page pageToBeInstertedIn = (Page) (getDeserlaized(
@@ -490,7 +523,7 @@ public class DBApp {
 										ArrayList<String> columns = getColNames(strTableName);
 										for (int k = 0; k < toBeInstertedIn.usedRtreeNames.size(); k++) {
 											RTree toUpdate = (RTree) getDeserlaized("data//"
-													+ toBeInstertedIn.usedPagesNames.elementAt(k) + ".class");
+													+ toBeInstertedIn.usedRtreeNames.elementAt(k) + ".class");
 											String colName = toBeInstertedIn.usedRtreeCols.elementAt(k);
 											int colIndex = columns.indexOf(colName);
 											Object key = nTuple.vtrTupleObj.get(colIndex);
@@ -3750,8 +3783,8 @@ public class DBApp {
 		htblColNameType.put("gpa", "java.lang.Double");
 		htblColNameType.put("shape", "java.awt.Polygon");
 		htblColNameType.put("grad", "java.lang.Boolean");
-	   // dbApp.createTable(strTableName, "id", htblColNameType);
-		//dbApp.createRTreeIndex(strTableName, "shape");
+	  //  dbApp.createTable(strTableName, "id", htblColNameType);
+	//	dbApp.createBTreeIndex(strTableName, "id");
 		
 
 //		dbApp.makeIndexed(strTableName, "name");
@@ -3767,7 +3800,7 @@ public class DBApp {
 //		for (int i = 0; i < 210; i++) {
 
 		Hashtable htblColNameValue = new Hashtable();
-		htblColNameValue.put("id", new Integer(4));
+		htblColNameValue.put("id", new Integer(8));
 		htblColNameValue.put("name", new String("Ab"));
 		htblColNameValue.put("age", new Integer(25));
 		htblColNameValue.put("date", new Date(2000, 11, 23));
@@ -3787,20 +3820,20 @@ public class DBApp {
 ////			 System.out.println("n:"+p.npoints);
 		htblColNameValue.put("shape", p);
 		
-		// dbApp.insertIntoTable(strTableName, htblColNameValue);
-		 
-		 RTree a = (RTree)(getDeserlaized("data//" +"RTree"+strTableName+"shape" + ".class"));
-		 System.out.println(a.toString());
-		 
-		 RTreeReferenceValues ref = (RTreeReferenceValues) a.search(p);
-			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
-			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
-			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-				System.out.print(b.referenceOfKeys.get(j) + " ");
-			}
-			System.out.println();
-		}
-		 
+		 dbApp.insertIntoTable(strTableName, htblColNameValue);
+//		 
+//		 RTree a = (RTree)(getDeserlaized("data//" +"RTree"+strTableName+"shape" + ".class"));
+//		 System.out.println(a.toString());
+//		 
+//		 RTreeReferenceValues ref = (RTreeReferenceValues) a.search(p);
+//			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
+//			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
+//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+//				System.out.print(b.referenceOfKeys.get(j) + " ");
+//			}
+//			System.out.println();
+//		}
+//		 
 		
 
 //		Hashtable htblColNameValue = new Hashtable();
