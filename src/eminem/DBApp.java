@@ -717,18 +717,37 @@ public class DBApp {
 	public ArrayList<String> getListOfIndicesNames(Hashtable<String, Object> htblColNameValue, String strTableName)
 			throws DBAppException {
 		Enumeration<String> keys = htblColNameValue.keys();
+		Enumeration<Object> values=(Enumeration<Object>) htblColNameValue.values();
 		ArrayList<String> listOfAvailableIndices = new ArrayList<String>();
 		while (keys.hasMoreElements()) {
 			String colName = keys.nextElement();
+			Object value=values.nextElement();
 			boolean flag = isIndexed(strTableName, colName);
-			if (flag) {
+			
+			if (flag&& !(value instanceof Polygon)) {
 				listOfAvailableIndices.add(colName);
 			}
 		}
 		return listOfAvailableIndices;
 
 	}
+	public ArrayList<String> getListRTreeNames(Hashtable<String, Object> htblColNameValue, String strTableName)
+			throws DBAppException {
+		Enumeration<String> keys = htblColNameValue.keys();
+		Enumeration<Object> values=(Enumeration<Object>) htblColNameValue.values();
+		ArrayList<String> listOfAvailableIndices = new ArrayList<String>();
+		while (keys.hasMoreElements()) {
+			String colName = keys.nextElement();
+			Object value=values.nextElement();
+			boolean flag = isIndexed(strTableName, colName);
+			
+			if (flag&& (value instanceof Polygon)) {
+				listOfAvailableIndices.add(colName);
+			}
+		}
+		return listOfAvailableIndices;
 
+	}
 	public void deleteFromTable(String strTableName, Hashtable<String, Object> htblColNameValue)
 			throws DBAppException, IOException {
 
@@ -744,11 +763,12 @@ public class DBApp {
 
 		// System.out.println(pageToBeInstertedInIndex + " this is the index");
 		ArrayList<String> listOfAvailableIndices = getListOfIndicesNames(htblColNameValue, strTableName);
+		ArrayList<String> listOfRTreeNames = getListRTreeNames(htblColNameValue, strTableName);
 
 		boolean flag2 = false;
 		int i = 0;
 		int[] compareTuple = getDeleteIndexOfArray(dTupleArray);
-		if (listOfAvailableIndices.isEmpty()) {
+		if (listOfAvailableIndices.isEmpty()&&listOfRTreeNames.isEmpty()) {
 			for (i = 0; i < newTable.usedPagesNames.size(); i++) {
 
 				Page pageToBeDeleteFrom = (Page) (getDeserlaized("data//" + newTable.usedPagesNames.get(i) + ".class"));
@@ -889,11 +909,18 @@ public class DBApp {
 			}
 		} else {
 			ArrayList<Integer> listOfColNum = new ArrayList<Integer>();
-
+			
 			for (int k = 0; k < listOfAvailableIndices.size(); k++) {
 				listOfColNum.add(getColNumber(strTableName, listOfAvailableIndices.get(k)));
 
 			}
+			ArrayList<Integer> listOfColNumRtree = new ArrayList<Integer>();
+			
+			for (int k = 0; k < listOfRTreeNames.size(); k++) {
+				listOfColNumRtree.add(getColNumber(strTableName, listOfRTreeNames.get(k)));
+
+			}
+			
 //			for(int l=0;l<listOfColNum.size();l++)
 //				System.out.println(listOfColNum.get(l));
 
@@ -919,6 +946,36 @@ public class DBApp {
 						OverflowNode ofn = lstofn.get(j);
 						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
 							System.out.println(ofn.referenceOfKeys.get(m));
+							String reference = (ofn.referenceOfKeys.get(m)).toString();
+							listOfFlattenReference.add(reference);
+						}
+					}
+					// end of flattening now I have a list of references [page1,page2,page3] ..
+					if (intersect.isEmpty()) {
+						intersect = listOfFlattenReference;
+					} else {
+						intersect = intersection(listOfFlattenReference, intersect);
+					}
+				}
+			}
+			for (int k = 0; k < listOfColNumRtree.size(); k++) { // looping over col that has an rtree
+
+				if (dTupleArray[listOfColNumRtree.get(k)] != null) {
+
+					RTree rtree = (RTree) getDeserlaized(
+							"data//" + "RTree" + strTableName + listOfColName.get(listOfColNum.get(k)) + ".class");
+
+					ReferenceValues ref = (ReferenceValues) rtree.search( (Polygon)dTupleArray[listOfColNum.get(k)]);
+
+					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
+
+					ArrayList<String> listOfFlattenReference = new ArrayList<String>();
+
+					// code for flattening
+					for (int j = 0; j < lstofn.size(); j++) {
+						OverflowNode ofn = lstofn.get(j);
+						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
+							//System.out.println(ofn.referenceOfKeys.get(m));
 							String reference = (ofn.referenceOfKeys.get(m)).toString();
 							listOfFlattenReference.add(reference);
 						}
