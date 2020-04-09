@@ -167,47 +167,40 @@ public class DBApp {
 		}
 
 	}
-	public static String getPage (BTree a ,Tuple nTuple)
-	{
-		String res ="";
+
+	public static String getPage(BTree a, Tuple nTuple) {
+		String res = "";
 		ArrayList<String> Strings1 = a.rangeMinSearchKeys((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
-		if(Strings1.size()!=0)
-		{
+		if (Strings1.size() != 0) {
 			res = Strings1.get(0);
 		}
-		if(Strings1.size()==0)
-		{
+		if (Strings1.size() == 0) {
 			ArrayList<String> Strings2 = a.rangeMaxSearchKeys((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
-			res=Strings2.get(0);
+			res = Strings2.get(0);
 		}
-		return res ;
+		return res;
 	}
-	public static String getPageR (RTree a ,Tuple nTuple)
-	{
-		String res ="";
+
+	public static String getPageR(RTree a, Tuple nTuple) {
+		String res = "";
 		ArrayList<String> Strings1 = a.rangeMinSearchKeys((Polygon) nTuple.vtrTupleObj.get(nTuple.index));
-		if(Strings1.size()!=0)
-		{
+		if (Strings1.size() != 0) {
 			res = Strings1.get(0);
 		}
-		if(Strings1.size()==0)
-		{
+		if (Strings1.size() == 0) {
 			ArrayList<String> Strings2 = a.rangeMaxSearchKeys((Polygon) nTuple.vtrTupleObj.get(nTuple.index));
-			res=Strings2.get(0);
+			res = Strings2.get(0);
 		}
-		return res ;
+		return res;
 	}
-	
-	public static int neededPage (String pageName , String strTableName , Tuple nTuple) throws DBAppException
-	{
-		int page = -1 ;
+
+	public static int neededPage(String pageName, String strTableName, Tuple nTuple) throws DBAppException {
+		int page = -1;
 		Table toBeInstertedIn = (Table) getDeserlaized("data//" + strTableName + ".class");
-		int start = 0 ;
-		for(int i = 0 ; i<toBeInstertedIn.usedPagesNames.size();i++)
-		{
-			if(toBeInstertedIn.usedPagesNames.get(i).equals(pageName))
-			{
-				start = i ;
+		int start = 0;
+		for (int i = 0; i < toBeInstertedIn.usedPagesNames.size(); i++) {
+			if (toBeInstertedIn.usedPagesNames.get(i).equals(pageName)) {
+				start = i;
 				break;
 			}
 		}
@@ -246,7 +239,7 @@ public class DBApp {
 			}
 
 		}
-        return page ;
+		return page;
 	}
 
 	public void insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException {
@@ -334,7 +327,7 @@ public class DBApp {
 
 					Vector<String> usedPages = toBeInstertedIn.usedPagesNames;
 					int page = -1;
-					System.out.println(ClusteringIndexed);
+					//System.out.println(ClusteringIndexed);
                      if(ClusteringIndexed)
                      {
                     	 ArrayList<String> columns = getColNames(strTableName);
@@ -348,7 +341,7 @@ public class DBApp {
  									"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
                     		 String pagebyindex = getPage(a, nTuple);
                     		 page = neededPage(pagebyindex , strTableName , nTuple);
-                    		 System.out.println(pagebyindex+" here");
+                    	//	 System.out.println(pagebyindex+" here");
                     	 }
                     	 if(toBeInstertedIn.usedRtreeCols.contains(colname))
                     	 {
@@ -357,12 +350,13 @@ public class DBApp {
  									"data//" + toBeInstertedIn.usedRtreeNames.elementAt(i) + ".class");
                     		 String pagebyindex = getPageR(a, nTuple);
                     		 page = neededPage(pagebyindex,strTableName , nTuple);
-                    		 System.out.println(pagebyindex+" here");
+                    	//	 System.out.println(pagebyindex+" here");
                     	 }
                     	 
                      }
+                  //   System.out.println(page);
 					// searching in which page the nTuple will fit in it's range
-					for (int i = 0; i < usedPages.size()&&page!=-1; i++) {
+					for (int i = 0; i < usedPages.size()&&page==-1; i++) {
 						Page pageToBeInstertedIn = (Page) (getDeserlaized(
 								"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
@@ -372,6 +366,8 @@ public class DBApp {
 
 						int compare2 = (pageToBeInstertedIn.vtrTuples.get(0)).compareTo(nTuple);
 
+					//	System.out.println(compare1);
+					//	System.out.println(compare2);
 						if (i == 0 && (compare2 >= 0)) {
 							page = 0;
 							break;
@@ -382,6 +378,7 @@ public class DBApp {
 						}
 
 					}
+				//	System.out.println(page);
 					// if nTuple does not fit in any page range if the last page is not full then
 					// insert in it else create new page
 					if (page == -1) {
@@ -396,6 +393,7 @@ public class DBApp {
 						}
 
 					}
+					System.out.println(page);
 
 					// if the table has index insert the nTuple with the page found in the index
 					if (Indexed) {
@@ -535,7 +533,7 @@ public class DBApp {
 						int flag = 0;
 
 						for (int i = page+1 ; i <= usedPages.size() - 1 && flag == 0; i++) {
-                            System.out.println(i);
+                            
 							Page pageToBeInstertedIn = (Page) (getDeserlaized(
 									"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
@@ -1545,7 +1543,6 @@ public class DBApp {
 					} else if (keyType.equals("java.lang.Double")) {
 						enteredKey = Double.parseDouble(strClusteringKey);
 					} else if (keyType.equals("java.awt.Polygon")) {
-
 						String[] bracketedPoints = strClusteringKey.split("\\)");
 						Polygon p = new Polygon();
 						for (int i = 0; i < bracketedPoints.length; i++) {
@@ -1565,30 +1562,57 @@ public class DBApp {
 
 					int startPageIndex;
 					if (isIndexed(strTableName, toBeUpdatedIn.strClusteringKeyColumn)) {
-						BTree b = (BTree) getDeserlaized(
-								"data//" + "BTree" + strTableName + toBeUpdatedIn.strClusteringKeyColumn + ".class");
-						// System.out.println(b.toString());
-						Comparable comparableKey = (Comparable) enteredKey;
+						if (toBeUpdatedIn.usedIndicescols.contains(toBeUpdatedIn.strClusteringKeyColumn)) {
+							// the index is a btree
+							BTree b = (BTree) getDeserlaized("data//" + "BTree" + strTableName
+									+ toBeUpdatedIn.strClusteringKeyColumn + ".class");
+							// System.out.println(b.toString());
+							Comparable comparableKey = (Comparable) enteredKey;
 
-						ReferenceValues ref = (ReferenceValues) b.search(comparableKey);
-						if (!(ref.getOverflowNodes().isEmpty())) {
-							OverflowNode n = ref.getOverflowNodes().get(0);
-							String pageName = n.referenceOfKeys.get(0) + "";
-							Page p = (Page) getDeserlaized("data//" + pageName + ".class");
-							startPageIndex = p.number;
+							ReferenceValues ref = (ReferenceValues) b.search(comparableKey);
+							if (!(ref.getOverflowNodes().isEmpty())) {
+								OverflowNode n = ref.getOverflowNodes().get(0);
+								String pageName = n.referenceOfKeys.get(0) + "";
+								Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+								startPageIndex = p.number;
+
+								// System.out.println(startPageIndex);
+
+							} else {
+								startPageIndex = -1;
+								throw new DBAppException("key not found");
+							}
 							b.serializeTree();
-							// System.out.println(startPageIndex);
+						} else if (toBeUpdatedIn.usedRtreeCols.contains(toBeUpdatedIn.strClusteringKeyColumn)) {
+							// it is an RTree index
 
+							RTree r = (RTree) getDeserlaized("data//" + "RTree" + strTableName
+									+ toBeUpdatedIn.strClusteringKeyColumn + ".class");
+							Polygon pol = (Polygon) enteredKey;
+							// myPolygon enteredKeyComp = new myPolygon(pol);
+							// Comparable comparableKey = (Comparable) enteredKeyComp;
+							RTreeReferenceValues ref = (RTreeReferenceValues) r.search(pol);
+							if (!(ref.getRTreeOverflowNodes().isEmpty())) {
+								// System.out.println("check");
+								RTreeOverflowNode n = ref.getRTreeOverflowNodes().get(0);
+								String pageName = n.referenceOfKeys.get(0) + "";
+								Page p = (Page) getDeserlaized("data//" + pageName + ".class");
+								startPageIndex = p.number;
+								// System.out.println(startPageIndex);
+
+							} else {
+								startPageIndex = -1;
+								throw new DBAppException("key not found");
+							}
+							r.serializeTree();
 						} else {
 							startPageIndex = -1;
 							throw new DBAppException("key not found");
 						}
 					} else {
 						startPageIndex = getPageToBeInsertedIndexUsingClusteringKey(toBeUpdatedIn, strClusteringKey);
-
 					}
-
-//					 System.out.println(startPageIndex);
+					// System.out.println(startPageIndex);
 
 					String startPageName = toBeUpdatedIn.usedPagesNames.get(startPageIndex);
 					Page startPage = (Page) getDeserlaized("data//" + startPageName + ".class");
@@ -1602,7 +1626,7 @@ public class DBApp {
 
 					int startTupleIndex = getStartIndexStartUpdate(enteredKey, startPageIndex, toBeUpdatedIn);// bt2lesh
 																												// binary
-//					 System.out.println("start updating at tuple index:" + startTupleIndex);
+					// System.out.println("start updating at tuple index:" + startTupleIndex);
 					int tupleIndex = startTupleIndex;
 					boolean equalArea = false;
 					while (!enough && (tupleIndex < startPage.vtrTuples.size())) {
@@ -1634,16 +1658,29 @@ public class DBApp {
 								for (int j = 0; j < colNames.size(); j++) {
 									if (colNames.get(j).equals(col)) {
 										if (isIndexed(strTableName, colNames.get(j))) {
+											if (toBeUpdatedIn.usedIndicescols.contains(col)) {
+												BTree bt = (BTree) getDeserlaized(
+														"data//" + "BTree" + strTableName + colNames.get(j) + ".class");
+												Object oldValue = old.vtrTupleObj.get(j);
+												Comparable oldValueCom = (Comparable) oldValue;
+												// System.out.println(oldValueCom);
+												bt.delete(oldValueCom, startPage.pageName);
+												Comparable newValueCom = (Comparable) valuesToBeUpdated.get(i);
+												bt.insert(newValueCom, startPage.pageName);
+												bt.serializeTree();
+											} else if (toBeUpdatedIn.usedRtreeCols.contains(col)) {
+												RTree rt = (RTree) getDeserlaized(
+														"data//" + "RTree" + strTableName + colNames.get(j) + ".class");
+												Object oldValue = old.vtrTupleObj.get(j);
+												Polygon pol = (Polygon) oldValue;
+												// Comparable oldValueCom = (Comparable) oldValue;
+												// System.out.println(oldValueCom);
+												rt.delete(pol, startPage.pageName);
+												// Comparable newValueCom = (Comparable) valuesToBeUpdated.get(i);
+												rt.insert(pol, startPage.pageName);
+												rt.serializeTree();
+											}
 
-											BTree bt = (BTree) getDeserlaized(
-													"data//" + "BTree" + strTableName + colNames.get(j) + ".class");
-											Object oldValue = old.vtrTupleObj.get(j);
-											Comparable oldValueCom = (Comparable) oldValue;
-											// System.out.println(oldValueCom);
-											bt.delete(oldValueCom, startPage.pageName);
-											Comparable newValueCom = (Comparable) valuesToBeUpdated.get(i);
-											bt.insert(newValueCom, startPage.pageName);
-											bt.serializeTree();
 										}
 
 										indexToBeUpdated = j;
@@ -3618,11 +3655,11 @@ public class DBApp {
 				br = new BufferedReader(new FileReader(csvFile));
 
 				while ((line = br.readLine()) != null) {
-					System.out.println("line: "+line);
+					System.out.println("line: " + line);
 
 					// use comma as separator
 					String[] d = line.split(cvsSplitBy);
-					System.out.println("d size: "+d.length);
+					System.out.println("d size: " + d.length);
 					if (d[0].equals(tableName)) {
 						// System.out.println(d[1]);
 						if (d[1].equals(colName)) {
@@ -3635,7 +3672,7 @@ public class DBApp {
 						returnBack = returnBack + d[i] + ",";
 					}
 					returnBack += "\n";
-System.out.println(returnBack+"|||||||||");
+					System.out.println(returnBack + "|||||||||");
 				}
 				br.close();
 				File file = new File("data/metadata.csv");
@@ -3809,28 +3846,26 @@ System.out.println(returnBack+"|||||||||");
 		}
 	}
 
+	public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException {
 
-public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException {
-
-	DBApp dbApp = new DBApp();
-	dbApp.init();
+		DBApp dbApp = new DBApp();
+		dbApp.init();
 //    System.out.println(dbApp.maxPageSize);
-	String strTableName = "Student";
+		String strTableName = "Student";
 //dbApp.checkpolygon();
 //*create table*
+//		Hashtable<String, String> htblColNameType = new Hashtable();
 
-	Hashtable<String, String> htblColNameType = new Hashtable();
-
-	htblColNameType.put("id", "java.lang.Integer");
-	htblColNameType.put("name", "java.lang.String");
-	htblColNameType.put("age", "java.lang.Integer");
-	htblColNameType.put("date", "java.util.Date");
-	htblColNameType.put("gpa", "java.lang.Double");
-	htblColNameType.put("shape", "java.awt.Polygon");
-	htblColNameType.put("grad", "java.lang.Boolean");
-   // dbApp.createTable(strTableName, "id", htblColNameType);
-	//dbApp.createBTreeIndex(strTableName, "id");
-	
+//		htblColNameType.put("id", "java.lang.Integer");
+//		htblColNameType.put("name", "java.lang.String");
+//		htblColNameType.put("age", "java.lang.Integer");
+//		htblColNameType.put("date", "java.util.Date");
+//		htblColNameType.put("gpa", "java.lang.Double");
+//		htblColNameType.put("shape", "java.awt.Polygon");
+//		htblColNameType.put("grad", "java.lang.Boolean");
+//		dbApp.createTable(strTableName, "id", htblColNameType);
+		// dbApp.createBTreeIndex(strTableName, "id");
+		// dbApp.createRTreeIndex(strTableName, "shape");
 
 //	dbApp.makeIndexed(strTableName, "name");
 
@@ -3839,15 +3874,13 @@ public static void main(String[] args) throws FileNotFoundException, DBAppExcept
 //	System.out.println(a.colNames[1]);
 //	System.out.println(a.colNames[2]);
 
-
 //* insert tuples*
-
 
 ////	for (int i = 0; i < 210; i++) {
 //
-//	Hashtable htblColNameValue = new Hashtable();
-//	htblColNameValue.put("id", new Integer(4));
-//	htblColNameValue.put("name", new String("Ab"));
+		Hashtable htblColNameValue = new Hashtable();
+		htblColNameValue.put("id", new Integer(3));
+		htblColNameValue.put("name", new String("Aaaa"));
 //	htblColNameValue.put("age", new Integer(25));
 //	htblColNameValue.put("date", new Date(2000, 11, 23));
 ////////		System.out.println((new Date(2020, 11, 11).getClass()));
@@ -3860,16 +3893,17 @@ public static void main(String[] args) throws FileNotFoundException, DBAppExcept
 //	} else
 //		htblColNameValue.put("grad", false);
 //	Polygon p = new Polygon();
-//	p.addPoint(1, 1);
-//	p.addPoint(0, 0);
+//	p.addPoint(1, 0);
+//	p.addPoint(5, 3);
 //	
 //////		 System.out.println("n:"+p.npoints);
 //	htblColNameValue.put("shape", p);
 //	
-//	// dbApp.insertIntoTable(strTableName, htblColNameValue);
+	 dbApp.insertIntoTable(strTableName, htblColNameValue);
 //	 
-//	 RTree a = (RTree)(getDeserlaized("data//" +"RTree"+strTableName+"shape" + ".class"));
-//	 System.out.println(a.toString());
+//		RTree a = (RTree) (getDeserlaized("data//" + "RTree" + strTableName + "shape" + ".class"));
+//		System.out.println(a.toString());
+//		a.serializeTree();
 //	 
 //	 RTreeReferenceValues ref = (RTreeReferenceValues) a.search(p);
 //		for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
@@ -3882,44 +3916,41 @@ public static void main(String[] args) throws FileNotFoundException, DBAppExcept
 
 //	for (int i = 0; i < 210; i++) {
 
-	Hashtable htblColNameValue = new Hashtable();
-	htblColNameValue.put("id", new Integer(2));
-	htblColNameValue.put("name", new String("Ab"));
-	htblColNameValue.put("age", new Integer(25));
-	htblColNameValue.put("date", new Date(2000, 11, 23));
-//////		System.out.println((new Date(2020, 11, 11).getClass()));
-//////		System.out.println((new Date(2020, 11, 11)).toString());
-	
-	htblColNameValue.put("gpa", new Double(2.0));
-		
-	if (4 % 2 == 0) {
-		htblColNameValue.put("grad", true);
-	} else
-		htblColNameValue.put("grad", false);
-	Polygon p = new Polygon();
-	p.addPoint(1, 1);
-	p.addPoint(0, 0);
-	
-////		 System.out.println("n:"+p.npoints);
-	htblColNameValue.put("shape", p);
-	
-	 dbApp.insertIntoTable(strTableName, htblColNameValue);
-	 
-	 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
-	 System.out.println(a.toString());
-	 
-	 ReferenceValues ref = (ReferenceValues) a.search(0);
-	for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
-		OverflowNode b = ref.getOverflowNodes().get(i);
-		//System.out.println("size =" + b.referenceOfKeys.size());
-		for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-			System.out.print(b.referenceOfKeys.get(j) + " ");
-		}
-		System.out.println();
-	}
+//		Hashtable htblColNameValue = new Hashtable();
+//		htblColNameValue.put("id", new Integer(2));
+//		htblColNameValue.put("name", new String("Ab"));
+//		htblColNameValue.put("age", new Integer(25));
+//		htblColNameValue.put("date", new Date(2000, 11, 23));
+////////		System.out.println((new Date(2020, 11, 11).getClass()));
+////////		System.out.println((new Date(2020, 11, 11)).toString());
+//
+//		htblColNameValue.put("gpa", new Double(2.0));
+//
+//		if (4 % 2 == 0) {
+//			htblColNameValue.put("grad", true);
+//		} else
+//			htblColNameValue.put("grad", false);
+//		Polygon p = new Polygon();
+//		p.addPoint(1, 1);
+//		p.addPoint(0, 0);
 
-	 
-	
+////		 System.out.println("n:"+p.npoints);
+//		htblColNameValue.put("shape", p);
+//
+//		dbApp.insertIntoTable(strTableName, htblColNameValue);
+//
+//		BTree a = (BTree) (getDeserlaized("data//" + "BTree" + strTableName + "id" + ".class"));
+//		System.out.println(a.toString());
+//
+//		ReferenceValues ref = (ReferenceValues) a.search(0);
+//		for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+//			OverflowNode b = ref.getOverflowNodes().get(i);
+//			// System.out.println("size =" + b.referenceOfKeys.size());
+//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+//				System.out.print(b.referenceOfKeys.get(j) + " ");
+//			}
+//			System.out.println();
+//		}
 
 //	Hashtable htblColNameValue = new Hashtable();
 //	htblColNameValue.put("id", new Integer(50));
@@ -3959,17 +3990,20 @@ public static void main(String[] args) throws FileNotFoundException, DBAppExcept
 //	System.out.println(pageToBeDeleteFrom1.vtrTuples.toString());
 
 ////*update table*
-//	Hashtable hash = new Hashtable();
+//		Hashtable hash = new Hashtable();
+//	
+//	Polygon p = new Polygon();
+//	p.addPoint(1,3); 
+//	p.addPoint(2,4);
+//	hash.put("shape", p);
 
 //	hash.put("age", new Integer(50));
-//	hash.put("name", new String("a"));
+//		hash.put("name", new String("a"));
 //////	hash.put("gpa", new Double(0.6));
 //////	hash.put("date", new Date(2000-05-23));
 
-//	dbApp.updateTable(strTableName, "9", hash);
+//		dbApp.updateTable(strTableName, "(1,0),(5,2)", hash);
 ////////
-
-
 
 //* testing SELECT*
 //		displayTableContent(strTableName);
@@ -3983,7 +4017,6 @@ public static void main(String[] args) throws FileNotFoundException, DBAppExcept
 //	arrSQLTerms[0]._strColumnName = "age";
 //	arrSQLTerms[0]._strOperator = "<=";
 //	arrSQLTerms[0]._objValue = new Integer(60);
-
 
 //////
 //	arrSQLTerms[1]._strTableName = "Student";
@@ -4000,7 +4033,7 @@ public static void main(String[] args) throws FileNotFoundException, DBAppExcept
 //////	
 //////	
 
-	//String[] strarrOperators = new String[0];
+		// String[] strarrOperators = new String[0];
 //	strarrOperators[0] = "AND";
 //////	strarrOperators[1] = "AND";
 //////////////////	// select * from Student where name = “John Noor” or gpa = 1.5; 
@@ -4025,9 +4058,9 @@ public static void main(String[] args) throws FileNotFoundException, DBAppExcept
 //		throw new DBAppException("error in displaying data in table");
 //	}
 //	dbApp.createBTreeIndex(strTableName, "age");
-	
+
 //	dbApp.checkTree();
-//	displayTableContent(strTableName);
+		displayTableContent(strTableName);
 
 //	long modified = dbApp.modifyKey(new Integer(30));
 //	BTree b = (BTree) getDeserlaized("data//" + "BTreeStudentage" + ".class");
@@ -4055,7 +4088,7 @@ public static void main(String[] args) throws FileNotFoundException, DBAppExcept
 //	for (int i = 0; i < a.length; i++)
 //		System.out.println(a[i]);
 
-	// System.out.println(isIndexed("Student", "id"));
+		// System.out.println(isIndexed("Student", "id"));
 
-}
-}//throw DBAexception
+	}
+}// throw DBAexception

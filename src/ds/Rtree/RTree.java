@@ -173,7 +173,6 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 	public TValue search(Polygon poly) { // returns RTreeReferenceValues that contains a list of overflow nodes
 		TKey key = (TKey)new myPolygon(poly);
 		RTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
-
 		int index = leaf.search(key);
 		return (index == -1) ? null : leaf.getValue(index);
 	}
