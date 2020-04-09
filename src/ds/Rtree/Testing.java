@@ -34,7 +34,7 @@ public class Testing {
 		p6.addPoint(0,0);
 		tree.insert(p6, "shape1");
 		
-		ArrayList<String> a = 	tree.rangeMinSearchKeys(p);
+		ArrayList<String> a = 	tree.rangeMaxSearchKeys(p);
 		System.out.println(tree.toString());
 		 
 //		 RTreeReferenceValues ref = (RTreeReferenceValues) tree.search(p6);

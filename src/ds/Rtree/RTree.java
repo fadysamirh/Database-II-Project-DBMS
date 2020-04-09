@@ -177,6 +177,13 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 		int index = leaf.search(key);
 		return (index == -1) ? null : leaf.getValue(index);
 	}
+	public TValue search1(myPolygon poly) { // returns RTreeReferenceValues that contains a list of overflow nodes
+		TKey key = (TKey) poly;
+		RTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
+
+		int index = leaf.search(key);
+		return (index == -1) ? null : leaf.getValue(index);
+	}
 
 	/**
 	 * Delete a key and its associated value from the tree.
@@ -233,7 +240,7 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 		// BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
 		TKey key = (TKey)new myPolygon(poly);
 		ArrayList<String> ref = new ArrayList<String>();
-		Vector<Polygon> result = new Vector<Polygon>();
+		Vector<myPolygon> result = new Vector<myPolygon>();
 		ArrayList<RTreeLeafNode<TKey, TValue>> leaves = new ArrayList<RTreeLeafNode<TKey, TValue>>();
 		leaves = this.findLeafNodeStopKey(key);
 		 //System.out.println(leaf.keys[1]);
@@ -249,7 +256,7 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 						 //System.out.println(index + "s" + leaf.keys[i]);
 						Object keyObj = (Object)leaf.getKey(i);
 						if (index != -1) {
-							result.add((Polygon) leaf.getKey(i));
+							result.add((myPolygon) leaf.getKey(i));
 							
 						}
 					}
@@ -265,14 +272,15 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 			}
 			System.out.println(a);
 		     result.sort(null);
-			 ReferenceValues ref1 = (ReferenceValues) this.search(result.lastElement());
-					for (int i = 0; i < ref1.getOverflowNodes().size(); i++) {
-						OverflowNode b = ref1.getOverflowNodes().get(i);
-						//System.out.println("size =" + b.referenceOfKeys.size());
-						for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-							ref.add(b.referenceOfKeys.get(j) + " ");
-						}
-						}
+			 RTreeReferenceValues ref1 = (RTreeReferenceValues) this.search1((myPolygon)result.lastElement());
+				for (int i = 0; i < ref1.getRTreeOverflowNodes().size(); i++) {
+					RTreeOverflowNode b = ref1.getRTreeOverflowNodes().get(i);
+					//System.out.println("size =" + b.referenceOfKeys.size());
+					for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+						ref.add(b.referenceOfKeys.get(j) + " ");
+					}
+					}
+
 		}
 		ref.sort(null);
 		if(ref.size()!=0)
@@ -287,7 +295,7 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 // BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
 		TKey key = (TKey)new myPolygon(poly);
 		ArrayList<String> ref = new ArrayList<String>();
-		Vector<Polygon> result = new Vector<Polygon>();
+		Vector<myPolygon> result = new Vector<myPolygon>();
 		ArrayList<RTreeLeafNode<TKey, TValue>> leaves = new ArrayList<RTreeLeafNode<TKey, TValue>>();
 		leaves = this.findLeafNodeStartKey(key);
 // System.out.println(leaf.keys[1]);
@@ -301,8 +309,7 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 						int index = leaf.searchMin(leaf.getKey(i));
 // System.out.println(index + "s");
 						if (index != -1) {
-							//result.add( leaf.getKey(i));
-							System.out.println( leaf.getKey(i));
+							result.add((myPolygon) leaf.getKey(i));
 						}
 					}
 				}
@@ -317,9 +324,10 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 		    	a+=result.get(i).toString()+","; 
 		     }
 		     System.out.println(a);
-			 ReferenceValues ref1 = (ReferenceValues) this.search(result.get(0));
-					for (int i = 0; i < ref1.getOverflowNodes().size(); i++) {
-						OverflowNode b = ref1.getOverflowNodes().get(i);
+			 RTreeReferenceValues ref1 = (RTreeReferenceValues) this.search1(result.get(0));
+			 System.out.println(result.get(0).toString());
+					for (int i = 0; i < ref1.getRTreeOverflowNodes().size(); i++) {
+						RTreeOverflowNode b = ref1.getRTreeOverflowNodes().get(i);
 						//System.out.println("size =" + b.referenceOfKeys.size());
 						for (int j = 0; j < b.referenceOfKeys.size(); j++) {
 							ref.add(b.referenceOfKeys.get(j) + " ");
@@ -331,8 +339,11 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 		{
 		String temp = ref.get(ref.size()-1);
 		ref.clear();
+		System.out.println(temp);
 		ref.add(temp);}
+		
 		return ref;
+		
 //int index = leaf.searchMin(key);
 //return (index == -1) ? null : leaf.getValue(index);
 	}

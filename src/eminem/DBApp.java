@@ -186,14 +186,14 @@ public class DBApp {
 	public static String getPageR (RTree a ,Tuple nTuple)
 	{
 		String res ="";
-		ArrayList<String> Strings1 = a.rangeMaxSearch((Polygon) nTuple.vtrTupleObj.get(nTuple.index));
+		ArrayList<String> Strings1 = a.rangeMinSearchKeys((Polygon) nTuple.vtrTupleObj.get(nTuple.index));
 		if(Strings1.size()!=0)
 		{
 			res = Strings1.get(0);
 		}
 		if(Strings1.size()==0)
 		{
-			ArrayList<String> Strings2 = a.rangeMaxSearch((Polygon) nTuple.vtrTupleObj.get(nTuple.index));
+			ArrayList<String> Strings2 = a.rangeMaxSearchKeys((Polygon) nTuple.vtrTupleObj.get(nTuple.index));
 			res=Strings2.get(0);
 		}
 		return res ;
@@ -203,7 +203,16 @@ public class DBApp {
 	{
 		int page = -1 ;
 		Table toBeInstertedIn = (Table) getDeserlaized("data//" + strTableName + ".class");
-		int start = toBeInstertedIn.usedPagesNames.indexOf(pageName);
+		int start = 0 ;
+		for(int i = 0 ; i<toBeInstertedIn.usedPagesNames.size();i++)
+		{
+			if(toBeInstertedIn.usedPagesNames.get(i).equals(pageName))
+			{
+				start = i ;
+				break;
+			}
+		}
+		System.out.println(toBeInstertedIn.usedPagesNames.get(0));
 		for (int i = start; i < toBeInstertedIn.usedPagesNames.size(); i++) {
 			Page pageToBeInstertedIn = (Page) (getDeserlaized(
 					"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
@@ -3849,8 +3858,8 @@ public class DBApp {
 		htblColNameType.put("gpa", "java.lang.Double");
 		htblColNameType.put("shape", "java.awt.Polygon");
 		htblColNameType.put("grad", "java.lang.Boolean");
-//	    dbApp.createTable(strTableName, "id", htblColNameType);
-//		dbApp.createRTreeIndex(strTableName, "shape");
+	   // dbApp.createTable(strTableName, "id", htblColNameType);
+		//dbApp.createBTreeIndex(strTableName, "id");
 		
 
 //		dbApp.makeIndexed(strTableName, "name");
@@ -3866,7 +3875,7 @@ public class DBApp {
 //		for (int i = 0; i < 210; i++) {
 
 		Hashtable htblColNameValue = new Hashtable();
-		htblColNameValue.put("id", new Integer(-1));
+		htblColNameValue.put("id", new Integer(2));
 		htblColNameValue.put("name", new String("Ab"));
 		htblColNameValue.put("age", new Integer(25));
 		htblColNameValue.put("date", new Date(2000, 11, 23));
@@ -3888,12 +3897,13 @@ public class DBApp {
 		
 		 dbApp.insertIntoTable(strTableName, htblColNameValue);
 		 
-		 RTree a = (RTree)(getDeserlaized("data//" +"RTree"+strTableName+"shape" + ".class"));
+		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
 		 System.out.println(a.toString());
 		 
-		 RTreeReferenceValues ref = (RTreeReferenceValues) a.search(p);
-			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
-			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
+		 ReferenceValues ref = (ReferenceValues) a.search(0);
+		for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+			OverflowNode b = ref.getOverflowNodes().get(i);
+			//System.out.println("size =" + b.referenceOfKeys.size());
 			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
 				System.out.print(b.referenceOfKeys.get(j) + " ");
 			}
