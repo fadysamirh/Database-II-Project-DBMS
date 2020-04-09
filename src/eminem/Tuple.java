@@ -93,7 +93,12 @@ public class Tuple extends Vector implements Serializable, Comparable<Tuple> {
 			myPolygon p1 = new myPolygon((Polygon) O1);
 			myPolygon p2 = new myPolygon((Polygon) O2);
 			return p1.compareTo(p2);
-		} else {
+		}else if (O1 instanceof myPolygon) {
+			myPolygon p1 = (myPolygon) O1;
+			myPolygon p2 = (myPolygon) O2;
+			return p1.compareTo(p2);
+		}
+		else {
 			throw new DBAppException("Type entered is not one of the allowed");
 //			// System.out.println("I am not an int");
 //			return 0;
