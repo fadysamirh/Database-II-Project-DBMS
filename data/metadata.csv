@@ -1,19 +1,4 @@
-Table Name, Column Name, Column Type, ClusteringKey, Indexed
+Table Name, Column Name, Column Type, ClusteringKey, Indexed,
 Student,TouchDate,java.util.Date,false,false,
-<<<<<<< HEAD
 Student,name,java.lang.String,false,false,
-<<<<<<< HEAD
 Student,id,java.lang.Integer,true,true,
-,
-
-=======
-=======
-Student,gpa,java.lang.Double,false,false,
-Student,shape,java.awt.Polygon,false,false,
-Student,age,java.lang.Integer,false,false,
-Student,date,java.util.Date,false,false,
-Student,name,java.lang.String,false,false,
-Student,grad,java.lang.Boolean,false,false,
->>>>>>> 7d9be50b18e1380c9052952262f7d9c90c41609f
-Student,id,java.lang.Integer,true,false,
->>>>>>> 200ecfe857229e8d3ad7b7e9cedbd71d1e3e538c
