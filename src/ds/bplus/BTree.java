@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import eminem.DBAppException;
 import eminem.Tuple;
@@ -207,35 +208,107 @@ public class BTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 		return (BTreeLeafNode<TKey, TValue>) node;
 	}
 	
-	public ArrayList<String> rangeMaxSearchKeys(TKey key) { // returns ReferenceValues that contains a list of overflow
-		// nodes
-		// BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
-		ArrayList<BTreeLeafNode<TKey, TValue>> leaves = new ArrayList<BTreeLeafNode<TKey, TValue>>();
-		leaves = this.findLeafNodeStopKey(key);
-		 //System.out.println(leaf.keys[1]);
-		ArrayList<String> result = new ArrayList<String>();
-		//System.out.println(leaves.size());
-		for (int w = 0; w < leaves.size(); w++) {
-			BTreeLeafNode<TKey, TValue> leaf = leaves.get(w);
-			//System.out.println(leaf.keys[1]);
-			for (int i = 0; i < leaf.keys.length; i++) {
-				if (leaf.getKey(i) != null) {
-					if (leaf.getKey(i).compareTo(key) <= 0) {
-						//System.out.println(leaf.keys[i]);
-						int index = leaf.searchMin(leaf.getKey(i));
-						 //System.out.println(index + "s" + leaf.keys[i]);
-						if (index != -1) {
-							result.add(key+ " ");
-							
+		public ArrayList<String> rangeMaxSearchKeys(TKey key) { // returns ReferenceValues that contains a list of overflow
+			// nodes
+			// BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
+			ArrayList<String> ref = new ArrayList<String>();
+			Vector<TKey> result = new Vector<TKey>();
+			ArrayList<BTreeLeafNode<TKey, TValue>> leaves = new ArrayList<BTreeLeafNode<TKey, TValue>>();
+			leaves = this.findLeafNodeStopKey(key);
+			 //System.out.println(leaf.keys[1]);
+			//System.out.println(leaves.size());
+			for (int w = 0; w < leaves.size(); w++) {
+				BTreeLeafNode<TKey, TValue> leaf = leaves.get(w);
+				//System.out.println(leaf.keys[1]);
+				for (int i = 0; i < leaf.keys.length; i++) {
+					if (leaf.getKey(i) != null) {
+						if (leaf.getKey(i).compareTo(key) <= 0) {
+							//System.out.println(leaf.keys[i]);
+							int index = leaf.searchMin(leaf.getKey(i));
+							 //System.out.println(index + "s" + leaf.keys[i]);
+							Object keyObj = (Object)leaf.getKey(i);
+							if (index != -1) {
+								result.add(leaf.getKey(i));
+								
+							}
 						}
 					}
 				}
 			}
+			if(result.size()!=0)
+			{
+				
+			     result.sort(null);
+				 ReferenceValues ref1 = (ReferenceValues) this.search(result.lastElement());
+						for (int i = 0; i < ref1.getOverflowNodes().size(); i++) {
+							OverflowNode b = ref1.getOverflowNodes().get(i);
+							//System.out.println("size =" + b.referenceOfKeys.size());
+							for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+								ref.add(b.referenceOfKeys.get(j) + " ");
+							}
+							}
+			}
+			ref.sort(null);
+			if(ref.size()!=0)
+			{
+			String temp = ref.get(ref.size()-1);
+			ref.clear();
+			ref.add(temp);}
+			return ref;
 		}
-		return result;
-//int index = leaf.searchMin(key);
-//return (index == -1) ? null : leaf.getValue(index);
-	}
+		public ArrayList<String> rangeMinSearchKeys(TKey key) { // returns ReferenceValues that contains a list of overflow
+			// nodes
+	// BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
+			ArrayList<String> ref = new ArrayList<String>();
+			Vector<TKey> result = new Vector<TKey>();
+			ArrayList<BTreeLeafNode<TKey, TValue>> leaves = new ArrayList<BTreeLeafNode<TKey, TValue>>();
+			leaves = this.findLeafNodeStartKey(key);
+	// System.out.println(leaf.keys[1]);
+	//System.out.println(leaves.size());
+			for (int w = 0; w < leaves.size(); w++) {
+				BTreeLeafNode<TKey, TValue> leaf = leaves.get(w);
+				for (int i = 0; i < leaf.keys.length; i++) {
+					if (leaf.getKey(i) != null) {
+						if (leaf.getKey(i).compareTo(key) >= 0) {
+	//System.out.println(leaf.keys[i]);
+							int index = leaf.searchMin(leaf.getKey(i));
+	// System.out.println(index + "s");
+							if (index != -1) {
+								result.add(leaf.getKey(i));
+							}
+						}
+					}
+				}
+			}
+			if(result.size()!=0)
+			{
+				String a = "";
+			     result.sort(null);
+			     for(int i=0 ; i<result.size();i++)
+			     {
+			    	a+=result.get(i).toString()+","; 
+			     }
+			     System.out.println(a);
+				 ReferenceValues ref1 = (ReferenceValues) this.search(result.get(0));
+						for (int i = 0; i < ref1.getOverflowNodes().size(); i++) {
+							OverflowNode b = ref1.getOverflowNodes().get(i);
+							//System.out.println("size =" + b.referenceOfKeys.size());
+							for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+								ref.add(b.referenceOfKeys.get(j) + " ");
+							}
+							}
+			}
+			ref.sort(null);
+			if(ref.size()!=0)
+			{
+			String temp = ref.get(ref.size()-1);
+			ref.clear();
+			ref.add(temp);}
+			return ref;
+	//int index = leaf.searchMin(key);
+	//return (index == -1) ? null : leaf.getValue(index);
+		}
+
 
 	public void serializeTree() throws DBAppException, IOException {
 

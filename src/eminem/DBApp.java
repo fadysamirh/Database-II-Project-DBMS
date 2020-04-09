@@ -171,14 +171,14 @@ public class DBApp {
 	public static String getPage (BTree a ,Tuple nTuple)
 	{
 		String res ="";
-		ArrayList<String> Strings1 = a.rangeMinSearch((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
+		ArrayList<String> Strings1 = a.rangeMinSearchKeys((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
 		if(Strings1.size()!=0)
 		{
 			res = Strings1.get(0);
 		}
 		if(Strings1.size()==0)
 		{
-			ArrayList<String> Strings2 = a.rangeMaxSearch((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
+			ArrayList<String> Strings2 = a.rangeMaxSearchKeys((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
 			res=Strings2.get(0);
 		}
 		return res ;
@@ -199,7 +199,7 @@ public class DBApp {
 		return res ;
 	}
 	
-	public static int neededPage (String pageName , String strTableName)
+	public static int neededPage (String pageName , String strTableName , Tuple nTuple) throws DBAppException
 	{
 		int page = -1 ;
 		Table toBeInstertedIn = (Table) getDeserlaized("data//" + strTableName + ".class");
@@ -238,7 +238,7 @@ public class DBApp {
 			}
 
 		}
-
+        return page ;
 	}
 
 	public void insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException {
@@ -339,7 +339,7 @@ public class DBApp {
                     		 BTree a = (BTree) getDeserlaized(
  									"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
                     		 String pagebyindex = getPage(a, nTuple);
-                    		 page = neededPage(pagebyindex , strTableName);
+                    		 page = neededPage(pagebyindex , strTableName , nTuple);
                     		 System.out.println(pagebyindex+" here");
                     	 }
                     	 if(toBeInstertedIn.usedRtreeCols.contains(colname))
@@ -348,7 +348,7 @@ public class DBApp {
                     		 RTree a = (RTree) getDeserlaized(
  									"data//" + toBeInstertedIn.usedRtreeNames.elementAt(i) + ".class");
                     		 String pagebyindex = getPageR(a, nTuple);
-                    		 page = neededPage(pagebyindex,strTableName);
+                    		 page = neededPage(pagebyindex,strTableName , nTuple);
                     		 System.out.println(pagebyindex+" here");
                     	 }
                     	 

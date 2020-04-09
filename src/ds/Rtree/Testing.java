@@ -34,14 +34,15 @@ public class Testing {
 		p6.addPoint(0,0);
 		tree.insert(p6, "shape1");
 		
+		ArrayList<String> a = 	tree.rangeMinSearchKeys(p);
 		System.out.println(tree.toString());
 		 
-		 RTreeReferenceValues ref = (RTreeReferenceValues) tree.search(p6);
-			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
-			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
-			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-				System.out.print(b.referenceOfKeys.get(j) + " ");
-			}
-			System.out.println();
-		}
+//		 RTreeReferenceValues ref = (RTreeReferenceValues) tree.search(p6);
+//			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
+//			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
+//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+//				System.out.print(b.referenceOfKeys.get(j) + " ");
+//			}
+//			System.out.println();
+//		}
 	}}
