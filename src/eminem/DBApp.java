@@ -3846,12 +3846,77 @@ public class DBApp {
 		}
 	}
 
+
+
+	public void checkpolygon() throws DBAppException, IOException {
+//		String strTableName = "shape";
+//		Hashtable<String, String> htblColNameType = new Hashtable();
+//		htblColNameType.put("id", "java.lang.Integer");
+//		htblColNameType.put("name", "java.lang.String");
+//		htblColNameType.put("shape", "java.awt.Polygon");
+//		createTable(strTableName, "id", htblColNameType);
+//
+//		for (int i = 0; i < 10; i++) {
+//		Hashtable htblColNameValue = new Hashtable();
+//		htblColNameValue.put("id", new Integer(i));
+//		htblColNameValue.put("name", new String("Ab"));
+//		Polygon p = new Polygon();
+//		p.addPoint(1, 1);
+//		p.addPoint(i, i);
+//		htblColNameValue.put("shape", p);
+//		insertIntoTable(strTableName, htblColNameValue);
+//		}
+
+		
+//		Hashtable<String, Object> htblColNameValue = new Hashtable();
+//		Polygon p = new Polygon();
+//		p.addPoint(1,1);
+//		p.addPoint(1,1);
+//		htblColNameValue.put("shape", p);
+//		deleteFromTable(strTableName, htblColNameValue);
+		
+//		Hashtable hash = new Hashtable();
+//		hash.put("name", new String("wwwwwwwww"));		
+//		updateTable(strTableName, "(3,3),(3,3)", hash);
+		
+	//	createRTreeIndex(strTableName, "shape");
+		
+//		Hashtable htblColNameValue = new Hashtable();
+//		htblColNameValue.put("id", new Integer(6));
+//		htblColNameValue.put("name", new String("Abbb"));
+//		Polygon p = new Polygon();
+//		p.addPoint(5, 5);
+//		p.addPoint(4, 4);
+//		htblColNameValue.put("shape", p);
+//		insertIntoTable(strTableName, htblColNameValue);
+////		
+//		RTree rt= (RTree) getDeserlaized("data//" + "RTreepolysshape" + ".class");
+//		System.out.println(rt.toString());
+//		
+////		Polygon p = new Polygon();
+////		p.addPoint(5,5);
+////		p.addPoint(4,4);
+//		 RTreeReferenceValues ref = (RTreeReferenceValues) rt.search(p);
+//			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
+//			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
+//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+//				System.out.print(b.referenceOfKeys.get(j) + " ");
+//			}
+//			System.out.println();
+//		}
+//		
+//		displayTableContent(strTableName);
+	}
+	
+
+
 	public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException {
 
 		DBApp dbApp = new DBApp();
 		dbApp.init();
 //    System.out.println(dbApp.maxPageSize);
 		String strTableName = "Student";
+
 //dbApp.checkpolygon();
 //*create table*
 //		Hashtable<String, String> htblColNameType = new Hashtable();
@@ -3899,7 +3964,7 @@ public class DBApp {
 //////		 System.out.println("n:"+p.npoints);
 //	htblColNameValue.put("shape", p);
 //	
-	 dbApp.insertIntoTable(strTableName, htblColNameValue);
+//	 dbApp.insertIntoTable(strTableName, htblColNameValue);
 //	 
 //		RTree a = (RTree) (getDeserlaized("data//" + "RTree" + strTableName + "shape" + ".class"));
 //		System.out.println(a.toString());
@@ -3914,7 +3979,34 @@ public class DBApp {
 //		System.out.println();
 //	}
 
+//dbApp.checkpolygon();
+//**create table**
+
+		Hashtable<String, String> htblColNameType = new Hashtable();
+
+		htblColNameType.put("id", "java.lang.Integer");
+		htblColNameType.put("name", "java.lang.String");
+		htblColNameType.put("age", "java.lang.Integer");
+		htblColNameType.put("date", "java.util.Date");
+		htblColNameType.put("gpa", "java.lang.Double");
+		htblColNameType.put("shape", "java.awt.Polygon");
+		htblColNameType.put("grad", "java.lang.Boolean");
+	 //  dbApp.createTable(strTableName, "id", htblColNameType);
+		//dbApp.createBTreeIndex(strTableName, "id");
+		
+
+//		dbApp.makeIndexed(strTableName, "name");
+
+//		Table a=(Table)getDeserlaized("data//Student.class");
+//		System.out.println(a.colNames[0]);
+//		System.out.println(a.colNames[1]);
+//		System.out.println(a.colNames[2]);
+
+
 //	for (int i = 0; i < 210; i++) {
+
+
+////		for (int i = 0; i < 210; i++) {
 
 //		Hashtable htblColNameValue = new Hashtable();
 //		htblColNameValue.put("id", new Integer(2));
@@ -3952,6 +4044,7 @@ public class DBApp {
 //			System.out.println();
 //		}
 
+
 //	Hashtable htblColNameValue = new Hashtable();
 //	htblColNameValue.put("id", new Integer(50));
 //	htblColNameValue.put("name", new String("c"));
@@ -3966,6 +4059,64 @@ public class DBApp {
 //	dbApp.insertIntoTable(strTableName, htblColNameValue);
 //	}
 //	
+
+
+//		for (int i = 0; i < 210; i++) {
+
+//		Hashtable htblColNameValue = new Hashtable();
+//		htblColNameValue.put("id", new Integer(1));
+//		htblColNameValue.put("name", new String("Ab"));
+//		htblColNameValue.put("age", new Integer(25));
+//		htblColNameValue.put("date", new Date(2000, 11, 23));
+////////			System.out.println((new Date(2020, 11, 11).getClass()));
+////////			System.out.println((new Date(2020, 11, 11)).toString());
+//		
+//		htblColNameValue.put("gpa", new Double(2.0));
+//			
+//		if (4 % 2 == 0) {
+//			htblColNameValue.put("grad", true);
+//		} else
+//			htblColNameValue.put("grad", false);
+//		Polygon p = new Polygon();
+//		p.addPoint(1, 1);
+//		p.addPoint(0, 0);
+//		
+//////			 System.out.println("n:"+p.npoints);
+//		htblColNameValue.put("shape", p);
+		
+//		 dbApp.insertIntoTable(strTableName, htblColNameValue);
+		 
+//		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
+//		 System.out.println(a.toString());
+//		 
+//		 ReferenceValues ref = (ReferenceValues) a.search(0);
+//		for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+//			OverflowNode b = ref.getOverflowNodes().get(i);
+//			//System.out.println("size =" + b.referenceOfKeys.size());
+//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+//				System.out.print(b.referenceOfKeys.get(j) + " ");
+//			}
+//			System.out.println();
+//		}
+
+		 
+		
+
+//		Hashtable htblColNameValue = new Hashtable();
+//		htblColNameValue.put("id", new Integer(50));
+//		htblColNameValue.put("name", new String("c"));
+//		htblColNameValue.put("age", new Integer("50"));
+////////////		htblColNameValue.put("date", new Date(2000, 12, 23));
+//////////		Polygon p = new Polygon();
+//////////		p.addPoint(1,3);
+//////////		p.addPoint(2,4);
+////////////////////		System.out.println("n:"+p.npoints);
+//////////		htblColNameValue.put("shape",  p);
+
+//		dbApp.insertIntoTable(strTableName, htblColNameValue);
+//		}
+//		
+
 //
 //	
 //*delete tuples*
@@ -4008,6 +4159,7 @@ public class DBApp {
 //* testing SELECT*
 //		displayTableContent(strTableName);
 
+
 //	SQLTerm[] arrSQLTerms;
 //	arrSQLTerms = new SQLTerm[1];
 //	for (int i = 0; i < arrSQLTerms.length; i++) {
@@ -4017,6 +4169,22 @@ public class DBApp {
 //	arrSQLTerms[0]._strColumnName = "age";
 //	arrSQLTerms[0]._strOperator = "<=";
 //	arrSQLTerms[0]._objValue = new Integer(60);
+
+	
+//** testing SELECT**
+			//displayTableContent(strTableName);
+
+//		SQLTerm[] arrSQLTerms;
+//		arrSQLTerms = new SQLTerm[1];
+//		for (int i = 0; i < arrSQLTerms.length; i++) {
+//			arrSQLTerms[i] = new SQLTerm();
+//		}
+//		arrSQLTerms[0]._strTableName = "Student";
+//		arrSQLTerms[0]._strColumnName = "age";
+//		arrSQLTerms[0]._strOperator = "<=";
+//		arrSQLTerms[0]._objValue = new Integer(60);
+
+
 
 //////
 //	arrSQLTerms[1]._strTableName = "Student";
