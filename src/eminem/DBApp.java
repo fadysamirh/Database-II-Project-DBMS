@@ -66,7 +66,7 @@ public class DBApp {
 	// this method produces an array of column names with corresponding data types
 	public static ArrayList<String> getArrayOfColoumnDataTyoe(String tableName) throws DBAppException {
 
-		String csvFile = "data/metadata.csv";
+		String csvFile = "data//metadata.csv";
 		BufferedReader br = null;
 		String line = "";
 		String cvsSplitBy = ",";
@@ -1233,6 +1233,7 @@ public class DBApp {
 			boolean flag = false;
 
 			ArrayList<String> arrColoumnData = getArrayOfColoumnDataTyoe(tableName);
+		
 			while (type.hasMoreElements()) {
 				boolean flag2 = false;
 				String key = (String) type.nextElement();
@@ -3400,7 +3401,7 @@ public class DBApp {
 		try {
 			// boolean flag = false;
 			boolean colFound = false;
-			String csvFile = "data/metadata.csv";
+			String csvFile = "data//metadata.csv";
 			BufferedReader br = null;
 			String line = "";
 			String cvsSplitBy = ",";
@@ -3620,7 +3621,7 @@ public class DBApp {
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
 //		dbApp.createTable(strTableName, "id", htblColNameType);
-//		dbApp.createBTreeIndex(strTableName, "age");
+//		dbApp.createBTreeIndex(strTableName, "id");
 
 //		htblColNameType.put("id", "java.lang.Integer");
 //		htblColNameType.put("name", "java.lang.String");
@@ -3710,7 +3711,8 @@ public class DBApp {
 //		
 //**delete tuples**
 		Hashtable<String, Object> htblColNameValue = new Hashtable();
-	htblColNameValue.put("age", 7);
+	htblColNameValue.put("age", 22);
+	htblColNameValue.put("id", 9);
 //		htblColNameValue.put("name", "asdfghj");
 //		htblColNameValue.put("id", 5);
 //		htblColNameValue.put("gpa", 2.0);
@@ -3748,7 +3750,7 @@ public class DBApp {
 
 //** testing SELECT**
 
-		 displayTableContent("Student");
+//		 displayTableContent("Student");
 		
 
 //		SQLTerm[] arrSQLTerms;
