@@ -29,7 +29,7 @@ import ds.Rtree.RTreeReferenceValues;
 import ds.bplus.BTree;
 import ds.bplus.OverflowNode;
 import ds.bplus.ReferenceValues;
-//import ds.bplus.bptree.RangeResult;
+
 //import ds.bplus.bptree.SearchResult;
 //import ds.bplus.util.InvalidBTreeStateException;
 
@@ -168,6 +168,87 @@ public class DBApp {
 		}
 
 	}
+	public static String getPage (BTree a ,Tuple nTuple)
+	{
+		String res ="";
+		ArrayList<String> Strings1 = a.rangeMinSearchKeys((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
+		if(Strings1.size()!=0)
+		{
+			res = Strings1.get(0);
+		}
+		if(Strings1.size()==0)
+		{
+			ArrayList<String> Strings2 = a.rangeMaxSearchKeys((Comparable) nTuple.vtrTupleObj.get(nTuple.index));
+			res=Strings2.get(0);
+		}
+		return res ;
+	}
+	public static String getPageR (RTree a ,Tuple nTuple)
+	{
+		String res ="";
+		ArrayList<String> Strings1 = a.rangeMinSearchKeys((Polygon) nTuple.vtrTupleObj.get(nTuple.index));
+		if(Strings1.size()!=0)
+		{
+			res = Strings1.get(0);
+		}
+		if(Strings1.size()==0)
+		{
+			ArrayList<String> Strings2 = a.rangeMaxSearchKeys((Polygon) nTuple.vtrTupleObj.get(nTuple.index));
+			res=Strings2.get(0);
+		}
+		return res ;
+	}
+	
+	public static int neededPage (String pageName , String strTableName , Tuple nTuple) throws DBAppException
+	{
+		int page = -1 ;
+		Table toBeInstertedIn = (Table) getDeserlaized("data//" + strTableName + ".class");
+		int start = 0 ;
+		for(int i = 0 ; i<toBeInstertedIn.usedPagesNames.size();i++)
+		{
+			if(toBeInstertedIn.usedPagesNames.get(i).equals(pageName))
+			{
+				start = i ;
+				break;
+			}
+		}
+		System.out.println(toBeInstertedIn.usedPagesNames.get(0));
+		for (int i = start; i < toBeInstertedIn.usedPagesNames.size(); i++) {
+			Page pageToBeInstertedIn = (Page) (getDeserlaized(
+					"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
+
+			Vector<Tuple> Tuples = pageToBeInstertedIn.vtrTuples;
+
+			int compare1 = (pageToBeInstertedIn.vtrTuples.lastElement()).compareTo(nTuple);
+
+			int compare2 = (pageToBeInstertedIn.vtrTuples.get(0)).compareTo(nTuple);
+
+			if (i == 0 && (compare2 >= 0)) {
+				page = 0;
+				break;
+			}
+			if (compare1 >= 0 && compare2 <= 0) {
+				page = i;
+				break;
+			}
+
+		}
+		// if nTuple does not fit in any page range if the last page is not full then
+		// insert in it else create new page
+		if (page == -1) {
+			Page pageToBeInstertedIn = (Page) (getDeserlaized(
+					"data//" + toBeInstertedIn.usedPagesNames.lastElement() + ".class"));
+
+			if (pageToBeInstertedIn.vtrTuples.size() == maxPageSize) {
+				toBeInstertedIn.createPage();
+				page = toBeInstertedIn.usedPagesNames.size() - 1;
+			} else {
+				page = toBeInstertedIn.usedPagesNames.size() - 1;
+			}
+
+		}
+        return page ;
+	}
 
 	public void insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
@@ -192,8 +273,9 @@ public class DBApp {
 				Boolean ClusteringIndexed = false;
 
 				// checking if one of the indexes is on the clustering column
+				
 				if (toBeInstertedIn.usedIndicescols.contains(getClusteringKey(strTableName)) || toBeInstertedIn.usedRtreeCols.contains(getClusteringKey(strTableName)) ) {
-					Indexed = true;
+					ClusteringIndexed = true;
 				}
 
 				if (toBeInstertedIn.usedPagesNames.isEmpty()) {
@@ -253,9 +335,35 @@ public class DBApp {
 
 					Vector<String> usedPages = toBeInstertedIn.usedPagesNames;
 					int page = -1;
-
+					System.out.println(ClusteringIndexed);
+                     if(ClusteringIndexed)
+                     {
+                    	 ArrayList<String> columns = getColNames(strTableName);
+                    	 int index = nTuple.index;
+                    	 String colname = columns.get(index);
+                    	 
+                    	 if(toBeInstertedIn.usedIndicescols.contains(colname))
+                    	 {
+                    		 int i= toBeInstertedIn.usedIndicescols.indexOf(colname);
+                    		 BTree a = (BTree) getDeserlaized(
+ 									"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
+                    		 String pagebyindex = getPage(a, nTuple);
+                    		 page = neededPage(pagebyindex , strTableName , nTuple);
+                    		 System.out.println(pagebyindex+" here");
+                    	 }
+                    	 if(toBeInstertedIn.usedRtreeCols.contains(colname))
+                    	 {
+                    		 int i= toBeInstertedIn.usedRtreeCols.indexOf(colname);
+                    		 RTree a = (RTree) getDeserlaized(
+ 									"data//" + toBeInstertedIn.usedRtreeNames.elementAt(i) + ".class");
+                    		 String pagebyindex = getPageR(a, nTuple);
+                    		 page = neededPage(pagebyindex,strTableName , nTuple);
+                    		 System.out.println(pagebyindex+" here");
+                    	 }
+                    	 
+                     }
 					// searching in which page the nTuple will fit in it's range
-					for (int i = 0; i < usedPages.size(); i++) {
+					for (int i = 0; i < usedPages.size()&&page!=-1; i++) {
 						Page pageToBeInstertedIn = (Page) (getDeserlaized(
 								"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
@@ -427,8 +535,8 @@ public class DBApp {
 					if (flag2) {
 						int flag = 0;
 
-						for (int i = page + 1; i <= usedPages.size() - 2 && flag == 0; i++) {
-
+						for (int i = page+1 ; i <= usedPages.size() - 1 && flag == 0; i++) {
+                            System.out.println(i);
 							Page pageToBeInstertedIn = (Page) (getDeserlaized(
 									"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
@@ -3777,7 +3885,7 @@ dbApp.checkpolygon();
 		htblColNameType.put("shape", "java.awt.Polygon");
 		htblColNameType.put("grad", "java.lang.Boolean");
 	   // dbApp.createTable(strTableName, "id", htblColNameType);
-		//dbApp.createRTreeIndex(strTableName, "shape");
+		//dbApp.createBTreeIndex(strTableName, "id");
 		
 
 //		dbApp.makeIndexed(strTableName, "name");
@@ -3790,6 +3898,7 @@ dbApp.checkpolygon();
 
 //** insert tuples**
 
+<<<<<<< HEAD
 ////		for (int i = 0; i < 210; i++) {
 //
 //		Hashtable htblColNameValue = new Hashtable();
@@ -3826,6 +3935,45 @@ dbApp.checkpolygon();
 //			}
 //			System.out.println();
 //		}
+=======
+//		for (int i = 0; i < 210; i++) {
+
+		Hashtable htblColNameValue = new Hashtable();
+		htblColNameValue.put("id", new Integer(2));
+		htblColNameValue.put("name", new String("Ab"));
+		htblColNameValue.put("age", new Integer(25));
+		htblColNameValue.put("date", new Date(2000, 11, 23));
+//////			System.out.println((new Date(2020, 11, 11).getClass()));
+//////			System.out.println((new Date(2020, 11, 11)).toString());
+		
+		htblColNameValue.put("gpa", new Double(2.0));
+			
+		if (4 % 2 == 0) {
+			htblColNameValue.put("grad", true);
+		} else
+			htblColNameValue.put("grad", false);
+		Polygon p = new Polygon();
+		p.addPoint(1, 1);
+		p.addPoint(0, 0);
+		
+////			 System.out.println("n:"+p.npoints);
+		htblColNameValue.put("shape", p);
+		
+		 dbApp.insertIntoTable(strTableName, htblColNameValue);
+		 
+		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
+		 System.out.println(a.toString());
+		 
+		 ReferenceValues ref = (ReferenceValues) a.search(0);
+		for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+			OverflowNode b = ref.getOverflowNodes().get(i);
+			//System.out.println("size =" + b.referenceOfKeys.size());
+			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+				System.out.print(b.referenceOfKeys.get(j) + " ");
+			}
+			System.out.println();
+		}
+>>>>>>> 9e23e4c902d7e90f8adc970455901c7fedab5c48
 		 
 		
 

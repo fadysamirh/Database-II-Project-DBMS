@@ -29,15 +29,17 @@ public class Testing {
 		p5.addPoint(2,2);
 		p5.addPoint(3,3);
 		tree.insert(p5, "shape5");
+
 		
+		ArrayList<String> a = 	tree.rangeMaxSearchKeys(p);
 		System.out.println(tree.toString());
 		 
-		 RTreeReferenceValues ref = (RTreeReferenceValues) tree.search(p);
-			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
-			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
-			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-				System.out.print(b.referenceOfKeys.get(j) + " ");
-			}
-			System.out.println();
-		}
+//		 RTreeReferenceValues ref = (RTreeReferenceValues) tree.search(p6);
+//			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
+//			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
+//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+//				System.out.print(b.referenceOfKeys.get(j) + " ");
+//			}
+//			System.out.println();
+//		}
 	}}
