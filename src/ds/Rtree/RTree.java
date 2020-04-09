@@ -6,7 +6,11 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Vector;
 
+
+import ds.bplus.OverflowNode;
+import ds.bplus.ReferenceValues;
 import eminem.DBAppException;
 import eminem.myPolygon;
 
@@ -169,6 +173,12 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 	public TValue search(Polygon poly) { // returns RTreeReferenceValues that contains a list of overflow nodes
 		TKey key = (TKey)new myPolygon(poly);
 		RTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
+		int index = leaf.search(key);
+		return (index == -1) ? null : leaf.getValue(index);
+	}
+	public TValue search1(myPolygon poly) { // returns RTreeReferenceValues that contains a list of overflow nodes
+		TKey key = (TKey) poly;
+		RTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
 
 		int index = leaf.search(key);
 		return (index == -1) ? null : leaf.getValue(index);
@@ -223,5 +233,117 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 		} catch (Exception e) {
 			throw new DBAppException("error in serialization");
 		}
+	}
+	public ArrayList<String> rangeMaxSearchKeys(Polygon poly) { // returns ReferenceValues that contains a list of overflow
+		// nodes
+		// BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
+		TKey key = (TKey)new myPolygon(poly);
+		ArrayList<String> ref = new ArrayList<String>();
+		Vector<myPolygon> result = new Vector<myPolygon>();
+		ArrayList<RTreeLeafNode<TKey, TValue>> leaves = new ArrayList<RTreeLeafNode<TKey, TValue>>();
+		leaves = this.findLeafNodeStopKey(key);
+		 //System.out.println(leaf.keys[1]);
+		//System.out.println(leaves.size());
+		for (int w = 0; w < leaves.size(); w++) {
+			RTreeLeafNode<TKey, TValue> leaf = leaves.get(w);
+			//System.out.println(leaf.keys[1]);
+			for (int i = 0; i < leaf.keys.length; i++) {
+				if (leaf.getKey(i) != null) {
+					if (leaf.getKey(i).compareTo(key) <= 0) {
+						//System.out.println(leaf.keys[i]);
+						int index = leaf.searchMin(leaf.getKey(i));
+						 //System.out.println(index + "s" + leaf.keys[i]);
+						Object keyObj = (Object)leaf.getKey(i);
+						if (index != -1) {
+							result.add((myPolygon) leaf.getKey(i));
+							
+						}
+					}
+				}
+			}
+		}
+		if(result.size()!=0)
+		{
+			String a = "";
+			for(int i=0; i<result.size();i++)
+			{
+				a+=result.get(i).toString();
+			}
+			System.out.println(a);
+		     result.sort(null);
+			 RTreeReferenceValues ref1 = (RTreeReferenceValues) this.search1((myPolygon)result.lastElement());
+				for (int i = 0; i < ref1.getRTreeOverflowNodes().size(); i++) {
+					RTreeOverflowNode b = ref1.getRTreeOverflowNodes().get(i);
+					//System.out.println("size =" + b.referenceOfKeys.size());
+					for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+						ref.add(b.referenceOfKeys.get(j) + " ");
+					}
+					}
+
+		}
+		ref.sort(null);
+		if(ref.size()!=0)
+		{
+		String temp = ref.get(ref.size()-1);
+		ref.clear();
+		ref.add(temp);}
+		return ref;
+	}
+	public ArrayList<String> rangeMinSearchKeys(Polygon poly) { // returns ReferenceValues that contains a list of overflow
+		// nodes
+// BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
+		TKey key = (TKey)new myPolygon(poly);
+		ArrayList<String> ref = new ArrayList<String>();
+		Vector<myPolygon> result = new Vector<myPolygon>();
+		ArrayList<RTreeLeafNode<TKey, TValue>> leaves = new ArrayList<RTreeLeafNode<TKey, TValue>>();
+		leaves = this.findLeafNodeStartKey(key);
+// System.out.println(leaf.keys[1]);
+//System.out.println(leaves.size());
+		for (int w = 0; w < leaves.size(); w++) {
+			RTreeLeafNode<TKey, TValue> leaf = leaves.get(w);
+			for (int i = 0; i < leaf.keys.length; i++) {
+				if (leaf.getKey(i) != null) {
+					if (leaf.getKey(i).compareTo(key) >= 0) {
+//System.out.println(leaf.keys[i]);
+						int index = leaf.searchMin(leaf.getKey(i));
+// System.out.println(index + "s");
+						if (index != -1) {
+							result.add((myPolygon) leaf.getKey(i));
+						}
+					}
+				}
+			}
+		}
+		if(result.size()!=0)
+		{
+			String a = "";
+		     result.sort(null);
+		     for(int i=0 ; i<result.size();i++)
+		     {
+		    	a+=result.get(i).toString()+","; 
+		     }
+		     System.out.println(a);
+			 RTreeReferenceValues ref1 = (RTreeReferenceValues) this.search1(result.get(0));
+			 System.out.println(result.get(0).toString());
+					for (int i = 0; i < ref1.getRTreeOverflowNodes().size(); i++) {
+						RTreeOverflowNode b = ref1.getRTreeOverflowNodes().get(i);
+						//System.out.println("size =" + b.referenceOfKeys.size());
+						for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+							ref.add(b.referenceOfKeys.get(j) + " ");
+						}
+						}
+		}
+		ref.sort(null);
+		if(ref.size()!=0)
+		{
+		String temp = ref.get(ref.size()-1);
+		ref.clear();
+		System.out.println(temp);
+		ref.add(temp);}
+		
+		return ref;
+		
+//int index = leaf.searchMin(key);
+//return (index == -1) ? null : leaf.getValue(index);
 	}
 }
