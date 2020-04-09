@@ -335,7 +335,7 @@ public class DBApp {
 
 					Vector<String> usedPages = toBeInstertedIn.usedPagesNames;
 					int page = -1;
-					System.out.println(ClusteringIndexed);
+					//System.out.println(ClusteringIndexed);
                      if(ClusteringIndexed)
                      {
                     	 ArrayList<String> columns = getColNames(strTableName);
@@ -349,7 +349,7 @@ public class DBApp {
  									"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
                     		 String pagebyindex = getPage(a, nTuple);
                     		 page = neededPage(pagebyindex , strTableName , nTuple);
-                    		 System.out.println(pagebyindex+" here");
+                    	//	 System.out.println(pagebyindex+" here");
                     	 }
                     	 if(toBeInstertedIn.usedRtreeCols.contains(colname))
                     	 {
@@ -358,12 +358,13 @@ public class DBApp {
  									"data//" + toBeInstertedIn.usedRtreeNames.elementAt(i) + ".class");
                     		 String pagebyindex = getPageR(a, nTuple);
                     		 page = neededPage(pagebyindex,strTableName , nTuple);
-                    		 System.out.println(pagebyindex+" here");
+                    	//	 System.out.println(pagebyindex+" here");
                     	 }
                     	 
                      }
+                  //   System.out.println(page);
 					// searching in which page the nTuple will fit in it's range
-					for (int i = 0; i < usedPages.size()&&page!=-1; i++) {
+					for (int i = 0; i < usedPages.size()&&page==-1; i++) {
 						Page pageToBeInstertedIn = (Page) (getDeserlaized(
 								"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
@@ -373,6 +374,8 @@ public class DBApp {
 
 						int compare2 = (pageToBeInstertedIn.vtrTuples.get(0)).compareTo(nTuple);
 
+					//	System.out.println(compare1);
+					//	System.out.println(compare2);
 						if (i == 0 && (compare2 >= 0)) {
 							page = 0;
 							break;
@@ -383,6 +386,7 @@ public class DBApp {
 						}
 
 					}
+				//	System.out.println(page);
 					// if nTuple does not fit in any page range if the last page is not full then
 					// insert in it else create new page
 					if (page == -1) {
@@ -397,6 +401,7 @@ public class DBApp {
 						}
 
 					}
+					System.out.println(page);
 
 					// if the table has index insert the nTuple with the page found in the index
 					if (Indexed) {
@@ -536,7 +541,7 @@ public class DBApp {
 						int flag = 0;
 
 						for (int i = page+1 ; i <= usedPages.size() - 1 && flag == 0; i++) {
-                            System.out.println(i);
+                            
 							Page pageToBeInstertedIn = (Page) (getDeserlaized(
 									"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
@@ -3806,12 +3811,12 @@ System.out.println(returnBack+"|||||||||");
 
 
 	public void checkpolygon() throws DBAppException, IOException {
-		String strTableName = "shape";
-		Hashtable<String, String> htblColNameType = new Hashtable();
-		htblColNameType.put("id", "java.lang.Integer");
-		htblColNameType.put("name", "java.lang.String");
-		htblColNameType.put("shape", "java.awt.Polygon");
-		createTable(strTableName, "id", htblColNameType);
+//		String strTableName = "shape";
+//		Hashtable<String, String> htblColNameType = new Hashtable();
+//		htblColNameType.put("id", "java.lang.Integer");
+//		htblColNameType.put("name", "java.lang.String");
+//		htblColNameType.put("shape", "java.awt.Polygon");
+//		createTable(strTableName, "id", htblColNameType);
 //
 //		for (int i = 0; i < 10; i++) {
 //		Hashtable htblColNameValue = new Hashtable();
@@ -3836,7 +3841,7 @@ System.out.println(returnBack+"|||||||||");
 //		hash.put("name", new String("wwwwwwwww"));		
 //		updateTable(strTableName, "(3,3),(3,3)", hash);
 		
-		createRTreeIndex(strTableName, "shape");
+	//	createRTreeIndex(strTableName, "shape");
 		
 //		Hashtable htblColNameValue = new Hashtable();
 //		htblColNameValue.put("id", new Integer(6));
@@ -3862,7 +3867,7 @@ System.out.println(returnBack+"|||||||||");
 //			System.out.println();
 //		}
 //		
-		displayTableContent(strTableName);
+//		displayTableContent(strTableName);
 	}
 	
 
@@ -3884,7 +3889,7 @@ dbApp.checkpolygon();
 		htblColNameType.put("gpa", "java.lang.Double");
 		htblColNameType.put("shape", "java.awt.Polygon");
 		htblColNameType.put("grad", "java.lang.Boolean");
-	   // dbApp.createTable(strTableName, "id", htblColNameType);
+	 //  dbApp.createTable(strTableName, "id", htblColNameType);
 		//dbApp.createBTreeIndex(strTableName, "id");
 		
 
@@ -3898,7 +3903,7 @@ dbApp.checkpolygon();
 
 //** insert tuples**
 
-<<<<<<< HEAD
+
 ////		for (int i = 0; i < 210; i++) {
 //
 //		Hashtable htblColNameValue = new Hashtable();
@@ -3935,11 +3940,11 @@ dbApp.checkpolygon();
 //			}
 //			System.out.println();
 //		}
-=======
+
 //		for (int i = 0; i < 210; i++) {
 
 		Hashtable htblColNameValue = new Hashtable();
-		htblColNameValue.put("id", new Integer(2));
+		htblColNameValue.put("id", new Integer(1));
 		htblColNameValue.put("name", new String("Ab"));
 		htblColNameValue.put("age", new Integer(25));
 		htblColNameValue.put("date", new Date(2000, 11, 23));
@@ -3961,19 +3966,19 @@ dbApp.checkpolygon();
 		
 		 dbApp.insertIntoTable(strTableName, htblColNameValue);
 		 
-		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
-		 System.out.println(a.toString());
-		 
-		 ReferenceValues ref = (ReferenceValues) a.search(0);
-		for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
-			OverflowNode b = ref.getOverflowNodes().get(i);
-			//System.out.println("size =" + b.referenceOfKeys.size());
-			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-				System.out.print(b.referenceOfKeys.get(j) + " ");
-			}
-			System.out.println();
-		}
->>>>>>> 9e23e4c902d7e90f8adc970455901c7fedab5c48
+//		 BTree a = (BTree)(getDeserlaized("data//" +"BTree"+strTableName+"id" + ".class"));
+//		 System.out.println(a.toString());
+//		 
+//		 ReferenceValues ref = (ReferenceValues) a.search(0);
+//		for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+//			OverflowNode b = ref.getOverflowNodes().get(i);
+//			//System.out.println("size =" + b.referenceOfKeys.size());
+//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+//				System.out.print(b.referenceOfKeys.get(j) + " ");
+//			}
+//			System.out.println();
+//		}
+
 		 
 		
 
@@ -4028,7 +4033,7 @@ dbApp.checkpolygon();
 
 	
 //** testing SELECT**
-//			displayTableContent(strTableName);
+			displayTableContent(strTableName);
 
 //		SQLTerm[] arrSQLTerms;
 //		arrSQLTerms = new SQLTerm[1];
