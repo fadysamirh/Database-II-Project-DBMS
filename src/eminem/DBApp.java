@@ -183,6 +183,63 @@ public class DBApp {
 		}
 		return res ;
 	}
+	public static String getPageR (RTree a ,Tuple nTuple)
+	{
+		String res ="";
+		ArrayList<String> Strings1 = a.rangeMaxSearch((Polygon) nTuple.vtrTupleObj.get(nTuple.index));
+		if(Strings1.size()!=0)
+		{
+			res = Strings1.get(0);
+		}
+		if(Strings1.size()==0)
+		{
+			ArrayList<String> Strings2 = a.rangeMaxSearch((Polygon) nTuple.vtrTupleObj.get(nTuple.index));
+			res=Strings2.get(0);
+		}
+		return res ;
+	}
+	
+	public static int neededPage (String pageName , String strTableName)
+	{
+		int page = -1 ;
+		Table toBeInstertedIn = (Table) getDeserlaized("data//" + strTableName + ".class");
+		int start = toBeInstertedIn.usedPagesNames.indexOf(pageName);
+		for (int i = start; i < toBeInstertedIn.usedPagesNames.size(); i++) {
+			Page pageToBeInstertedIn = (Page) (getDeserlaized(
+					"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
+
+			Vector<Tuple> Tuples = pageToBeInstertedIn.vtrTuples;
+
+			int compare1 = (pageToBeInstertedIn.vtrTuples.lastElement()).compareTo(nTuple);
+
+			int compare2 = (pageToBeInstertedIn.vtrTuples.get(0)).compareTo(nTuple);
+
+			if (i == 0 && (compare2 >= 0)) {
+				page = 0;
+				break;
+			}
+			if (compare1 >= 0 && compare2 <= 0) {
+				page = i;
+				break;
+			}
+
+		}
+		// if nTuple does not fit in any page range if the last page is not full then
+		// insert in it else create new page
+		if (page == -1) {
+			Page pageToBeInstertedIn = (Page) (getDeserlaized(
+					"data//" + toBeInstertedIn.usedPagesNames.lastElement() + ".class"));
+
+			if (pageToBeInstertedIn.vtrTuples.size() == maxPageSize) {
+				toBeInstertedIn.createPage();
+				page = toBeInstertedIn.usedPagesNames.size() - 1;
+			} else {
+				page = toBeInstertedIn.usedPagesNames.size() - 1;
+			}
+
+		}
+
+	}
 
 	public void insertIntoTable(String strTableName, Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
@@ -279,16 +336,25 @@ public class DBApp {
                     	 if(toBeInstertedIn.usedIndicescols.contains(colname))
                     	 {
                     		 int i= toBeInstertedIn.usedIndicescols.indexOf(colname);
-                    		 System.out.println(i);
                     		 BTree a = (BTree) getDeserlaized(
  									"data//" + toBeInstertedIn.usedIndicesNames.elementAt(i) + ".class");
                     		 String pagebyindex = getPage(a, nTuple);
-                    		 System.out.println(pagebyindex+",jb,jb,b,bmnbnn,");
+                    		 page = neededPage(pagebyindex , strTableName);
+                    		 System.out.println(pagebyindex+" here");
+                    	 }
+                    	 if(toBeInstertedIn.usedRtreeCols.contains(colname))
+                    	 {
+                    		 int i= toBeInstertedIn.usedRtreeCols.indexOf(colname);
+                    		 RTree a = (RTree) getDeserlaized(
+ 									"data//" + toBeInstertedIn.usedRtreeNames.elementAt(i) + ".class");
+                    		 String pagebyindex = getPageR(a, nTuple);
+                    		 page = neededPage(pagebyindex,strTableName);
+                    		 System.out.println(pagebyindex+" here");
                     	 }
                     	 
                      }
 					// searching in which page the nTuple will fit in it's range
-					for (int i = 0; i < usedPages.size(); i++) {
+					for (int i = 0; i < usedPages.size()&&page!=-1; i++) {
 						Page pageToBeInstertedIn = (Page) (getDeserlaized(
 								"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
 
