@@ -1,4 +1,0 @@
-Table Name, Column Name, Column Type, ClusteringKey, Indexed,
-J,TouchDate,java.util.Date,false,false,
-J,name,java.lang.String,false,false,
-J,id,java.lang.Integer,true,true,
