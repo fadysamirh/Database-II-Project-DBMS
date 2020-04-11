@@ -1,0 +1,7 @@
+Table Name, Column Name, Column Type, ClusteringKey, Indexed,
+IDClustering,TouchDate,java.util.Date,false,false,
+IDClustering,shape,java.awt.Polygon,false,true,
+IDClustering,age,java.lang.Integer,false,true,
+IDClustering,date,java.util.Date,false,true,
+IDClustering,name,java.lang.String,false,false,
+IDClustering,id,java.lang.Integer,true,true,
