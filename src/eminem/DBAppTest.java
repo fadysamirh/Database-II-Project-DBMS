@@ -1,6 +1,9 @@
 package eminem;
 
+import java.util.Date;
 import java.util.Iterator;
+
+import ds.bplus.BTree;
 
 public class DBAppTest {
 
@@ -36,7 +39,7 @@ public class DBAppTest {
 //		htblColNameValue.put("id", new Integer(5));
 //		htblColNameValue.put("name", new String("g"));
 //		htblColNameValue.put("age", new Integer(50));
-//		htblColNameValue.put("date", new Date(2000, 5, 23));
+//		htblColNameValue.put("date", new Date(2020, 5, 23));
 //////		System.out.println((new Date(2020, 11, 11).getClass()));
 //////		System.out.println((new Date(2020, 11, 11)).toString());
 //
@@ -47,8 +50,8 @@ public class DBAppTest {
 ////			}
 ////			else			htblColNameValue.put("grad", false);
 //		Polygon p = new Polygon();
-//		p.addPoint(4, 3);
-//		p.addPoint(15, 4);
+//		p.addPoint(2, 3);
+//		p.addPoint(1, 3);
 ////		 System.out.println("n:"+p.npoints);
 //		htblColNameValue.put("shape", p);
 ////////
@@ -70,49 +73,48 @@ public class DBAppTest {
 
 //		 dbApp.updateTable(strTableName, "(2,1),(4,5)", hash);
 
-//		try {
-//			 //dbApp.createBTreeIndex(strTableName, "age");
-//			//dbApp.createRTreeIndex(strTableName, "shape");
+		try {
+//			dbApp.createBTreeIndex(strTableName, "date");
+//			dbApp.createRTreeIndex(strTableName, "shape");
 ////
-//			BTree a = (BTree) (dbApp.getDeserlaized("data//" + "BTree" + strTableName + "age" + ".class"));
-//			System.out.println(a.toString());
-//			a.serializeTree();
+			BTree a = (BTree) (dbApp.getDeserlaized("data//" + "BTree" + strTableName + "date" + ".class"));
+			System.out.println(a.toString());
+			a.serializeTree();
 //			RTree r = (RTree) (dbApp.getDeserlaized("data//" + "RTree" + strTableName + "shape" + ".class"));
 //			System.out.println(r.toString());
 //			r.serializeTree();
-//		} catch (Exception e) {
-//			System.out.println("error");
-//		}
+		} catch (Exception e) {
+			System.out.println("error");
+		}
 
 //select tests
 //		Polygon p = new Polygon();
-//		p.addPoint(2, 2);
-//		p.addPoint(5, 5);
-//		hash.put("shape", p);
+//		p.addPoint(2, 4);
+//		p.addPoint(1, 4);
 
 		SQLTerm[] arrSQLTerms;
-		arrSQLTerms = new SQLTerm[2];
+		arrSQLTerms = new SQLTerm[1];
 		for (int i = 0; i < arrSQLTerms.length; i++) {
 			arrSQLTerms[i] = new SQLTerm();
 		}
 		arrSQLTerms[0]._strTableName = strTableName;
-		arrSQLTerms[0]._strColumnName = "id";
+		arrSQLTerms[0]._strColumnName = "date";
 		arrSQLTerms[0]._strOperator = "=";
-		arrSQLTerms[0]._objValue = new Integer(1);
+		arrSQLTerms[0]._objValue = new Date(2020, 6, 23);
 
-		arrSQLTerms[1]._strTableName = strTableName;
-		arrSQLTerms[1]._strColumnName = "name";
-		arrSQLTerms[1]._strOperator = "=";
-		arrSQLTerms[1]._objValue = "d";
+//		arrSQLTerms[1]._strTableName = strTableName;
+//		arrSQLTerms[1]._strColumnName = "name";
+//		arrSQLTerms[1]._strOperator = "=";
+//		arrSQLTerms[1]._objValue = "d";
 
 //		arrSQLTerms[2]._strTableName = strTableName;
 //		arrSQLTerms[2]._strColumnName = "id";
 //		arrSQLTerms[2]._strOperator = ">=";
 //		arrSQLTerms[2]._objValue = new Integer(3);
 
-		String[] strarrOperators = new String[1];
-		strarrOperators[0] = "XOR";
-	//	strarrOperators[1] = "AND";
+		String[] strarrOperators = new String[0];
+		// strarrOperators[0] = "XOR";
+		// strarrOperators[1] = "AND";
 //////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
 
 //		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);

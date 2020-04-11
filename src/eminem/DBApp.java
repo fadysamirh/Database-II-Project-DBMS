@@ -2325,10 +2325,6 @@ public class DBApp {
 							}
 							if (tupKey.equals(key) || useArea) {
 								if (useArea) {
-//									Polygon polKey = (Polygon) key;
-//									myPolygon mypolKey = new myPolygon(polKey);
-//									Polygon polTupKey = (Polygon) tupKey;
-//									myPolygon mypolTupKey = new myPolygon(polTupKey);
 									if (Tuple.compareToHelper(tupKey, key) == 0) {
 										result.add(tup);
 									}
@@ -2352,15 +2348,9 @@ public class DBApp {
 									if ((tupKey.getClass() + "").contains("java.awt.Polygon")) {
 										myPolygon mp = new myPolygon((Polygon) tupKey);
 										tupKey = mp;
-//										myPolygon mpKey = new myPolygon((Polygon) key);
-//										key = mpKey;
 									}
 									if (tupKey.equals(key) || useArea) {
 										if (useArea) {
-//											Polygon polKey = (Polygon) key;
-//											myPolygon mypolKey = new myPolygon(polKey);
-//											Polygon polTupKey = (Polygon) tupKey;
-//											myPolygon mypolTupKey = new myPolygon(polTupKey);
 											if (Tuple.compareToHelper(tupKey, key) == 0) {
 												result.add(tup);
 											}
@@ -2392,8 +2382,6 @@ public class DBApp {
 							if ((value.getClass() + "").contains("java.awt.Polygon")) {
 								myPolygon mp = new myPolygon((Polygon) value);
 								value = mp;
-//								myPolygon mpKey = new myPolygon((Polygon) key);
-//								key = mpKey;
 							}
 							if (Tuple.compareToHelper(value, key) == 0) {
 								if (!useArea) {
@@ -2471,8 +2459,10 @@ public class DBApp {
 					int upperBound = p.vtrTuples.size() - 1;
 					int curIn = -1;
 					int i = 0;
-					myPolygon mpKey = new myPolygon((Polygon) key);
-					key = mpKey;
+					if ((key.getClass() + "").contains("java.awt.Polygon")) {
+						myPolygon mpKey = new myPolygon((Polygon) key);
+						key = mpKey;
+					}
 					while (!flag) {
 						curIn = (lowerBound + upperBound) / 2;
 						Tuple testTuple = p.vtrTuples.get(curIn);
@@ -2480,8 +2470,6 @@ public class DBApp {
 						if ((comkey.getClass() + "").contains("java.awt.Polygon")) {
 							myPolygon mp = new myPolygon((Polygon) comkey);
 							comkey = mp;
-//							myPolygon mpKey = new myPolygon((Polygon) key);
-//							key = mpKey;
 						}
 						if (Tuple.compareToHelper(comkey, key) == 0) {
 							flag = true;
@@ -2492,13 +2480,7 @@ public class DBApp {
 								if ((prevkey.getClass() + "").contains("java.awt.Polygon")) {
 									myPolygon mp = new myPolygon((Polygon) prevkey);
 									prevkey = mp;
-//									myPolygon mpKey = new myPolygon((Polygon) key);
-//									key = mpKey;
 								}
-//								Polygon polPreKey = (Polygon) prevkey;
-//								myPolygon mypolPrevKey = new myPolygon(polPreKey);
-//								Polygon polKey = (Polygon) key;
-//								myPolygon mypolKey = new myPolygon(polKey);
 								boolean equalArea;
 								equalArea = (Tuple.compareToHelper(prevkey, key) == 0);
 								if (prevkey.equals(key) || equalArea) {
@@ -2528,11 +2510,10 @@ public class DBApp {
 						if ((tupKey.getClass() + "").contains("java.awt.Polygon")) {
 							myPolygon mp = new myPolygon((Polygon) tupKey);
 							tupKey = mp;
-//							myPolygon mpKey = new myPolygon((Polygon) key);
-//							key = mpKey;
 						}
 						if (Tuple.compareToHelper(tupKey, key) == 0) {
 							if (!useArea) {
+
 								if (tupKey.equals(key)) {
 									result.add(tup);
 								}
@@ -2556,8 +2537,6 @@ public class DBApp {
 								if ((tupKey.getClass() + "").contains("java.awt.Polygon")) {
 									myPolygon mp = new myPolygon((Polygon) tupKey);
 									tupKey = mp;
-//									myPolygon mpKey = new myPolygon((Polygon) key);
-//									key = mpKey;
 								}
 								if (Tuple.compareToHelper(tupKey, key) == 0) {
 									if (!useArea) {
@@ -2688,7 +2667,7 @@ public class DBApp {
 								result.add(nextP.vtrTuples.get(y));
 								// System.out.println(p.vtrTuples.get(y) + "test");
 							}
-							serialize(p);
+							serialize(nextP);
 						}
 					}
 				} else if (!isClustering) {
@@ -2726,7 +2705,6 @@ public class DBApp {
 								}
 							}
 						}
-
 						b.serializeTree();
 					} else if (t.usedRtreeCols.contains(colName)) {
 						RTree r = (RTree) getDeserlaized("data//" + "RTree" + t.name + colName + ".class");
@@ -2742,7 +2720,6 @@ public class DBApp {
 								}
 							}
 						}
-
 						r.serializeTree();
 					}
 					Page p = (Page) getDeserlaized("data//" + pageName + ".class");
@@ -2767,7 +2744,6 @@ public class DBApp {
 										break;
 									}
 								}
-
 							}
 						}
 						serialize(up);
@@ -2777,13 +2753,22 @@ public class DBApp {
 						}
 					}
 					if (start) {
+						String pName = t.usedPagesNames.get(i);
+						Page pp = (Page) getDeserlaized("data//" + pName + ".class");
+						for (int y = startTuple; y < pp.vtrTuples.size(); y++) {
+							result.add(pp.vtrTuples.get(y));
+							// System.out.println(p.vtrTuples.get(y) + "test");
+						}	
+						i++;
+						serialize(pp);
 						for (int z = i; z < t.usedPagesNames.size(); z++) {
-							String pName = t.usedPagesNames.get(i);
-							Page up = (Page) getDeserlaized("data//" + pName + ".class");
-							for (int y = startTuple; y < up.vtrTuples.size(); y++) {
-								result.add(up.vtrTuples.get(y));
+							String nextPName = t.usedPagesNames.get(z);
+							Page nextP = (Page) getDeserlaized("data//" + nextPName + ".class");
+							for (int y = 0; y < nextP.vtrTuples.size(); y++) {
+								result.add(nextP.vtrTuples.get(y));
+								 //System.out.println(p.vtrTuples.get(y) + "test");
 							}
-							serialize(up);
+							serialize(nextP);
 						}
 					}
 
@@ -3178,7 +3163,7 @@ public class DBApp {
 
 			switch (operator) {
 			case ("="):
-				midRes = equalOperator2(t, obj, indexed, isClustering, colName, useArea);
+				midRes = equalOperator2(t, obj, indexed, isClustering, colName, false);
 				// System.out.println(midRes);
 				break;
 			case ("!="):
@@ -3194,7 +3179,7 @@ public class DBApp {
 				ArrayList<Tuple> greater = new ArrayList<Tuple>();
 				greater = greaterThanOperator2(t, obj, indexed, isClustering, colName);
 				ArrayList<Tuple> equal = new ArrayList<Tuple>();
-				equal = equalOperator2(t, obj, indexed, isClustering, colName, useArea);
+				equal = equalOperator2(t, obj, indexed, isClustering, colName, true);
 				for (int j = 0; j < equal.size(); j++) {
 					midRes.add(equal.get(j));
 				}
@@ -3206,7 +3191,7 @@ public class DBApp {
 				ArrayList<Tuple> less = new ArrayList<Tuple>();
 				less = lessThanOperator2(t, obj, indexed, isClustering, colName);
 				ArrayList<Tuple> equal2 = new ArrayList<Tuple>();
-				equal2 = equalOperator2(t, obj, indexed, isClustering, colName, useArea);
+				equal2 = equalOperator2(t, obj, indexed, isClustering, colName, true);
 				for (int j = 0; j < less.size(); j++) {
 					midRes.add(less.get(j));
 				}
