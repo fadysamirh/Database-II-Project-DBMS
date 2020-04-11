@@ -1665,7 +1665,7 @@ public class DBApp {
 												Object oldValue = old.vtrTupleObj.get(j);
 												// System.out.println(valuesToBeUpdated.get(i));
 												Comparable oldValueCom = (Comparable) oldValue;
-												 //System.out.println(oldValueCom);
+												// System.out.println(oldValueCom);
 												bt.delete(oldValueCom, startPage.pageName);
 												Comparable newValueCom = (Comparable) valuesToBeUpdated.get(i);
 												// System.out.println(newValueCom);
@@ -1748,17 +1748,17 @@ public class DBApp {
 											}
 											String col = colToBeUpdated.get(i);
 											for (int j = 0; j < colNames.size(); j++) {
-												if (colNames.get(j).equals(col)) {	
+												if (colNames.get(j).equals(col)) {
 													if (isIndexed(strTableName, colNames.get(j))) {
-														
+
 														BTree bt = (BTree) getDeserlaized("data//" + "BTree"
 																+ strTableName + colNames.get(j) + ".class");
 														Object oldValue = nextTup.vtrTupleObj.get(j);
 														Comparable oldValueCom = (Comparable) oldValue;
-														//System.out.println(oldValueCom);
+														// System.out.println(oldValueCom);
 														bt.delete(oldValueCom, startPage.pageName);
 														Comparable newValueCom = (Comparable) valuesToBeUpdated.get(i);
-														//System.out.println("newValueCom");
+														// System.out.println("newValueCom");
 														bt.insert(newValueCom, startPage.pageName);
 														bt.serializeTree();
 													} else if (toBeUpdatedIn.usedRtreeCols.contains(col)) {
@@ -2673,11 +2673,20 @@ public class DBApp {
 						}
 					}
 					if (start) {
+						String pName = t.usedPagesNames.get(i);
+						Page p = (Page) getDeserlaized("data//" + pName + ".class");
+						for (int y = startTuple; y < p.vtrTuples.size(); y++) {
+							result.add(p.vtrTuples.get(y));
+							// System.out.println(p.vtrTuples.get(y) + "test");
+						}
+						i++;
+						serialize(p);
 						for (int z = i; z < t.usedPagesNames.size(); z++) {
-							String pName = t.usedPagesNames.get(i);
-							Page p = (Page) getDeserlaized("data//" + pName + ".class");
-							for (int y = startTuple; y < p.vtrTuples.size(); y++) {
-								result.add(p.vtrTuples.get(y));
+							String nextPName = t.usedPagesNames.get(z);
+							Page nextP = (Page) getDeserlaized("data//" + nextPName + ".class");
+							for (int y = 0; y < nextP.vtrTuples.size(); y++) {
+								result.add(nextP.vtrTuples.get(y));
+								// System.out.println(p.vtrTuples.get(y) + "test");
 							}
 							serialize(p);
 						}

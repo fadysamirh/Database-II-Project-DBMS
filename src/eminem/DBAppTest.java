@@ -1,17 +1,13 @@
 package eminem;
 
-import java.awt.Polygon;
-import java.util.Hashtable;
-
-import ds.Rtree.RTree;
-import ds.bplus.BTree;
+import java.util.Iterator;
 
 public class DBAppTest {
 
 	public static void main(String[] args) throws DBAppException {
 		DBApp dbApp = new DBApp();
 		dbApp.init();
-		String strTableName = "PolygonClustering";
+		String strTableName = "IDClustering";
 //		String strTableName = "DoubleIndex";
 
 //create table tests
@@ -27,7 +23,7 @@ public class DBAppTest {
 //		htblColNameType.put("gpa", "java.lang.Double");
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
-//		dbApp.createTable(strTableName, "shape", htblColNameType);
+//		dbApp.createTable(strTableName, "id", htblColNameType);
 
 //insert tests
 // insert more than one page
@@ -37,10 +33,10 @@ public class DBAppTest {
 
 //		for (int i = 0; i < 210; i++) {
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(4));
-//		htblColNameValue.put("name", new String("d"));
-//		htblColNameValue.put("age", new Integer(80));
-//		htblColNameValue.put("date", new Date(2000, 8, 23));
+//		htblColNameValue.put("id", new Integer(5));
+//		htblColNameValue.put("name", new String("g"));
+//		htblColNameValue.put("age", new Integer(50));
+//		htblColNameValue.put("date", new Date(2000, 5, 23));
 //////		System.out.println((new Date(2020, 11, 11).getClass()));
 //////		System.out.println((new Date(2020, 11, 11)).toString());
 //
@@ -51,24 +47,24 @@ public class DBAppTest {
 ////			}
 ////			else			htblColNameValue.put("grad", false);
 //		Polygon p = new Polygon();
-//		p.addPoint(1, 1);
-//		p.addPoint(7, 7);
+//		p.addPoint(4, 3);
+//		p.addPoint(15, 4);
 ////		 System.out.println("n:"+p.npoints);
 //		htblColNameValue.put("shape", p);
 ////////
-//		 dbApp.insertIntoTable(strTableName, htblColNameValue);
+//		dbApp.insertIntoTable(strTableName, htblColNameValue);
 //		}
 
 		// update tests
-		Hashtable<String, Object> hash = new Hashtable();
+//		Hashtable<String, Object> hash = new Hashtable();
 //
 //		Polygon p = new Polygon();
 //		p.addPoint(2, 1);
 //		p.addPoint(4, 5);
 //		hash.put("shape", p);
 //
-		hash.put("age", new Integer(99));
-		hash.put("name", new String("abc"));
+//		hash.put("age", new Integer(99));
+//		hash.put("name", new String("abc"));
 //		////// hash.put("gpa", new Double(0.6));
 //		hash.put("date", new Date(2020 - 02 - 3));
 
@@ -88,18 +84,49 @@ public class DBAppTest {
 //			System.out.println("error");
 //		}
 
+//select tests
+//		Polygon p = new Polygon();
+//		p.addPoint(2, 2);
+//		p.addPoint(5, 5);
+//		hash.put("shape", p);
+
+		SQLTerm[] arrSQLTerms;
+		arrSQLTerms = new SQLTerm[2];
+		for (int i = 0; i < arrSQLTerms.length; i++) {
+			arrSQLTerms[i] = new SQLTerm();
+		}
+		arrSQLTerms[0]._strTableName = strTableName;
+		arrSQLTerms[0]._strColumnName = "id";
+		arrSQLTerms[0]._strOperator = "=";
+		arrSQLTerms[0]._objValue = new Integer(1);
+
+		arrSQLTerms[1]._strTableName = strTableName;
+		arrSQLTerms[1]._strColumnName = "name";
+		arrSQLTerms[1]._strOperator = "=";
+		arrSQLTerms[1]._objValue = "d";
+
+//		arrSQLTerms[2]._strTableName = strTableName;
+//		arrSQLTerms[2]._strColumnName = "id";
+//		arrSQLTerms[2]._strOperator = ">=";
+//		arrSQLTerms[2]._objValue = new Integer(3);
+
+		String[] strarrOperators = new String[1];
+		strarrOperators[0] = "XOR";
+	//	strarrOperators[1] = "AND";
+//////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
+
+//		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
+//		while (resultSet.hasNext()) {
+//			System.out.print(resultSet.next() + " ");
+//			System.out.println();
+//		}
+		//////
 		dbApp.displayTableContent(strTableName);
 	}
 
 //delete tests
 	// check if the last tuple in the page is deleted then the whole page is deleted
 	// check that the index in adjusted if any
-
-//select tests
-	// check that all operators are working correctly
-	// try to select from more than one page
-	// try invalid operators
-	// if index is found use it
 
 //create index tests
 	// if the col type is polygon then only an R tree index can be created on it
