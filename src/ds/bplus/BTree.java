@@ -178,9 +178,8 @@ public class BTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 	 */
 	public void delete(TKey key, TValue value) throws DBAppException { // key=fady tvalue =page 1 deletes only one
 																		// instance of key fady and page 1
-		
 		BTreeLeafNode<TKey, TValue> leaf = this.findLeafNodeShouldContainKey(key);
-		if (leaf.delete(key, value) && leaf.isUnderflow()) {		
+		if (leaf.delete(key, value) && leaf.isUnderflow()) {	
 			BTreeNode<TKey> n = leaf.dealUnderflow();
 			if (n != null)
 				this.root = n;

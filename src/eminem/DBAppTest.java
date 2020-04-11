@@ -11,7 +11,7 @@ public class DBAppTest {
 	public static void main(String[] args) throws DBAppException {
 		DBApp dbApp = new DBApp();
 		dbApp.init();
-		String strTableName = "IDClustering";
+		String strTableName = "PolygonClustering";
 //		String strTableName = "DoubleIndex";
 
 //create table tests
@@ -27,7 +27,7 @@ public class DBAppTest {
 //		htblColNameType.put("gpa", "java.lang.Double");
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
-//		dbApp.createTable(strTableName, "id", htblColNameType);
+//		dbApp.createTable(strTableName, "shape", htblColNameType);
 
 //insert tests
 // insert more than one page
@@ -37,9 +37,9 @@ public class DBAppTest {
 
 //		for (int i = 0; i < 210; i++) {
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(5));
-//		htblColNameValue.put("name", new String("e"));
-//		htblColNameValue.put("age", new Integer(50));
+//		htblColNameValue.put("id", new Integer(4));
+//		htblColNameValue.put("name", new String("d"));
+//		htblColNameValue.put("age", new Integer(80));
 //		htblColNameValue.put("date", new Date(2000, 8, 23));
 //////		System.out.println((new Date(2020, 11, 11).getClass()));
 //////		System.out.println((new Date(2020, 11, 11)).toString());
@@ -52,7 +52,7 @@ public class DBAppTest {
 ////			else			htblColNameValue.put("grad", false);
 //		Polygon p = new Polygon();
 //		p.addPoint(1, 1);
-//		p.addPoint(4, 4);
+//		p.addPoint(7, 7);
 ////		 System.out.println("n:"+p.npoints);
 //		htblColNameValue.put("shape", p);
 ////////
@@ -61,24 +61,24 @@ public class DBAppTest {
 
 		// update tests
 		Hashtable<String, Object> hash = new Hashtable();
-
-		Polygon p = new Polygon();
-		p.addPoint(9, 2);
-		p.addPoint(3, 4);
-		hash.put("shape", p);
 //
-		// hash.put("age", new Integer(3));
-		hash.put("name", new String("v"));
+//		Polygon p = new Polygon();
+//		p.addPoint(2, 1);
+//		p.addPoint(4, 5);
+//		hash.put("shape", p);
+//
+		hash.put("age", new Integer(99));
+		hash.put("name", new String("abc"));
 //		////// hash.put("gpa", new Double(0.6));
 //		hash.put("date", new Date(2020 - 02 - 3));
 
-	//	 dbApp.updateTable(strTableName, "1", hash);
+//		 dbApp.updateTable(strTableName, "(2,1),(4,5)", hash);
 
 //		try {
-//			// dbApp.createBTreeIndex(strTableName, "id");
+//			 //dbApp.createBTreeIndex(strTableName, "age");
 //			//dbApp.createRTreeIndex(strTableName, "shape");
-//
-//			BTree a = (BTree) (dbApp.getDeserlaized("data//" + "BTree" + strTableName + "id" + ".class"));
+////
+//			BTree a = (BTree) (dbApp.getDeserlaized("data//" + "BTree" + strTableName + "age" + ".class"));
 //			System.out.println(a.toString());
 //			a.serializeTree();
 //			RTree r = (RTree) (dbApp.getDeserlaized("data//" + "RTree" + strTableName + "shape" + ".class"));
