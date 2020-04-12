@@ -989,20 +989,20 @@ public class DBApp {
 						if (flag) {
 
 							tuples.remove(j);
-
+							
 							j--;
 							if (tuples.size() == 0) {
 								// delete page and from table
 								File file = new File("data//" + newTable.usedPagesNames.get(i) + ".class");
 
 								if (file.delete()) {
-
+									newTable.usedPagesNames.remove(i);
 									System.out.println("File deleted successfully");
 								} else {
 									System.out.println("Failed to delete the file");
 								}
 
-								newTable.usedPagesNames.remove(i);
+							
 								i--;
 
 							}
@@ -1054,13 +1054,13 @@ public class DBApp {
 								File file = new File("data//" + newTable.usedPagesNames.get(i) + ".class");
 
 								if (file.delete()) {
-
+									newTable.usedPagesNames.remove(i);
 									System.out.println("File deleted successfully");
 								} else {
 									System.out.println("Failed to delete the file");
 								}
 
-								newTable.usedPagesNames.remove(i);
+					
 								i--;
 
 							}
@@ -1231,13 +1231,13 @@ public class DBApp {
 							File file = new File("data//" + newTable.usedPagesNames.get(i) + ".class");
 
 							if (file.delete()) {
-
+								newTable.usedPagesNames.remove(i);
 								System.out.println("File deleted successfully");
 							} else {
 								System.out.println("Failed to delete the file");
 							}
 
-							newTable.usedPagesNames.remove(i);
+
 							i--;
 
 						}
@@ -4115,7 +4115,7 @@ public class DBApp {
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
 //		dbApp.createTable(strTableName, "id", htblColNameType);
-		// dbApp.createBTreeIndex(strTableName, "id");
+//		 dbApp.createBTreeIndex(strTableName, "id");
 		 //dbApp.createRTreeIndex(strTableName, "shape");
 
 //	dbApp.makeIndexed(strTableName, "name");
@@ -4298,9 +4298,9 @@ public class DBApp {
 //
 //	
 //*delete tuples*
-//	Hashtable<String, Object> htblColNameValue = new Hashtable();
-//htblColNameValue.put("id", 3);
-//	htblColNameValue.put("name", "Ab");
+	Hashtable<String, Object> htblColNameValue1 = new Hashtable();
+htblColNameValue1.put("id", 3);
+	htblColNameValue1.put("name", "Ab");
 //	htblColNameValue.put("gpa", 2.0);
 //	htblColNameValue.put("date", new Date(2000, 11, 23));
 //	Polygon p = new Polygon();
@@ -4309,7 +4309,7 @@ public class DBApp {
 //	htblColNameValue.put("shape", p);
 
 //	dbApp.insertIntoTable(strTableName, htblColNameValue);
-//	dbApp.deleteFromTable(strTableName, htblColNameValue);
+	dbApp.deleteFromTable(strTableName, htblColNameValue1);
 
 //	Page pageToBeDeleteFrom = (Page) (getDeserlaized(
 //			"data//Student0.class"));
