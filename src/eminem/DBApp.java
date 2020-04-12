@@ -941,7 +941,8 @@ public class DBApp {
 		// System.out.println(pageToBeInstertedInIndex + " this is the index");
 		ArrayList<String> listOfAvailableIndices = getListOfIndicesNames(htblColNameValue, strTableName);
 		ArrayList<String> listOfRTreeNames = getListRTreeNames(htblColNameValue, strTableName);
-
+//		System.out.println(listOfAvailableIndices.size());
+//		System.out.println(listOfRTreeNames.size());
 		boolean flag2 = false;
 		int i = 0;
 		int[] compareTuple = getDeleteIndexOfArray(dTupleArray);
@@ -988,20 +989,20 @@ public class DBApp {
 						if (flag) {
 
 							tuples.remove(j);
-
+							
 							j--;
 							if (tuples.size() == 0) {
 								// delete page and from table
 								File file = new File("data//" + newTable.usedPagesNames.get(i) + ".class");
 
 								if (file.delete()) {
-
+									newTable.usedPagesNames.remove(i);
 									System.out.println("File deleted successfully");
 								} else {
 									System.out.println("Failed to delete the file");
 								}
 
-								newTable.usedPagesNames.remove(i);
+							
 								i--;
 
 							}
@@ -1053,13 +1054,13 @@ public class DBApp {
 								File file = new File("data//" + newTable.usedPagesNames.get(i) + ".class");
 
 								if (file.delete()) {
-
+									newTable.usedPagesNames.remove(i);
 									System.out.println("File deleted successfully");
 								} else {
 									System.out.println("Failed to delete the file");
 								}
 
-								newTable.usedPagesNames.remove(i);
+					
 								i--;
 
 							}
@@ -1085,9 +1086,11 @@ public class DBApp {
 
 			}
 		} else {
+		
 			ArrayList<Integer> listOfColNum = new ArrayList<Integer>();
 
 			for (int k = 0; k < listOfAvailableIndices.size(); k++) {
+				
 				listOfColNum.add(getColNumber(strTableName, listOfAvailableIndices.get(k)));
 
 			}
@@ -1113,15 +1116,18 @@ public class DBApp {
 							"data//" + "BTree" + strTableName + listOfColName.get(listOfColNum.get(k)) + ".class");
 
 					ReferenceValues ref = (ReferenceValues) btree.search((Comparable) dTupleArray[listOfColNum.get(k)]);
+
 					if (ref == null) {
 						throw new DBAppException("No matching records found");
 					}
+
 					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
 
 					ArrayList<String> listOfFlattenReference = new ArrayList<String>();
 
 					// code for flattening
 					for (int j = 0; j < lstofn.size(); j++) {
+						System.out.println("here");
 						OverflowNode ofn = lstofn.get(j);
 						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
 							System.out.println("line 1131: " + ofn.referenceOfKeys.get(m));
@@ -1146,6 +1152,9 @@ public class DBApp {
 
 					ReferenceValues ref = (ReferenceValues) rtree
 							.search((Polygon) dTupleArray[listOfColNumRtree.get(k)]);
+					if (ref == null) {
+						throw new DBAppException("No matching records found");
+					}
 
 					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
 
@@ -1225,13 +1234,14 @@ public class DBApp {
 							File file = new File("data//" + newTable.usedPagesNames.get(i) + ".class");
 
 							if (file.delete()) {
-
+								newTable.usedPagesNames.remove(i);
+								intersect.remove(i);
 								System.out.println("File deleted successfully");
 							} else {
 								System.out.println("Failed to delete the file");
 							}
 
-							newTable.usedPagesNames.remove(i);
+
 							i--;
 
 						}
@@ -4164,17 +4174,17 @@ public class DBApp {
 
 //dbApp.checkpolygon();
 //*create table*
-//		Hashtable<String, String> htblColNameType = new Hashtable();
-
-//		htblColNameType.put("id", "java.lang.Integer");
-//		htblColNameType.put("name", "java.lang.String");
+		Hashtable<String, String> htblColNameType = new Hashtable();
+		htblColNameType.put("id", "java.lang.Integer");
+		htblColNameType.put("name", "java.lang.String");
 //		htblColNameType.put("age", "java.lang.Integer");
 //		htblColNameType.put("date", "java.util.Date");
 //		htblColNameType.put("gpa", "java.lang.Double");
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
-//		dbApp.createTable(strTableName, "id", htblColNameType);
-		// dbApp.createBTreeIndex(strTableName, "id");
+		dbApp.createTable(strTableName, "id", htblColNameType);
+
+		// 
 		// dbApp.createRTreeIndex(strTableName, "shape");
 
 //	dbApp.makeIndexed(strTableName, "name");
@@ -4188,11 +4198,12 @@ public class DBApp {
 
 ////	for (int i = 0; i < 210; i++) {
 //
-//		Hashtable htblColNameValue = new Hashtable();
 
-//		htblColNameValue.put("id", new Integer(1));
+		Hashtable htblColNameValue = new Hashtable();
+		htblColNameValue.put("id", new Integer(3));
+		htblColNameValue.put("name", new String("Ab"));
 
-//		htblColNameValue.put("name", new String("Aaaa"));
+
 //	htblColNameValue.put("age", new Integer(25));
 //	htblColNameValue.put("date", new Date(2000, 11, 23));
 ////////		System.out.println((new Date(2020, 11, 11).getClass()));
@@ -4211,11 +4222,13 @@ public class DBApp {
 //////		 System.out.println("n:"+p.npoints);
 //	htblColNameValue.put("shape", p);
 //	
-//	 dbApp.insertIntoTable(strTableName, htblColNameValue);
+	 dbApp.insertIntoTable(strTableName, htblColNameValue);
+	 
+	 dbApp.createBTreeIndex(strTableName, "id");
 //	 
-		RTree a = (RTree) (getDeserlaized("data//" + "RTree" + strTableName + "shape" + ".class"));
-		System.out.println(a.toString());
-		a.serializeTree();
+//		RTree a = (RTree) (getDeserlaized("data//" + "RTree" + strTableName + "shape" + ".class"));
+//		System.out.println(a.toString());
+//		a.serializeTree();
 //	 
 //	 RTreeReferenceValues ref = (RTreeReferenceValues) a.search(p);
 //		for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
@@ -4240,7 +4253,7 @@ public class DBApp {
 //		htblColNameType.put("grad", "java.lang.Boolean");
 
 		// dbApp.createTable(strTableName, "id", htblColNameType);
-		// dbApp.createBTreeIndex(strTableName, "id");
+		 //dbApp.createBTreeIndex(strTableName, "id");
 
 //		dbApp.makeIndexed(strTableName, "name");
 
@@ -4360,9 +4373,9 @@ public class DBApp {
 //
 //	
 //*delete tuples*
-//	Hashtable<String, Object> htblColNameValue = new Hashtable();
-//htblColNameValue.put("age", 11);
-//	htblColNameValue.put("name", "asdfghj");
+//	Hashtable<String, Object> htblColNameValue1 = new Hashtable();
+//htblColNameValue1.put("id", 3);
+//	htblColNameValue1.put("name", "Ab");
 //	htblColNameValue.put("gpa", 2.0);
 //	htblColNameValue.put("date", new Date(2000, 11, 23));
 //	Polygon p = new Polygon();
@@ -4371,7 +4384,7 @@ public class DBApp {
 //	htblColNameValue.put("shape", p);
 
 //	dbApp.insertIntoTable(strTableName, htblColNameValue);
-//	dbApp.deleteFromTable(strTableName, htblColNameValue);
+	dbApp.deleteFromTable(strTableName, htblColNameValue);
 
 //	Page pageToBeDeleteFrom = (Page) (getDeserlaized(
 //			"data//Student0.class"));
@@ -4398,20 +4411,20 @@ public class DBApp {
 
 //* testing SELECT*
 //		displayTableContent(strTableName);
-		Polygon p = new Polygon();
-		p.addPoint(2, 2);
-		p.addPoint(5, 5);
-//		hash.put("shape", p);
-
-		SQLTerm[] arrSQLTerms;
-		arrSQLTerms = new SQLTerm[1];
-		for (int i = 0; i < arrSQLTerms.length; i++) {
-			arrSQLTerms[i] = new SQLTerm();
-		}
-		arrSQLTerms[0]._strTableName = "Student";
-		arrSQLTerms[0]._strColumnName = "shape";
-		arrSQLTerms[0]._strOperator = ">";
-		arrSQLTerms[0]._objValue = p;
+//		Polygon p = new Polygon();
+//		p.addPoint(2, 2);
+//		p.addPoint(5, 5);
+////		hash.put("shape", p);
+//
+//		SQLTerm[] arrSQLTerms;
+//		arrSQLTerms = new SQLTerm[1];
+//		for (int i = 0; i < arrSQLTerms.length; i++) {
+//			arrSQLTerms[i] = new SQLTerm();
+//		}
+//		arrSQLTerms[0]._strTableName = "Student";
+//		arrSQLTerms[0]._strColumnName = "shape";
+//		arrSQLTerms[0]._strOperator = ">";
+//		arrSQLTerms[0]._objValue = p;
 
 //////
 //	arrSQLTerms[1]._strTableName = "Student";
@@ -4455,6 +4468,7 @@ public class DBApp {
 //	dbApp.createBTreeIndex(strTableName, "age");
 
 //	dbApp.checkTree();
+
 //		displayTableContent(strTableName);
 
 //	long modified = dbApp.modifyKey(new Integer(30));
@@ -4487,3 +4501,4 @@ public class DBApp {
 
 	}
 }// throw DBAexception
+
