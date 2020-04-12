@@ -1,14 +1,17 @@
 package eminem;
 
-import java.util.Hashtable;
+import java.util.Date;
+import java.util.Iterator;
+
+import ds.bplus.BTree;
 
 public class DBAppTest {
 
-	public static void main(String[] args) throws DBAppException{
+	public static void main(String[] args) throws DBAppException {
 		DBApp dbApp = new DBApp();
 		dbApp.init();
-//		String strTableName = "IDClustering";
-		String strTableName = "DoubleIndex";
+		String strTableName = "IDClustering";
+//		String strTableName = "DoubleIndex";
 
 //create table tests
 // create table with invalid types
@@ -24,20 +27,19 @@ public class DBAppTest {
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
 //		dbApp.createTable(strTableName, "id", htblColNameType);
-	
-		
+
 //insert tests
 // insert more than one page
 // check if insertion is done correctly
 // check that the index is adjusted if any
 // insert all types		
-		
+
 //		for (int i = 0; i < 210; i++) {
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(i));
-//		htblColNameValue.put("name", new String("Ab"));
-//		htblColNameValue.put("age", new Integer(i%50));
-////		htblColNameValue.put("date", new Date(2000, 11, 23));
+//		htblColNameValue.put("id", new Integer(5));
+//		htblColNameValue.put("name", new String("g"));
+//		htblColNameValue.put("age", new Integer(50));
+//		htblColNameValue.put("date", new Date(2020, 5, 23));
 //////		System.out.println((new Date(2020, 11, 11).getClass()));
 //////		System.out.println((new Date(2020, 11, 11)).toString());
 //
@@ -47,35 +49,86 @@ public class DBAppTest {
 ////					htblColNameValue.put("grad", true);			
 ////			}
 ////			else			htblColNameValue.put("grad", false);
-////		 Polygon p = new Polygon();
-////		 p.addPoint(1,1);
-////		 p.addPoint(2,2);
+//		Polygon p = new Polygon();
+//		p.addPoint(2, 3);
+//		p.addPoint(1, 3);
 ////		 System.out.println("n:"+p.npoints);
-////		 htblColNameValue.put("shape", p);
+//		htblColNameValue.put("shape", p);
 ////////
-//		 dbApp.insertIntoTable(strTableName, htblColNameValue);
+//		dbApp.insertIntoTable(strTableName, htblColNameValue);
 //		}
-		
+
+		// update tests
+//		Hashtable<String, Object> hash = new Hashtable();
+//
+//		Polygon p = new Polygon();
+//		p.addPoint(2, 1);
+//		p.addPoint(4, 5);
+//		hash.put("shape", p);
+//
+//		hash.put("age", new Integer(99));
+//		hash.put("name", new String("abc"));
+//		////// hash.put("gpa", new Double(0.6));
+//		hash.put("date", new Date(2020 - 02 - 3));
+
+//		 dbApp.updateTable(strTableName, "(2,1),(4,5)", hash);
+
+		try {
+//			dbApp.createBTreeIndex(strTableName, "date");
+//			dbApp.createRTreeIndex(strTableName, "shape");
+////
+			BTree a = (BTree) (dbApp.getDeserlaized("data//" + "BTree" + strTableName + "date" + ".class"));
+			System.out.println(a.toString());
+			a.serializeTree();
+//			RTree r = (RTree) (dbApp.getDeserlaized("data//" + "RTree" + strTableName + "shape" + ".class"));
+//			System.out.println(r.toString());
+//			r.serializeTree();
+		} catch (Exception e) {
+			System.out.println("error");
+		}
+
+//select tests
+//		Polygon p = new Polygon();
+//		p.addPoint(2, 4);
+//		p.addPoint(1, 4);
+
+		SQLTerm[] arrSQLTerms;
+		arrSQLTerms = new SQLTerm[1];
+		for (int i = 0; i < arrSQLTerms.length; i++) {
+			arrSQLTerms[i] = new SQLTerm();
+		}
+		arrSQLTerms[0]._strTableName = strTableName;
+		arrSQLTerms[0]._strColumnName = "date";
+		arrSQLTerms[0]._strOperator = "=";
+		arrSQLTerms[0]._objValue = new Date(2020, 6, 23);
+
+//		arrSQLTerms[1]._strTableName = strTableName;
+//		arrSQLTerms[1]._strColumnName = "name";
+//		arrSQLTerms[1]._strOperator = "=";
+//		arrSQLTerms[1]._objValue = "d";
+
+//		arrSQLTerms[2]._strTableName = strTableName;
+//		arrSQLTerms[2]._strColumnName = "id";
+//		arrSQLTerms[2]._strOperator = ">=";
+//		arrSQLTerms[2]._objValue = new Integer(3);
+
+		String[] strarrOperators = new String[0];
+		// strarrOperators[0] = "XOR";
+		// strarrOperators[1] = "AND";
+//////////////////		// select * from Student where name = “John Noor” or gpa = 1.5; 
+
+//		Iterator resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
+//		while (resultSet.hasNext()) {
+//			System.out.print(resultSet.next() + " ");
+//			System.out.println();
+//		}
+		//////
 		dbApp.displayTableContent(strTableName);
 	}
-
-
 
 //delete tests
 	// check if the last tuple in the page is deleted then the whole page is deleted
 	// check that the index in adjusted if any
-
-//update tests
-	// check that all desired tuples are updated
-	// check that if the needed tuples are in more than one page they are updated
-	// check that all types can be updated
-	// check that the index is updated correctly
-
-//select tests
-	// check that all operators are working correctly
-	// try to select from more than one page
-	// try invalid operators
-	// if index is found use it
 
 //create index tests
 	// if the col type is polygon then only an R tree index can be created on it
