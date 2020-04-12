@@ -1146,23 +1146,23 @@ public class DBApp {
 			for (int k = 0; k < listOfColNumRtree.size(); k++) { // looping over col that has an rtree
 
 				if (dTupleArray[listOfColNumRtree.get(k)] != null) {
-
+//***********listOfColName.get(listOfColNumRtree.get(k))
 					RTree rtree = (RTree) getDeserlaized("data//" + "RTree" + strTableName
-							+ listOfRTreeNames.get(listOfColNumRtree.get(k)) + ".class");
-
-					ReferenceValues ref = (ReferenceValues) rtree
+							+ listOfColName.get(listOfColNumRtree.get(k)) + ".class");
+//***********RTreeReferenceValues
+					RTreeReferenceValues ref = (RTreeReferenceValues) rtree
 							.search((Polygon) dTupleArray[listOfColNumRtree.get(k)]);
 					if (ref == null) {
 						throw new DBAppException("No matching records found");
 					}
-
-					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
+//******** RTreeOverflow
+					ArrayList<RTreeOverflowNode> lstofn = ref.getRTreeOverflowNodes(); // getting list of overflow nodes
 
 					ArrayList<String> listOfFlattenReference = new ArrayList<String>();
 
 					// code for flattening
 					for (int j = 0; j < lstofn.size(); j++) {
-						OverflowNode ofn = lstofn.get(j);
+						RTreeOverflowNode ofn = lstofn.get(j);
 						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
 							// System.out.println(ofn.referenceOfKeys.get(m));
 							String reference = (ofn.referenceOfKeys.get(m)).toString();
@@ -4064,10 +4064,11 @@ public class DBApp {
 	}
 
 	public void checkpolygon() throws DBAppException, IOException {
-		String strTableName = "J";
+		String strTableName = "BBB";
 		Hashtable<String, String> htblColNameType = new Hashtable();
 		htblColNameType.put("id", "java.lang.Integer");
 		htblColNameType.put("name", "java.lang.String");
+		htblColNameType.put("n", "java.lang.String");
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("poly", "java.awt.Polygon");
 //		createTable(strTableName, "id", htblColNameType);
@@ -4076,9 +4077,10 @@ public class DBApp {
 //			Hashtable htblColNameValue = new Hashtable();
 //			htblColNameValue.put("id", new Integer(i));
 //			htblColNameValue.put("name", new String("Ab"));
+//			htblColNameValue.put("n", new String("A"));
 ////			Polygon p = new Polygon();
 ////			p.addPoint(3,3);
-////			p.addPoint(20-i, 20-i);
+////			p.addPoint(0,0);
 ////			htblColNameValue.put("shape", p);
 ////			Polygon p2 = new Polygon();
 ////			p2.addPoint(2,2);
@@ -4088,13 +4090,13 @@ public class DBApp {
 //		}
 
 		Hashtable<String, Object> htblColNameValue = new Hashtable();
-//		Polygon pol = new Polygon();
-//		pol.addPoint(1,1);
-//		pol.addPoint(3,3);
+		Polygon pol = new Polygon();
+		pol.addPoint(3,3);
+		pol.addPoint(4,4);
 //		htblColNameValue.put("shape", pol);
-		htblColNameValue.put("id", 12);
+//		htblColNameValue.put("id", 12);
 		htblColNameValue.put("name", "Ab");
-//		deleteFromTable(strTableName, htblColNameValue);
+		deleteFromTable(strTableName, htblColNameValue);
 
 //		Hashtable hash = new Hashtable();
 //		hash.put("name", new String("wwwwwwwww"));		
@@ -4102,7 +4104,7 @@ public class DBApp {
 
 //		createRTreeIndex(strTableName, "shape");
 //		createRTreeIndex(strTableName, "poly");
-//		createBTreeIndex(strTableName, "id");
+//		createBTreeIndex(strTableName, "n");
 
 //		Hashtable htblColNameValue = new Hashtable();
 //		htblColNameValue.put("id", new Integer(6));
@@ -4124,7 +4126,7 @@ public class DBApp {
 //		System.out.println(rt.toString());
 //		
 //		Polygon p = new Polygon();
-//		p.addPoint(1,1);
+//		p.addPoint(3,3);
 //		p.addPoint(0,0);
 //		 RTreeReferenceValues ref = (RTreeReferenceValues) rt.search(p);
 //			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
@@ -4151,18 +4153,18 @@ public class DBApp {
 //			System.out.println();
 //		}
 
-//		BTree bt= (BTree) getDeserlaized("data//" + "BTree"+strTableName+"id" + ".class");
-//		System.out.println(bt.toString());
-//		ReferenceValues ref = (ReferenceValues) bt.search(7);
-//			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
-//			OverflowNode b = ref.getOverflowNodes().get(i);
-//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-//				System.out.print(b.referenceOfKeys.get(j) + " ");
-//			}
-//			System.out.println();
-//		}
+		BTree bt= (BTree) getDeserlaized("data//" + "BTree"+strTableName+"n" + ".class");
+		System.out.println(bt.toString());
+		ReferenceValues ref = (ReferenceValues) bt.search("A");
+			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+			OverflowNode b = ref.getOverflowNodes().get(i);
+			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+				System.out.print(b.referenceOfKeys.get(j) + " ");
+			}
+			System.out.println();
+		}
 ////		
-//		displayTableContent(strTableName);
+		displayTableContent(strTableName);
 	}
 
 	public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException {
@@ -4172,7 +4174,7 @@ public class DBApp {
 //    System.out.println(dbApp.maxPageSize);
 		String strTableName = "Student";
 
-//dbApp.checkpolygon();
+dbApp.checkpolygon();
 //*create table*
 		Hashtable<String, String> htblColNameType = new Hashtable();
 		htblColNameType.put("id", "java.lang.Integer");
@@ -4182,7 +4184,7 @@ public class DBApp {
 //		htblColNameType.put("gpa", "java.lang.Double");
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
-		dbApp.createTable(strTableName, "id", htblColNameType);
+//		dbApp.createTable(strTableName, "id", htblColNameType);
 
 		// 
 		// dbApp.createRTreeIndex(strTableName, "shape");
@@ -4222,9 +4224,9 @@ public class DBApp {
 //////		 System.out.println("n:"+p.npoints);
 //	htblColNameValue.put("shape", p);
 //	
-	 dbApp.insertIntoTable(strTableName, htblColNameValue);
-	 
-	 dbApp.createBTreeIndex(strTableName, "id");
+//	 dbApp.insertIntoTable(strTableName, htblColNameValue);
+//	 
+//	 dbApp.createBTreeIndex(strTableName, "id");
 //	 
 //		RTree a = (RTree) (getDeserlaized("data//" + "RTree" + strTableName + "shape" + ".class"));
 //		System.out.println(a.toString());
@@ -4384,7 +4386,7 @@ public class DBApp {
 //	htblColNameValue.put("shape", p);
 
 //	dbApp.insertIntoTable(strTableName, htblColNameValue);
-	dbApp.deleteFromTable(strTableName, htblColNameValue);
+//	dbApp.deleteFromTable(strTableName, htblColNameValue);
 
 //	Page pageToBeDeleteFrom = (Page) (getDeserlaized(
 //			"data//Student0.class"));
