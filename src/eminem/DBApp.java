@@ -941,12 +941,29 @@ public class DBApp {
 		// System.out.println(pageToBeInstertedInIndex + " this is the index");
 		ArrayList<String> listOfAvailableIndices = getListOfIndicesNames(htblColNameValue, strTableName);
 		ArrayList<String> listOfRTreeNames = getListRTreeNames(htblColNameValue, strTableName);
+		boolean flagBtree=false;
+		for(int i=0;i<listOfAvailableIndices.size();i++) {
+			if(htblColNameValue.containsKey(listOfAvailableIndices.get(i))) {
+				flagBtree=true;
+				break;
+			}
+				
+		}
+		boolean flagRtree=false;
+		for(int i=0;i<listOfRTreeNames.size();i++) {
+			if(htblColNameValue.containsKey(listOfRTreeNames.get(i))) {
+				flagRtree=true;
+				break;
+			}
+				
+		}
+		
 //		System.out.println(listOfAvailableIndices.size());
 //		System.out.println(listOfRTreeNames.size());
 		boolean flag2 = false;
 		int i = 0;
 		int[] compareTuple = getDeleteIndexOfArray(dTupleArray);
-		if (listOfAvailableIndices.isEmpty() && listOfRTreeNames.isEmpty()) {
+		if (listOfAvailableIndices.isEmpty()&&listOfRTreeNames.isEmpty())) {
 			for (i = 0; i < newTable.usedPagesNames.size(); i++) {
 
 				Page pageToBeDeleteFrom = (Page) (getDeserlaized("data//" + newTable.usedPagesNames.get(i) + ".class"));
@@ -1178,6 +1195,13 @@ public class DBApp {
 				}
 			}
 			intersect = removeDuplicates(intersect);
+			boolean intersectEmpty=intersect.isEmpty()?true:false;
+			if(intersectEmpty) {
+				for(int s=0;s<usedPages.size();s++) {
+					intersect.add(usedPages.get(s));
+				}
+			}
+			
 			for (i = 0; i < intersect.size(); i++) {
 				System.out.println(intersect.get(i));
 				Page pageToBeDeleteFrom = (Page) (getDeserlaized("data//" + intersect.get(i) + ".class"));
