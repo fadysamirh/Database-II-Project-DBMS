@@ -4088,7 +4088,7 @@ public class DBApp {
 	}
 
 	public void checkpolygon() throws DBAppException, IOException {
-		String strTableName = "BBB";
+		String strTableName = "B";
 		Hashtable<String, String> htblColNameType = new Hashtable();
 		htblColNameType.put("id", "java.lang.Integer");
 		htblColNameType.put("name", "java.lang.String");
@@ -4100,8 +4100,8 @@ public class DBApp {
 //		for (int i = 0; i < 13; i++) {
 //			Hashtable htblColNameValue = new Hashtable();
 //			htblColNameValue.put("id", new Integer(i));
-//			htblColNameValue.put("name", new String("Ab"));
-//			htblColNameValue.put("n", new String("A"));
+//			htblColNameValue.put("name", new String("Abbb"));
+//			htblColNameValue.put("n", new String("C"));
 ////			Polygon p = new Polygon();
 ////			p.addPoint(3,3);
 ////			p.addPoint(0,0);
@@ -4143,24 +4143,24 @@ public class DBApp {
 ////		htblColNameValue.put("poly", p2);
 //		insertIntoTable(strTableName, htblColNameValue);
 ////	
-//		if(true) {
-//			
-//		RTree rt= (RTree) getDeserlaized("data//" + "RTree"+strTableName+"shape" + ".class");
-//		System.out.println(rt.treeName);
-//		System.out.println(rt.toString());
-//		
-//		Polygon p = new Polygon();
-//		p.addPoint(3,3);
-//		p.addPoint(0,0);
-//		 RTreeReferenceValues ref = (RTreeReferenceValues) rt.search(p);
-//			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
-//			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
-//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-//				System.out.print(b.referenceOfKeys.get(j) + " ");
-//			}
-//			System.out.println();
-//		}
-//		}
+		if(false) {
+			
+		RTree rt= (RTree) getDeserlaized("data//" + "RTree"+strTableName+"shape" + ".class");
+		System.out.println(rt.treeName);
+		System.out.println(rt.toString());
+		
+		Polygon p = new Polygon();
+		p.addPoint(3,3);
+		p.addPoint(0,0);
+		 RTreeReferenceValues ref = (RTreeReferenceValues) rt.search(p);
+			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
+			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
+			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+				System.out.print(b.referenceOfKeys.get(j) + " ");
+			}
+			System.out.println();
+		}
+		}
 //		RTree rt= (RTree) getDeserlaized("data//" + "RTree"+strTableName+"poly" + ".class");
 //		System.out.println(rt.treeName);
 //		System.out.println(rt.toString());
