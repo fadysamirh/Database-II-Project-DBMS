@@ -158,9 +158,15 @@ class BTreeLeafNode<TKey extends Comparable<TKey>, TValue> extends BTreeNode<TKe
 		}
 
 		// insert new key and value
+		if(value instanceof ReferenceValues) {
+			this.setKey(index, key);
+			this.setValueShift(index, value);
+		}
+		else {
 		this.setKey(index, key);
 		this.setValueShift(index, null);
 		this.setValue(index, value);
+		}
 
 		++this.keyCount;
 	}
