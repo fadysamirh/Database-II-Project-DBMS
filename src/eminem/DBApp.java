@@ -1202,23 +1202,23 @@ System.out.println(key +" in page "+ page);
 			for (int k = 0; k < listOfColNumRtree.size(); k++) { // looping over col that has an rtree
 
 				if (dTupleArray[listOfColNumRtree.get(k)] != null) {
-
+//***********listOfColName.get(listOfColNumRtree.get(k))
 					RTree rtree = (RTree) getDeserlaized("data//" + "RTree" + strTableName
-							+ listOfRTreeNames.get(listOfColNumRtree.get(k)) + ".class");
-
-					ReferenceValues ref = (ReferenceValues) rtree
+							+ listOfColName.get(listOfColNumRtree.get(k)) + ".class");
+//***********RTreeReferenceValues
+					RTreeReferenceValues ref = (RTreeReferenceValues) rtree
 							.search((Polygon) dTupleArray[listOfColNumRtree.get(k)]);
 					if (ref == null) {
 						throw new DBAppException("No matching records found");
 					}
-
-					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
+//******** RTreeOverflow
+					ArrayList<RTreeOverflowNode> lstofn = ref.getRTreeOverflowNodes(); // getting list of overflow nodes
 
 					ArrayList<String> listOfFlattenReference = new ArrayList<String>();
 
 					// code for flattening
 					for (int j = 0; j < lstofn.size(); j++) {
-						OverflowNode ofn = lstofn.get(j);
+						RTreeOverflowNode ofn = lstofn.get(j);
 						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
 							// System.out.println(ofn.referenceOfKeys.get(m));
 							String reference = (ofn.referenceOfKeys.get(m)).toString();
