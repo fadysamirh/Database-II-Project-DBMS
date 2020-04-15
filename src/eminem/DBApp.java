@@ -199,12 +199,12 @@ public class DBApp {
 		Table toBeInstertedIn = (Table) getDeserlaized("data//" + strTableName + ".class");
 		int start = 0;
 		for (int i = 0; i < toBeInstertedIn.usedPagesNames.size(); i++) {
-			if (toBeInstertedIn.usedPagesNames.get(i).equals(pageName)) {
+			String pageNameCompare=toBeInstertedIn.usedPagesNames.get(i)+" ";
+			if (pageNameCompare.contains(pageName)) {
 				start = i;
 				break;
 			}
 		}
-		System.out.println(toBeInstertedIn.usedPagesNames.get(0));
 		for (int i = start; i < toBeInstertedIn.usedPagesNames.size(); i++) {
 			Page pageToBeInstertedIn = (Page) (getDeserlaized(
 					"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
@@ -217,6 +217,10 @@ public class DBApp {
 
 			if (i == 0 && (compare2 >= 0)) {
 				page = 0;
+				break;
+			}
+			if (compare1 >= 0 && compare2 >= 0) {
+				page = i;
 				break;
 			}
 			if (compare1 >= 0 && compare2 <= 0) {
@@ -341,7 +345,7 @@ public class DBApp {
 							String pagebyindex = getPage(a, nTuple);
 							page = neededPage(pagebyindex, strTableName, nTuple);
 							// System.out.println(pagebyindex+" here");
-	System.out.println("page from btree: "+pagebyindex + ", page from neededpage: "+page);
+	                   System.out.println("page from btree: "+pagebyindex + ", page from neededpage: "+page);
 						}
 						if (toBeInstertedIn.usedRtreeCols.contains(colname)) {
 							int i = toBeInstertedIn.usedRtreeCols.indexOf(colname);
@@ -369,6 +373,10 @@ public class DBApp {
 						// System.out.println(compare2);
 						if (i == 0 && (compare2 >= 0)) {
 							page = 0;
+							break;
+						}
+						if (compare1 >= 0 && compare2 >= 0) {
+							page = i;
 							break;
 						}
 						if (compare1 >= 0 && compare2 <= 0) {
@@ -404,7 +412,11 @@ public class DBApp {
 								String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
 								int colIndex = columns.indexOf(colName);
 								Object key = nTuple.vtrTupleObj.get(colIndex);
-System.out.println(key +" in page "+ page);
+                                System.out.println(key +" in page "+ page);
+                                if(toBeInstertedIn.usedPagesNames.size()==page)
+                                {
+                                	toBeInstertedIn.createPage();
+                                }
 								toUpdate.insert((Comparable) key, toBeInstertedIn.usedPagesNames.get(page));
 
 								toUpdate.serializeTree();
@@ -419,7 +431,10 @@ System.out.println(key +" in page "+ page);
 								String colName = toBeInstertedIn.usedRtreeCols.elementAt(i);
 								int colIndex = columns.indexOf(colName);
 								Object key = nTuple.vtrTupleObj.get(colIndex);
-
+								 if(toBeInstertedIn.usedPagesNames.size()==page)
+	                                {
+	                                	toBeInstertedIn.createPage();
+	                                }
 								toUpdate.insert((Polygon) key, toBeInstertedIn.usedPagesNames.get(page));
 
 								toUpdate.serializeTree();
@@ -4149,7 +4164,7 @@ System.out.println(key +" in page "+ page);
 //			p2.addPoint(2,2);
 //			p2.addPoint(i, i);
 //			htblColNameValue.put("poly", p2);
-			insertIntoTable(strTableName, htblColNameValue);
+//			insertIntoTable(strTableName, htblColNameValue);
 		}
 
 		Hashtable<String, Object> htblColNameValue = new Hashtable();
@@ -4216,18 +4231,18 @@ System.out.println(key +" in page "+ page);
 //			System.out.println();
 //		}
 
-		BTree bt= (BTree) getDeserlaized("data//" + "BTree"+strTableName+"id" + ".class");
-		System.out.println(bt.toString());
-		ReferenceValues ref = (ReferenceValues) bt.search(10);
-			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
-			OverflowNode b = ref.getOverflowNodes().get(i);
-			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-				System.out.print(b.referenceOfKeys.get(j) + " ");
-			}
-			System.out.println();
-		}
+//		BTree bt= (BTree) getDeserlaized("data//" + "BTree"+strTableName+"id" + ".class");
+//		System.out.println(bt.toString());
+//		ReferenceValues ref = (ReferenceValues) bt.search(10);
+//			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
+//			OverflowNode b = ref.getOverflowNodes().get(i);
+//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+//				System.out.print(b.referenceOfKeys.get(j) + " ");
+//			}
+//			System.out.println();
+//		}
 ////		
-		displayTableContent(strTableName);
+	//	displayTableContent(strTableName);
 	}
 
 	public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException {
@@ -4247,10 +4262,10 @@ dbApp.checkpolygon();
 //		htblColNameType.put("gpa", "java.lang.Double");
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
-//		dbApp.createTable(strTableName, "id", htblColNameType);
+	//	dbApp.createTable(strTableName, "id", htblColNameType);
 
 		// 
-		// dbApp.createRTreeIndex(strTableName, "shape");
+	//	 dbApp.createBTreeIndex(strTableName, "id");
 
 //	dbApp.makeIndexed(strTableName, "name");
 
@@ -4265,7 +4280,7 @@ dbApp.checkpolygon();
 //
 
 		Hashtable htblColNameValue = new Hashtable();
-		htblColNameValue.put("id", new Integer(3));
+		htblColNameValue.put("id", new Integer(5));
 		htblColNameValue.put("name", new String("Ab"));
 
 
@@ -4288,7 +4303,8 @@ dbApp.checkpolygon();
 //	htblColNameValue.put("shape", p);
 //	
 
-//	 dbApp.insertIntoTable(strTableName, htblColNameValue);
+	 dbApp.insertIntoTable(strTableName, htblColNameValue);
+	//	dbApp.deleteFromTable(strTableName, htblColNameValue);
 
 //	 dbApp.createBTreeIndex(strTableName, "id");
 //	 
@@ -4357,7 +4373,7 @@ dbApp.checkpolygon();
 //
 //		BTree a = (BTree) (getDeserlaized("data//" + "BTree" + strTableName + "id" + ".class"));
 //		System.out.println(a.toString());
-//
+
 //		ReferenceValues ref = (ReferenceValues) a.search(0);
 //		for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
 //			OverflowNode b = ref.getOverflowNodes().get(i);
@@ -4541,7 +4557,7 @@ dbApp.checkpolygon();
 
 //	dbApp.checkTree();
 
-//		displayTableContent(strTableName);
+		displayTableContent(strTableName);
 
 //	long modified = dbApp.modifyKey(new Integer(30));
 //	BTree b = (BTree) getDeserlaized("data//" + "BTreeStudentage" + ".class");
