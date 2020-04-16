@@ -1,7 +1,7 @@
 package eminem;
 
 import java.util.Date;
-import java.util.Iterator;
+import java.util.Hashtable;
 
 import ds.bplus.BTree;
 
@@ -10,7 +10,7 @@ public class DBAppTest {
 	public static void main(String[] args) throws DBAppException {
 		DBApp dbApp = new DBApp();
 		dbApp.init();
-		String strTableName = "IDClustering";
+		String strTableName = "DateTest";
 //		String strTableName = "DoubleIndex";
 
 //create table tests
@@ -36,10 +36,10 @@ public class DBAppTest {
 
 //		for (int i = 0; i < 210; i++) {
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(5));
+//		htblColNameValue.put("id", new Integer(7));
 //		htblColNameValue.put("name", new String("g"));
 //		htblColNameValue.put("age", new Integer(50));
-//		htblColNameValue.put("date", new Date(2020, 5, 23));
+//		htblColNameValue.put("date", new Date(3000, 6, 10));
 //////		System.out.println((new Date(2020, 11, 11).getClass()));
 //////		System.out.println((new Date(2020, 11, 11)).toString());
 //
@@ -67,25 +67,25 @@ public class DBAppTest {
 //		hash.put("shape", p);
 //
 //		hash.put("age", new Integer(99));
-//		hash.put("name", new String("abc"));
+//		hash.put("name", new String("b"));
 //		////// hash.put("gpa", new Double(0.6));
-//		hash.put("date", new Date(2020 - 02 - 3));
-
-//		 dbApp.updateTable(strTableName, "(2,1),(4,5)", hash);
-
-		try {
-//			dbApp.createBTreeIndex(strTableName, "date");
-//			dbApp.createRTreeIndex(strTableName, "shape");
-////
-			BTree a = (BTree) (dbApp.getDeserlaized("data//" + "BTree" + strTableName + "date" + ".class"));
-			System.out.println(a.toString());
-			a.serializeTree();
-//			RTree r = (RTree) (dbApp.getDeserlaized("data//" + "RTree" + strTableName + "shape" + ".class"));
-//			System.out.println(r.toString());
-//			r.serializeTree();
-		} catch (Exception e) {
-			System.out.println("error");
-		}
+//		hash.put("date", new Date(1020, 06, 23));
+//
+//		 dbApp.updateTable(strTableName, "6", hash);
+//
+//		try {
+////			dbApp.createBTreeIndex(strTableName, "date");
+//////			dbApp.createRTreeIndex(strTableName, "shape");
+////////
+//			BTree a = (BTree) (dbApp.getDeserlaized("data//" + "BTree" + strTableName + "date" + ".class"));
+//			System.out.println(a.toString());
+//			a.serializeTree();
+////////			RTree r = (RTree) (dbApp.getDeserlaized("data//" + "RTree" + strTableName + "shape" + ".class"));
+////////			System.out.println(r.toString());
+////////			r.serializeTree();
+//	} catch (Exception e) {
+//			System.out.println("error");
+//		}
 
 //select tests
 //		Polygon p = new Polygon();
