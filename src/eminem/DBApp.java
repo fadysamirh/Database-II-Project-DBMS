@@ -199,12 +199,12 @@ public class DBApp {
 		Table toBeInstertedIn = (Table) getDeserlaized("data//" + strTableName + ".class");
 		int start = 0;
 		for (int i = 0; i < toBeInstertedIn.usedPagesNames.size(); i++) {
-			if (toBeInstertedIn.usedPagesNames.get(i).equals(pageName)) {
+			String pageNameCompare=toBeInstertedIn.usedPagesNames.get(i)+" ";
+			if (pageNameCompare.contains(pageName)) {
 				start = i;
 				break;
 			}
 		}
-		System.out.println(toBeInstertedIn.usedPagesNames.get(0));
 		for (int i = start; i < toBeInstertedIn.usedPagesNames.size(); i++) {
 			Page pageToBeInstertedIn = (Page) (getDeserlaized(
 					"data//" + toBeInstertedIn.usedPagesNames.get(i) + ".class"));
@@ -217,6 +217,10 @@ public class DBApp {
 
 			if (i == 0 && (compare2 >= 0)) {
 				page = 0;
+				break;
+			}
+			if (compare1 >= 0 && compare2 >= 0) {
+				page = i;
 				break;
 			}
 			if (compare1 >= 0 && compare2 <= 0) {
@@ -341,6 +345,7 @@ public class DBApp {
 							String pagebyindex = getPage(a, nTuple);
 							page = neededPage(pagebyindex, strTableName, nTuple);
 							// System.out.println(pagebyindex+" here");
+	                   System.out.println("page from btree: "+pagebyindex + ", page from neededpage: "+page);
 						}
 						if (toBeInstertedIn.usedRtreeCols.contains(colname)) {
 							int i = toBeInstertedIn.usedRtreeCols.indexOf(colname);
@@ -368,6 +373,10 @@ public class DBApp {
 						// System.out.println(compare2);
 						if (i == 0 && (compare2 >= 0)) {
 							page = 0;
+							break;
+						}
+						if (compare1 >= 0 && compare2 >= 0) {
+							page = i;
 							break;
 						}
 						if (compare1 >= 0 && compare2 <= 0) {
@@ -403,7 +412,11 @@ public class DBApp {
 								String colName = toBeInstertedIn.usedIndicescols.elementAt(i);
 								int colIndex = columns.indexOf(colName);
 								Object key = nTuple.vtrTupleObj.get(colIndex);
-
+                                System.out.println(key +" in page "+ page);
+                                if(toBeInstertedIn.usedPagesNames.size()==page)
+                                {
+                                	toBeInstertedIn.createPage();
+                                }
 								toUpdate.insert((Comparable) key, toBeInstertedIn.usedPagesNames.get(page));
 
 								toUpdate.serializeTree();
@@ -418,7 +431,10 @@ public class DBApp {
 								String colName = toBeInstertedIn.usedRtreeCols.elementAt(i);
 								int colIndex = columns.indexOf(colName);
 								Object key = nTuple.vtrTupleObj.get(colIndex);
-
+								 if(toBeInstertedIn.usedPagesNames.size()==page)
+	                                {
+	                                	toBeInstertedIn.createPage();
+	                                }
 								toUpdate.insert((Polygon) key, toBeInstertedIn.usedPagesNames.get(page));
 
 								toUpdate.serializeTree();
@@ -940,13 +956,33 @@ public class DBApp {
 
 		// System.out.println(pageToBeInstertedInIndex + " this is the index");
 		ArrayList<String> listOfAvailableIndices = getListOfIndicesNames(htblColNameValue, strTableName);
+		
+		System.out.println(listOfAvailableIndices.toString());
 		ArrayList<String> listOfRTreeNames = getListRTreeNames(htblColNameValue, strTableName);
+		boolean flagBtree=false;
+		for(int i=0;i<listOfAvailableIndices.size();i++) {
+			if(htblColNameValue.containsKey(listOfAvailableIndices.get(i))) {
+				flagBtree=true;
+				break;
+			}
+				
+		}
+		boolean flagRtree=false;
+		for(int i=0;i<listOfRTreeNames.size();i++) {
+			if(htblColNameValue.containsKey(listOfRTreeNames.get(i))) {
+				flagRtree=true;
+				break;
+			}
+				
+		}
+		
 //		System.out.println(listOfAvailableIndices.size());
 //		System.out.println(listOfRTreeNames.size());
 		boolean flag2 = false;
 		int i = 0;
 		int[] compareTuple = getDeleteIndexOfArray(dTupleArray);
-		if (listOfAvailableIndices.isEmpty() && listOfRTreeNames.isEmpty()) {
+		if (listOfAvailableIndices.isEmpty()&&listOfRTreeNames.isEmpty()) {
+			
 			for (i = 0; i < newTable.usedPagesNames.size(); i++) {
 
 				Page pageToBeDeleteFrom = (Page) (getDeserlaized("data//" + newTable.usedPagesNames.get(i) + ".class"));
@@ -987,8 +1023,29 @@ public class DBApp {
 
 						}
 						if (flag) {
-
-							tuples.remove(j);
+							
+							Tuple removedTuple=tuples.remove(j);
+							
+							ArrayList <String> columnNames= getColNames(strTableName);
+							for(int u=0;u<columnNames.size();u++) {
+								if(isIndexed(strTableName, columnNames.get(u))) {
+									if(removedTuple.vtrTupleObj.get(u) instanceof Polygon) {
+										RTree r = (RTree) getDeserlaized("data//" + "RTree"+strTableName+columnNames.get(u) + ".class"); 
+										r.delete((Polygon)removedTuple.vtrTupleObj.get(u), newTable.usedPagesNames.get(i));
+										r.serializeTree();
+										System.out.println("No");
+									}
+									else {
+										System.out.println("yes");
+										
+										BTree b = (BTree) getDeserlaized("data//" + "BTree"+strTableName+columnNames.get(u) + ".class"); 
+//										System.out.println(b.toString());
+										b.delete((Comparable)removedTuple.vtrTupleObj.get(u), newTable.usedPagesNames.get(i));
+										b.serializeTree();
+//										System.out.println(b.toString());
+									}
+								}
+							}
 							
 							j--;
 							if (tuples.size() == 0) {
@@ -1046,7 +1103,22 @@ public class DBApp {
 
 						if (flag) {
 
-							tuples.remove(j);
+							Tuple removedTuple=tuples.remove(j);
+							ArrayList <String> columnNames= getColNames(strTableName);
+							for(int u=0;u<columnNames.size();u++) {
+								if(isIndexed(strTableName, columnNames.get(u))) {
+									if(removedTuple.vtrTupleObj.get(u) instanceof Polygon) {
+										RTree r = (RTree) getDeserlaized("data//" + "RTree"+strTableName+columnNames.get(u) + ".class"); 
+										r.delete((Polygon)removedTuple.vtrTupleObj.get(u), newTable.usedPagesNames.get(i));
+										r.serializeTree();
+									}
+									else {
+										BTree b = (BTree) getDeserlaized("data//" + "BTree"+strTableName+columnNames.get(u) + ".class"); 
+										b.delete((Comparable)removedTuple.vtrTupleObj.get(u), newTable.usedPagesNames.get(i));
+										b.serializeTree();
+									}
+								}
+							}
 
 							j--;
 							if (tuples.size() == 0) {
@@ -1086,7 +1158,6 @@ public class DBApp {
 
 			}
 		} else {
-		
 			ArrayList<Integer> listOfColNum = new ArrayList<Integer>();
 
 			for (int k = 0; k < listOfAvailableIndices.size(); k++) {
@@ -1146,23 +1217,23 @@ public class DBApp {
 			for (int k = 0; k < listOfColNumRtree.size(); k++) { // looping over col that has an rtree
 
 				if (dTupleArray[listOfColNumRtree.get(k)] != null) {
-
+//***********listOfColName.get(listOfColNumRtree.get(k))
 					RTree rtree = (RTree) getDeserlaized("data//" + "RTree" + strTableName
-							+ listOfRTreeNames.get(listOfColNumRtree.get(k)) + ".class");
-
-					ReferenceValues ref = (ReferenceValues) rtree
+							+ listOfColName.get(listOfColNumRtree.get(k)) + ".class");
+//***********RTreeReferenceValues
+					RTreeReferenceValues ref = (RTreeReferenceValues) rtree
 							.search((Polygon) dTupleArray[listOfColNumRtree.get(k)]);
 					if (ref == null) {
 						throw new DBAppException("No matching records found");
 					}
-
-					ArrayList<OverflowNode> lstofn = ref.getOverflowNodes(); // getting list of overflow nodes
+//******** RTreeOverflow
+					ArrayList<RTreeOverflowNode> lstofn = ref.getRTreeOverflowNodes(); // getting list of overflow nodes
 
 					ArrayList<String> listOfFlattenReference = new ArrayList<String>();
 
 					// code for flattening
 					for (int j = 0; j < lstofn.size(); j++) {
-						OverflowNode ofn = lstofn.get(j);
+						RTreeOverflowNode ofn = lstofn.get(j);
 						for (int m = 0; m < ofn.referenceOfKeys.size(); m++) {
 							// System.out.println(ofn.referenceOfKeys.get(m));
 							String reference = (ofn.referenceOfKeys.get(m)).toString();
@@ -1178,6 +1249,14 @@ public class DBApp {
 				}
 			}
 			intersect = removeDuplicates(intersect);
+			boolean intersectEmpty=intersect.isEmpty()?true:false;
+			if(intersectEmpty) {
+				for(int s=0;s<usedPages.size();s++) {
+					intersect.add(usedPages.get(s));
+					System.out.println("here");
+				}
+			}
+			
 			for (i = 0; i < intersect.size(); i++) {
 				System.out.println(intersect.get(i));
 				Page pageToBeDeleteFrom = (Page) (getDeserlaized("data//" + intersect.get(i) + ".class"));
@@ -1211,7 +1290,7 @@ public class DBApp {
 					if (flag) {
 
 						Tuple deletedT = tuples.remove(j);
-						for (int p = 0; p < deletedT.vtrTupleObj.capacity(); p++) {
+						for (int p = 0; p < deletedT.vtrTupleObj.size(); p++) {
 							if (listOfColNum.contains(p) && !(deletedT.vtrTupleObj.get(p) instanceof Polygon)) {
 								String colName = getColNames(strTableName).get(p);
 								BTree btree = (BTree) getDeserlaized(
@@ -1278,7 +1357,6 @@ public class DBApp {
 		}
 
 	}
-
 	public ArrayList<String> intersection(ArrayList<String> list1, ArrayList<String> list2) {
 		ArrayList<String> list = new ArrayList<String>();
 
@@ -4064,36 +4142,38 @@ public class DBApp {
 	}
 
 	public void checkpolygon() throws DBAppException, IOException {
-		String strTableName = "J";
+		String strTableName = "Student";
 		Hashtable<String, String> htblColNameType = new Hashtable();
 		htblColNameType.put("id", "java.lang.Integer");
 		htblColNameType.put("name", "java.lang.String");
+//		htblColNameType.put("n", "java.lang.String");
 //		htblColNameType.put("shape", "java.awt.Polygon");
-//		htblColNameType.put("poly", "java.awt.Polygon");
+////		htblColNameType.put("poly", "java.awt.Polygon");
 //		createTable(strTableName, "id", htblColNameType);
-//
-//		for (int i = 0; i < 13; i++) {
-//			Hashtable htblColNameValue = new Hashtable();
-//			htblColNameValue.put("id", new Integer(i));
-//			htblColNameValue.put("name", new String("Ab"));
-////			Polygon p = new Polygon();
-////			p.addPoint(3,3);
-////			p.addPoint(20-i, 20-i);
-////			htblColNameValue.put("shape", p);
-////			Polygon p2 = new Polygon();
-////			p2.addPoint(2,2);
-////			p2.addPoint(i, i);
-////			htblColNameValue.put("poly", p2);
+//////
+		for (int i = 0; i < 13; i++) {
+			Hashtable htblColNameValue = new Hashtable();
+			htblColNameValue.put("id", new Integer(i));
+			htblColNameValue.put("name", new String("Ab"));
+//			htblColNameValue.put("n", new String("C"));
+//			Polygon p = new Polygon();
+//			p.addPoint(3,3);
+//			p.addPoint(20,20);
+//			htblColNameValue.put("shape", p);
+//			Polygon p2 = new Polygon();
+//			p2.addPoint(2,2);
+//			p2.addPoint(i, i);
+//			htblColNameValue.put("poly", p2);
 //			insertIntoTable(strTableName, htblColNameValue);
-//		}
+		}
 
 		Hashtable<String, Object> htblColNameValue = new Hashtable();
 //		Polygon pol = new Polygon();
-//		pol.addPoint(1,1);
 //		pol.addPoint(3,3);
+//		pol.addPoint(20,20);
 //		htblColNameValue.put("shape", pol);
-		htblColNameValue.put("id", 12);
-		htblColNameValue.put("name", "Ab");
+//		htblColNameValue.put("id", 2);
+		htblColNameValue.put("name", "Ab9");
 //		deleteFromTable(strTableName, htblColNameValue);
 
 //		Hashtable hash = new Hashtable();
@@ -4117,24 +4197,24 @@ public class DBApp {
 ////		htblColNameValue.put("poly", p2);
 //		insertIntoTable(strTableName, htblColNameValue);
 ////	
-//		if(true) {
-//			
-//		RTree rt= (RTree) getDeserlaized("data//" + "RTree"+strTableName+"shape" + ".class");
-//		System.out.println(rt.treeName);
-//		System.out.println(rt.toString());
-//		
-//		Polygon p = new Polygon();
-//		p.addPoint(1,1);
-//		p.addPoint(0,0);
-//		 RTreeReferenceValues ref = (RTreeReferenceValues) rt.search(p);
-//			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
-//			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
-//			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
-//				System.out.print(b.referenceOfKeys.get(j) + " ");
-//			}
-//			System.out.println();
-//		}
-//		}
+		if(false) {
+			
+		RTree rt= (RTree) getDeserlaized("data//" + "RTree"+strTableName+"shape" + ".class");
+		System.out.println(rt.treeName);
+		System.out.println(rt.toString());
+		
+		Polygon p = new Polygon();
+		p.addPoint(3,3);
+		p.addPoint(1,1);
+		 RTreeReferenceValues ref = (RTreeReferenceValues) rt.search(p);
+			for (int i = 0; i < ref.getRTreeOverflowNodes().size(); i++) {
+			RTreeOverflowNode b = ref.getRTreeOverflowNodes().get(i);
+			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
+				System.out.print(b.referenceOfKeys.get(j) + " ");
+			}
+			System.out.println();
+		}
+		}
 //		RTree rt= (RTree) getDeserlaized("data//" + "RTree"+strTableName+"poly" + ".class");
 //		System.out.println(rt.treeName);
 //		System.out.println(rt.toString());
@@ -4153,7 +4233,7 @@ public class DBApp {
 
 //		BTree bt= (BTree) getDeserlaized("data//" + "BTree"+strTableName+"id" + ".class");
 //		System.out.println(bt.toString());
-//		ReferenceValues ref = (ReferenceValues) bt.search(7);
+//		ReferenceValues ref = (ReferenceValues) bt.search(10);
 //			for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
 //			OverflowNode b = ref.getOverflowNodes().get(i);
 //			for (int j = 0; j < b.referenceOfKeys.size(); j++) {
@@ -4162,7 +4242,7 @@ public class DBApp {
 //			System.out.println();
 //		}
 ////		
-//		displayTableContent(strTableName);
+	//	displayTableContent(strTableName);
 	}
 
 	public static void main(String[] args) throws FileNotFoundException, DBAppException, IOException {
@@ -4172,7 +4252,7 @@ public class DBApp {
 //    System.out.println(dbApp.maxPageSize);
 		String strTableName = "Student";
 
-//dbApp.checkpolygon();
+dbApp.checkpolygon();
 //*create table*
 		Hashtable<String, String> htblColNameType = new Hashtable();
 		htblColNameType.put("id", "java.lang.Integer");
@@ -4182,10 +4262,10 @@ public class DBApp {
 //		htblColNameType.put("gpa", "java.lang.Double");
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
-		dbApp.createTable(strTableName, "id", htblColNameType);
+	//	dbApp.createTable(strTableName, "id", htblColNameType);
 
 		// 
-		// dbApp.createRTreeIndex(strTableName, "shape");
+	//	 dbApp.createBTreeIndex(strTableName, "id");
 
 //	dbApp.makeIndexed(strTableName, "name");
 
@@ -4200,7 +4280,7 @@ public class DBApp {
 //
 
 		Hashtable htblColNameValue = new Hashtable();
-		htblColNameValue.put("id", new Integer(3));
+		htblColNameValue.put("id", new Integer(5));
 		htblColNameValue.put("name", new String("Ab"));
 
 
@@ -4222,9 +4302,11 @@ public class DBApp {
 //////		 System.out.println("n:"+p.npoints);
 //	htblColNameValue.put("shape", p);
 //	
+
 	 dbApp.insertIntoTable(strTableName, htblColNameValue);
-	 
-	 dbApp.createBTreeIndex(strTableName, "id");
+	//	dbApp.deleteFromTable(strTableName, htblColNameValue);
+
+//	 dbApp.createBTreeIndex(strTableName, "id");
 //	 
 //		RTree a = (RTree) (getDeserlaized("data//" + "RTree" + strTableName + "shape" + ".class"));
 //		System.out.println(a.toString());
@@ -4291,7 +4373,7 @@ public class DBApp {
 //
 //		BTree a = (BTree) (getDeserlaized("data//" + "BTree" + strTableName + "id" + ".class"));
 //		System.out.println(a.toString());
-//
+
 //		ReferenceValues ref = (ReferenceValues) a.search(0);
 //		for (int i = 0; i < ref.getOverflowNodes().size(); i++) {
 //			OverflowNode b = ref.getOverflowNodes().get(i);
@@ -4373,18 +4455,24 @@ public class DBApp {
 //
 //	
 //*delete tuples*
-//	Hashtable<String, Object> htblColNameValue1 = new Hashtable();
+	Hashtable<String, Object> htblColNameValue1 = new Hashtable();
 //htblColNameValue1.put("id", 3);
-//	htblColNameValue1.put("name", "Ab");
+	htblColNameValue1.put("name", "Ab");
 //	htblColNameValue.put("gpa", 2.0);
 //	htblColNameValue.put("date", new Date(2000, 11, 23));
 //	Polygon p = new Polygon();
 //	p.addPoint(1, 1);
 //	p.addPoint(2, 2);
 //	htblColNameValue.put("shape", p);
+//	BTree b = (BTree) getDeserlaized("data//" + "BTreeStudentid" + ".class");
+//	System.out.println(b.toString());
 
 //	dbApp.insertIntoTable(strTableName, htblColNameValue);
-	dbApp.deleteFromTable(strTableName, htblColNameValue);
+
+//	dbApp.deleteFromTable(strTableName, htblColNameValue1);
+//	BTree b1 = (BTree) getDeserlaized("data//" + "BTreeStudentid" + ".class");
+//	System.out.println(b1.toString());
+
 
 //	Page pageToBeDeleteFrom = (Page) (getDeserlaized(
 //			"data//Student0.class"));
@@ -4469,7 +4557,7 @@ public class DBApp {
 
 //	dbApp.checkTree();
 
-//		displayTableContent(strTableName);
+		displayTableContent(strTableName);
 
 //	long modified = dbApp.modifyKey(new Integer(30));
 //	BTree b = (BTree) getDeserlaized("data//" + "BTreeStudentage" + ".class");
