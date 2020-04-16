@@ -1332,6 +1332,7 @@ public class DBApp {
 								}
 							}
 
+
 //							Path path= Paths.get("data//" + intersect.get(i) + ".class");
 //							Files.delete(path);
 
@@ -1346,6 +1347,7 @@ public class DBApp {
 ////								System.out.println(intersect.get(i)+"]]]]]]][[[[[[[[  " +j);
 //								System.out.println("Failed to delete the file");
 //							}
+
 
 							i--;
 
@@ -1758,9 +1760,12 @@ public class DBApp {
 
 						} else
 							parsed = old.vtrTupleObj.get(old.index) + ""; // polyyy
-//						 System.out.println(parsed);
+//						System.out.println(parsed);
 //						System.out.println(parsed.equals(strClusteringKey + ""));
-						// System.out.println(enteredKey);
+//						System.out.println(strClusteringKey + "");
+						if ((enteredKey.getClass() + "").contains("java.util.Date")) {
+							strClusteringKey = enteredKey + "";
+						}
 						if (parsed.equals(strClusteringKey + "") || equalArea) { // in case of polygon parsed and
 																					// strClusteringKey will have same
 																					// area not coordinates
@@ -1774,6 +1779,7 @@ public class DBApp {
 								String col = colToBeUpdated.get(i);
 								for (int j = 0; j < colNames.size(); j++) {
 									if (colNames.get(j).equals(col)) {
+
 										if (isIndexed(strTableName, colNames.get(j))) {
 											if (toBeUpdatedIn.usedIndicescols.contains(col)) {
 												BTree bt = (BTree) getDeserlaized(
@@ -1856,6 +1862,9 @@ public class DBApp {
 //										System.out.println(k.equals(strClusteringKey) +"  "+nextEqualArea +"  "+next);
 									} else
 										k = nextTup.vtrTupleObj.get(indexKeyOfFirst) + "";// polyyy
+									if ((enteredKey.getClass() + "").contains("java.util.Date")) {
+										strClusteringKey = enteredKey + "";
+									}
 									if (k.equals(strClusteringKey) || nextEqualArea) {
 										for (int i = 0; i < colToBeUpdated.size(); i++) {
 											if (nextEqualArea && !k.equals(strClusteringKey + "")) {
@@ -4291,11 +4300,13 @@ public class DBApp {
 //		htblColNameType.put("gpa", "java.lang.Double");
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
+
 		dbApp.createTable(strTableName, "id", htblColNameType);
 
 		//
 		dbApp.createBTreeIndex(strTableName, "id");
 		dbApp.createBTreeIndex(strTableName, "age");
+
 
 //	dbApp.makeIndexed(strTableName, "name");
 
@@ -4306,6 +4317,7 @@ public class DBApp {
 
 //* insert tuples*
 
+
 		for (int i = 0; i < 9; i++) {
 
 			Hashtable htblColNameValue = new Hashtable();
@@ -4314,6 +4326,7 @@ public class DBApp {
 			htblColNameValue.put("age", i * 10);
 			dbApp.insertIntoTable(strTableName, htblColNameValue);
 		}
+
 //	htblColNameValue.put("age", new Integer(25));
 //	htblColNameValue.put("date", new Date(2000, 11, 23));
 ////////		System.out.println((new Date(2020, 11, 11).getClass()));
@@ -4332,6 +4345,7 @@ public class DBApp {
 //////		 System.out.println("n:"+p.npoints);
 //	htblColNameValue.put("shape", p);
 //	
+
 
 		// dbApp.deleteFromTable(strTableName, htblColNameValue);
 
@@ -4485,9 +4499,11 @@ public class DBApp {
 //	
 //*delete tuples*
 		Hashtable<String, Object> htblColNameValue1 = new Hashtable();
+
 		htblColNameValue1.put("id", 8);
 
 //	htblColNameValue1.put("name", "Ab");
+
 //	htblColNameValue.put("gpa", 2.0);
 //	htblColNameValue.put("date", new Date(2000, 11, 23));
 //	Polygon p = new Polygon();

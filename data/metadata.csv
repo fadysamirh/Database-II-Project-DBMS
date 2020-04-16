@@ -1,5 +1,12 @@
 Table Name, Column Name, Column Type, ClusteringKey, Indexed,
+<<<<<<< HEAD
 Student,TouchDate,java.util.Date,false,false,
 Student,age,java.lang.Integer,false,true,
 Student,name,java.lang.String,false,false,
 Student,id,java.lang.Integer,true,true,
+=======
+DateTest,TouchDate,java.util.Date,false,false,
+DateTest,date,java.util.Date,false,true,
+DateTest,name,java.lang.String,false,false,
+DateTest,id,java.lang.Integer,true,false,
+>>>>>>> c3d759ce8e7deb9a1ae4714e39a66049ba04f580
