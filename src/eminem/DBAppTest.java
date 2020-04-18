@@ -10,7 +10,7 @@ public class DBAppTest {
 	public static void main(String[] args) throws DBAppException {
 		DBApp dbApp = new DBApp();
 		dbApp.init();
-		String strTableName = "DateTest";
+		String strTableName = "Student";
 //		String strTableName = "DoubleIndex";
 
 //create table tests
@@ -36,7 +36,7 @@ public class DBAppTest {
 
 //		for (int i = 0; i < 210; i++) {
 //		Hashtable htblColNameValue = new Hashtable();
-//		htblColNameValue.put("id", new Integer(7));
+//		htblColNameValue.put("id", new Integer(9));
 //		htblColNameValue.put("name", new String("g"));
 //		htblColNameValue.put("age", new Integer(50));
 //		htblColNameValue.put("date", new Date(3000, 6, 10));
@@ -59,19 +59,19 @@ public class DBAppTest {
 //		}
 
 		// update tests
-//		Hashtable<String, Object> hash = new Hashtable();
+		Hashtable<String, Object> hash = new Hashtable();
 //
 //		Polygon p = new Polygon();
 //		p.addPoint(2, 1);
 //		p.addPoint(4, 5);
 //		hash.put("shape", p);
 //
-//		hash.put("age", new Integer(99));
-//		hash.put("name", new String("b"));
+		hash.put("age", new Integer(99));
+		hash.put("name", new String("c"));
 //		////// hash.put("gpa", new Double(0.6));
 //		hash.put("date", new Date(1020, 06, 23));
 //
-//		 dbApp.updateTable(strTableName, "6", hash);
+		 dbApp.updateTable(strTableName, "8", hash);
 //
 //		try {
 ////			dbApp.createBTreeIndex(strTableName, "date");
