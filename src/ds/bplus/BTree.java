@@ -246,7 +246,7 @@ public class BTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 		}
 		ref.sort(null);
 		if (ref.size() != 0) {
-			String temp = ref.get(ref.size() - 1);
+			String temp = ref.get(0);
 			ref.clear();
 			ref.add(temp);
 		}
@@ -295,7 +295,7 @@ public class BTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 		}
 		ref.sort(null);
 		if (ref.size() != 0) {
-			String temp = ref.get(ref.size() - 1);
+			String temp = ref.get(0);
 			ref.clear();
 			ref.add(temp);
 		}

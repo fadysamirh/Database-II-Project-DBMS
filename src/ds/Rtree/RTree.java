@@ -285,7 +285,7 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 		}
 		ref.sort(null);
 		if (ref.size() != 0) {
-			String temp = ref.get(ref.size() - 1);
+			String temp = ref.get(0);
 			ref.clear();
 			ref.add(temp);
 		}
@@ -337,9 +337,9 @@ public class RTree<TKey extends Comparable<TKey>, TValue> implements Serializabl
 		}
 		ref.sort(null);
 		if (ref.size() != 0) {
-			String temp = ref.get(ref.size() - 1);
+			String temp = ref.get(0);
 			ref.clear();
-			System.out.println(temp);
+	//		System.out.println(temp);
 			ref.add(temp);
 		}
 

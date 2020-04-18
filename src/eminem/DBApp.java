@@ -4316,10 +4316,13 @@ public class DBApp {
 //		htblColNameType.put("shape", "java.awt.Polygon");
 //		htblColNameType.put("grad", "java.lang.Boolean");
 
-		dbApp.createTable(strTableName, "id", htblColNameType);
+	//	dbApp.createTable(strTableName, "id", htblColNameType);
 
 		//
-//		dbApp.createBTreeIndex(strTableName, "id");
+	//
+		//
+	//
+	//	dbApp.createBTreeIndex(strTableName, "id");
 //		dbApp.createBTreeIndex(strTableName, "age");
 
 //	dbApp.makeIndexed(strTableName, "name");
@@ -4331,14 +4334,14 @@ public class DBApp {
 
 //* insert tuples*
 
-		for (int i = 0; i < 9; i++) {
+//		for (int i = 0; i < 9; i++) {
 
 			Hashtable htblColNameValue = new Hashtable();
-			htblColNameValue.put("id", new Integer(i));
+			htblColNameValue.put("id", new Integer(2));
 			htblColNameValue.put("name", new String("Ab"));
-			htblColNameValue.put("age", i * 10);
+			htblColNameValue.put("age", 3 * 10);
 			dbApp.insertIntoTable(strTableName, htblColNameValue);
-		}
+//		}
 
 //	htblColNameValue.put("age", new Integer(25));
 //	htblColNameValue.put("date", new Date(2000, 11, 23));
@@ -4527,7 +4530,7 @@ public class DBApp {
 
 //	dbApp.insertIntoTable(strTableName, htblColNameValue);
 
-		dbApp.deleteFromTable(strTableName, htblColNameValue1);
+//		dbApp.deleteFromTable(strTableName, htblColNameValue1);
 
 		displayTableContent(strTableName);
 //	BTree b1 = (BTree) getDeserlaized("data//" + "BTreeStudentid" + ".class");
@@ -4616,7 +4619,7 @@ public class DBApp {
 
 //	dbApp.checkTree();
 
-		displayTableContent(strTableName);
+//		displayTableContent(strTableName);
 
 //	long modified = dbApp.modifyKey(new Integer(30));
 //	BTree b = (BTree) getDeserlaized("data//" + "BTreeStudentage" + ".class");
