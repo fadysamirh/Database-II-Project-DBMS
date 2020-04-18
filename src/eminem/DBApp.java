@@ -1058,12 +1058,18 @@ public class DBApp {
 								// delete page and from table
 								File file = new File("data//" + newTable.usedPagesNames.get(i) + ".class");
 
-								if (file.delete()) {
-									newTable.usedPagesNames.remove(i);
-									System.out.println("File deleted successfully");
-								} else {
-									System.out.println("Failed to delete the file");
+								if (!file.delete()) {
+									// wait a bit then retry on Windows
+									if (file.exists()) {
+										for (int s = 0; s < 6; s++) {
+											Thread.sleep(500);
+											System.gc();
+											if (file.delete())
+												break;
+										}
+									}
 								}
+								newTable.usedPagesNames.remove(i);
 
 								i--;
 
@@ -1133,12 +1139,18 @@ public class DBApp {
 								// delete page and from table
 								File file = new File("data//" + newTable.usedPagesNames.get(i) + ".class");
 
-								if (file.delete()) {
-									newTable.usedPagesNames.remove(i);
-									System.out.println("File deleted successfully");
-								} else {
-									System.out.println("Failed to delete the file");
+								if (!file.delete()) {
+									// wait a bit then retry on Windows
+									if (file.exists()) {
+										for (int s = 0; s < 6; s++) {
+											Thread.sleep(500);
+											System.gc();
+											if (file.delete())
+												break;
+										}
+									}
 								}
+								newTable.usedPagesNames.remove(i);
 
 								i--;
 
@@ -1316,9 +1328,11 @@ public class DBApp {
 						}
 
 						j--;
-						
+
 						if (tuples.size() == 0) {
 							// delete page and from table
+
+							// fix hack
 							File file = new File("data//" + intersect.get(i) + ".class");
 							if (!file.delete()) {
 								// wait a bit then retry on Windows
@@ -1332,7 +1346,7 @@ public class DBApp {
 								}
 							}
 
-
+							// not fixed
 //							Path path= Paths.get("data//" + intersect.get(i) + ".class");
 //							Files.delete(path);
 
@@ -1347,7 +1361,6 @@ public class DBApp {
 ////								System.out.println(intersect.get(i)+"]]]]]]][[[[[[[[  " +j);
 //								System.out.println("Failed to delete the file");
 //							}
-
 
 							i--;
 
@@ -4304,9 +4317,8 @@ public class DBApp {
 		dbApp.createTable(strTableName, "id", htblColNameType);
 
 		//
-		dbApp.createBTreeIndex(strTableName, "id");
-		dbApp.createBTreeIndex(strTableName, "age");
-
+//		dbApp.createBTreeIndex(strTableName, "id");
+//		dbApp.createBTreeIndex(strTableName, "age");
 
 //	dbApp.makeIndexed(strTableName, "name");
 
@@ -4316,7 +4328,6 @@ public class DBApp {
 //	System.out.println(a.colNames[2]);
 
 //* insert tuples*
-
 
 		for (int i = 0; i < 9; i++) {
 
@@ -4345,7 +4356,6 @@ public class DBApp {
 //////		 System.out.println("n:"+p.npoints);
 //	htblColNameValue.put("shape", p);
 //	
-
 
 		// dbApp.deleteFromTable(strTableName, htblColNameValue);
 
